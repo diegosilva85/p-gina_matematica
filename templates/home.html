@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATEMÁTICA - EREM JOAQUIM TÁVORA</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<div class="menu">
+    <div class="item" >
+        <h1>Matemática - Joaquim Távora</h1>
+        <h2>Prof. Diego Silva</h2>
+    </div>
+
+        <ul>
+            <li><a >Dados gerais</a>
+                <ul>
+                    {% for class_name, class_url in classes.items() %}
+                        <li><a href="{{ class_url }}">{{ class_name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+
+            <li><a >Busca Individual (Aluno)</a>
+                <ul>
+                    <li>
+
+                    <form action="" method="post">
+                    <input type="text" id="aluno_id_input" name="aluno_id_input" required>
+                    <button name="search" type="submit">Buscar</button>
+                    </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>

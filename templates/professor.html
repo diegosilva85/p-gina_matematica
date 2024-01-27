@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do professor</title>
+    <style>
+        .low_width {
+            display: inline-block;
+            width: 30px;
+        }
+    </style>
+</head>
+<body>
+<form action="" method="post">
+        <label for="Professor">Área do Professor:</label>
+        <input type="text" id ="id_label_01" name="Password" required>
+        <button type="submit">Acessar</button>
+    </form>
+{% if login %}
+<h2>Adicionar aluno:</h2>
+<form action="" method="post">
+    <label for="Id">Aluno:</label>
+    <input type="text" name="Id" required>
+    <label for="Turma" id="label_turma01">Turma:</label>
+    <input type="text" class="low_width" name="class" required>
+    <button name="add" type="submit">Adicionar</button>
+</form>
+<h2>Deletar aluno:</h2>
+<form action="" method="post">
+    <label for="Aluno">Id:</label>
+    <input type="text" class="low_width" id="id_label_03" name="Id" required>
+    <label for="Turma" id="label_turma02">Turma:</label>
+    <input type="text" class="low_width" name="turma" required>
+    <button name="delete" type="submit">Deletar</button>
+</form>
+<h2>Gerar ranking de PM:</h2>
+    <form action="" method="post">
+        <label for="class_id_input">Turma:</label>
+        <input type="text" id="class_id_input" class="low_width" name="class_id_input" required>
+        <button name="update" type="submit">Gerar</button>
+    </form>
+<h2>Gerar Mural:</h2>
+    <form action="" method="post">
+        <label for="provainput">Prova:</label>
+        <input type="text" class="low_width" name="prova_input" required>
+        <label for="mural_id_input">Turma:</label>
+        <input type="text" id="mural_id_input" class="low_width" name="mural_id_input" required>
+        <button name="update" type="submit">Gerar</button>
+    </form>
+<h2>Inserir dados de prova</h2>
+<form action="" method="post">
+    <label for="Prova">Prova:</label>
+    <input type="text" class="low_width" name="prova" required>
+    <label for="Turma" id="label_turma03">Turma:</label>
+    <input type="text" class="low_width" name="turma" required>
+    <button name="start" type="submit">Começar</button>
+</form>
+{% endif %}
+{% if prova %}
+<h2>Acrescentar nota:</h2>
+    <form action="" method="post">
+        <label for="Nota">Nota:</label>
+        <input type="text" class="low_width" name="nota" required>
+        <label for="PM">PM:</label>
+        <input type="text" class="low_width" name="pm" required>
+        <label for="Id">Id:</label>
+        <input type="text" class="low_width" name="id_aluno" required>
+        <button name="update" type="submit">Acrescentar</button>
+    </form>
+
+{% endif %}
+</body>
+</html>

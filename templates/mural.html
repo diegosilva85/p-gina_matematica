@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Mural</h1>
+    <img src="{{ url_for('static', filename=imagem) }}" alt="Mural da Turma" onerror="console.error('Erro ao carregar a imagem:', this.src);">
+</body>
+</html>

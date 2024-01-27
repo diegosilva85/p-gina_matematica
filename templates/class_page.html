@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_name }} Page</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="menu">
+    <table id="desempenho">
+        <tr>
+            <th>DESEMPENHO DA TURMA - {{ class_name }}</th>
+        </tr>
+        {% for i in range(tamanho) %}
+        <tr>
+            <td id="semana" >SEMANA {{ i + 1 }}</td>
+        </tr>
+        <tr>
+            <td>MÉDIA: {{ estatisticas[i][0] }}</td>
+        </tr>
+        <tr>
+            <td>MEDIANA: {{ estatisticas[i][1] }}</td>
+        </tr>
+        <tr>
+            <td>MODA: {{ estatisticas[i][2] }}</td>
+        </tr>
+        <tr>
+            <td>DESVIO-PADRÃO: {{ estatisticas[i][3] }}</td>
+        </tr>
+        {% endfor %}}
+
+    </table>
+
+    <table>
+            <tr>
+                <th>Id</th>
+                <th>Aluno</th>
+                <th>1°</th>
+                <th>2°</th>
+                <th>3°</th>
+                <th>4°</th>
+                <th>5°</th>
+                <th>6°</th>
+                <th>7°</th>
+                <th>8°</th>
+                <th>PM</th>
+            </tr>
+            {% for row in data %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                    <td>{{ row[5] }}</td>
+                    <td>{{ row[6] }}</td>
+                    <td>{{ row[7] }}</td>
+                    <td>{{ row[8] }}</td>
+                    <td>{{ row[9] }}</td>
+                    <td>{{ row[10] }}</td>
+                    <!-- Add more cells if needed -->
+                </tr>
+            {% endfor %}
+        </table>
+</div>
+<!-- Content for the specific class page -->
+
+</body>
+</html>
