@@ -7,9 +7,8 @@ from scipy.stats import mode
 import os
 
 app = Flask(__name__)
-# senha = os.environ.get("senha_professor").strip("")
-senha = "kie)15,7tgd"
-print(senha)
+senha = os.environ.get("senha_professor").strip("")
+
 database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
 

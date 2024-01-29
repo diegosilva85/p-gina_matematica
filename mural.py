@@ -2,25 +2,31 @@ import os
 
 from PIL import Image, ImageFont, ImageDraw
 
+font_caminho = "./fonts/LiberationSans-Regular.ttf"
+
 
 class Mural:
-    def __init__(self, turma: str, prova: str, media: float, moda: int, mediana: float, desvio: float, pm: float, ouro: list,
+    def __init__(self, turma: str, prova: str, media: float, moda: int, mediana: float, desvio: float, pm: float,
+                 ouro: list,
                  prata: list, bronze: list):
         self.mural = Image.open("./static/Mural.png")
         draw = ImageDraw.Draw(self.mural)
-        font = ImageFont.truetype(font="arial.ttf", size=24)
+        font = ImageFont.truetype(font=font_caminho, size=24)
         header = f'MURAL {turma.upper()}'
+        # Escreve o Cabeçalho
         draw.text((400, 20), header, fill='black', font=font)
         draw.text((390, 50), text=f"{prova}º SEMANA", fill='black', font=font)
-        x_feedback = 680
+        x_feedback = 640
         y_feedback = 110
+        # Escreve as estatísticas
         draw.text((x_feedback, y_feedback), text='DESEMPENHO DA TURMA', fill='black', font=font)
         draw.text((x_feedback, y_feedback + 30), text=f"MÉDIA = {media}", fill='black', font=font)
         draw.text((x_feedback, y_feedback + 60), text=f"MODA = {moda}", fill='black', font=font)
         draw.text((x_feedback, y_feedback + 90), text=f"MEDIANA = {mediana}", fill='black', font=font)
         draw.text((x_feedback, y_feedback + 120), text=f"DESVIO-PADRÃO = {desvio}", fill='black', font=font)
         draw.text((x_feedback, y_feedback + 150), text=f"PM MÉDIO = {pm}", fill='black', font=font)
-        draw.line([(670, 100), (950, 100), (950, 290), (670, 290), (670, 100)], fill='black', width=2)
+        draw.line([(x_feedback - 10, 100), (950, 100), (950, 290), (x_feedback - 10, 290), (x_feedback - 10, 100)],
+                  fill='black', width=2)
         x_top, y_top = 10, 10
         x_bottom, y_bottom = 973, 952
         draw.line([(x_top, y_top), (x_bottom, y_top), (x_bottom, y_bottom), (x_top, y_bottom), (x_top, y_top)],
