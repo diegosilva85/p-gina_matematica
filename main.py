@@ -4,12 +4,13 @@ from flask import Flask, render_template, request, redirect, url_for
 from mural import Mural
 import numpy as np
 from scipy.stats import mode
+import os
 
 app = Flask(__name__)
-
+senha = os.environ.get("senha_professor").strip("")
+print(senha)
 database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
-numeros = [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 def db_connection(function):  # Decorator Function to handle connections with the database
@@ -95,11 +96,11 @@ def update_entry(conn, cursor, prova, pm, nota, id_aluno, turma):
 
 @app.route('/professor', methods=['GET', 'POST'])
 def professor():
-    global login, prova, nota, turma, pm, id_aluno, id_class
+    global login, prova, nota, turma, pm, id_aluno, id_class, senha
     if request.method == 'POST':
         if 'Password' in request.form:
             password = request.form['Password']
-            if password == 'kie)15,7tgd':
+            if password == senha:
                 login = True
     if 'add' in request.form:
         aluno = request.form['Id']
@@ -191,8 +192,8 @@ def class_page(class_name):
     cursor.execute(f'SELECT * FROM {table}')
     data = cursor.fetchall()
     lista_de_provas = []
-    for numero in numeros:
-        cursor.execute(f'SELECT prova{str(numero)} FROM {table}')
+    for i in range(1, 9):
+        cursor.execute(f'SELECT prova{str(i)} FROM {table}')
         notas = cursor.fetchall()
         notas_validas = [item[0] for item in notas if item[0] is not None]
         if notas_validas:
