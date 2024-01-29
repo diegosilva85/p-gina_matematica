@@ -7,7 +7,8 @@ from scipy.stats import mode
 import os
 
 app = Flask(__name__)
-senha = os.environ.get("senha_professor").strip("")
+# senha = os.environ.get("senha_professor").strip("")
+senha = "kie)15,7tgd"
 print(senha)
 database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
@@ -89,7 +90,10 @@ def update_entry(conn, cursor, prova, pm, nota, id_aluno, turma):
         turma_update = f'Terceiro_{turma.upper()}'
     cursor.execute(f"SELECT PM FROM {turma_update} WHERE id = ?", (id_aluno,))
     get_pm = cursor.fetchone()
-    pm = int(pm) + get_pm[0]
+    if get_pm[0] is None:
+        pm = int(pm) + 0
+    else:
+        pm = int(pm) + get_pm[0]
     update_query = f"UPDATE {turma_update} SET {num_prova} = ?, PM = ? WHERE id = ?"
     cursor.execute(update_query, (nota, pm, id_aluno))
 

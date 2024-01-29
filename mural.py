@@ -8,7 +8,7 @@ class Mural:
                  prata: list, bronze: list):
         self.mural = Image.open("./static/Mural.png")
         draw = ImageDraw.Draw(self.mural)
-        font = ImageFont.truetype(font="calibri.ttf", size=24)
+        font = ImageFont.truetype(font="arial.ttf", size=24)
         header = f'MURAL {turma.upper()}'
         draw.text((400, 20), header, fill='black', font=font)
         draw.text((390, 50), text=f"{prova}º SEMANA", fill='black', font=font)
