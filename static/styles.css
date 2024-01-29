@@ -1,10 +1,9 @@
-body {
-    font-family: Arial, sans-serif;
-}
-
 .menu {
-    display: inline-block;
     margin: 20px;
+    display: flex;
+    flex-direction: column; /* Empilha os elementos verticalmente */
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .menu ul {
@@ -14,20 +13,22 @@ body {
 }
 
 .menu ul li {
-    display: inline-block;
     position: relative;
 }
 
 .menu ul li a {
+    margin-top: 10px;
     text-decoration: none;
     padding: 10px;
     display: block;
     color: #333;
     background-color: yellowgreen;
+    text-align: center;
 }
 
 menu ul li {
     background-color: aliceblue;
+    position: relative;
 }
 
 .menu ul li:hover > ul {
@@ -36,16 +37,25 @@ menu ul li {
 
 .menu ul ul {
     display: none;
-    position: absolute;
+    position: relative;
     top: 100%;
     left: 0;
     background-color: #eee;
-    border: 1px solid #ddd;
+    border: 1px solid black;
 }
 
 .menu ul ul li {
     display: block;
+    white-space: nowrap;
 }
+
+.menu form {
+            /*display: inline-block;*/
+            margin-top: 0; /* Ajuste o espaçamento entre os formulários e os itens de submenu */
+            top: 0;
+            left: 100%;
+            /*border: 10px solid salmon;*/
+        }
 
 .menu ul ul li a {
     padding: 8px;
@@ -84,13 +94,6 @@ body {
             position: relative;
             overflow: hidden;
             overflow-y: auto;
-        }
-
-.menu {
-            display: flex;
-            flex-direction: column; /* Empilha os elementos verticalmente */
-            align-items: center;
-            justify-content: flex-start;
         }
 
 .item {

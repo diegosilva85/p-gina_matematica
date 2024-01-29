@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
     <title>Área do professor</title>
     <style>
         .low_width {
@@ -12,63 +13,205 @@
     </style>
 </head>
 <body>
-<form action="" method="post">
-        <label for="Professor">Área do Professor:</label>
-        <input type="text" id ="id_label_01" name="Password" required>
-        <button type="submit">Acessar</button>
-    </form>
-{% if login %}
-<h2>Adicionar aluno:</h2>
-<form action="" method="post">
-    <label for="Id">Aluno:</label>
-    <input type="text" name="Id" required>
-    <label for="Turma" id="label_turma01">Turma:</label>
-    <input type="text" class="low_width" name="class" required>
-    <button name="add" type="submit">Adicionar</button>
-</form>
-<h2>Deletar aluno:</h2>
-<form action="" method="post">
-    <label for="Aluno">Id:</label>
-    <input type="text" class="low_width" id="id_label_03" name="Id" required>
-    <label for="Turma" id="label_turma02">Turma:</label>
-    <input type="text" class="low_width" name="turma" required>
-    <button name="delete" type="submit">Deletar</button>
-</form>
-<h2>Gerar ranking de PM:</h2>
-    <form action="" method="post">
-        <label for="class_id_input">Turma:</label>
-        <input type="text" id="class_id_input" class="low_width" name="class_id_input" required>
-        <button name="update" type="submit">Gerar</button>
-    </form>
-<h2>Gerar Mural:</h2>
-    <form action="" method="post">
-        <label for="provainput">Prova:</label>
-        <input type="text" class="low_width" name="prova_input" required>
-        <label for="mural_id_input">Turma:</label>
-        <input type="text" id="mural_id_input" class="low_width" name="mural_id_input" required>
-        <button name="update" type="submit">Gerar</button>
-    </form>
-<h2>Inserir dados de prova</h2>
-<form action="" method="post">
-    <label for="Prova">Prova:</label>
-    <input type="text" class="low_width" name="prova" required>
-    <label for="Turma" id="label_turma03">Turma:</label>
-    <input type="text" class="low_width" name="turma" required>
-    <button name="start" type="submit">Começar</button>
-</form>
-{% endif %}
-{% if prova %}
-<h2>Acrescentar nota:</h2>
-    <form action="" method="post">
-        <label for="Nota">Nota:</label>
-        <input type="text" class="low_width" name="nota" required>
-        <label for="PM">PM:</label>
-        <input type="text" class="low_width" name="pm" required>
-        <label for="Id">Id:</label>
-        <input type="text" class="low_width" name="id_aluno" required>
-        <button name="update" type="submit">Acrescentar</button>
-    </form>
+<div class="menu">
+    <ul>
 
-{% endif %}
+        <li>
+            <div>
+            <a href="#">Senha</a>
+            <form action="" method="post">
+            <input type="text" id ="id_label_01" name="Password" required>
+            <button type="submit">Acessar</button>
+            </form>
+            </div>
+        </li>
+        {% if login %}
+        <li><a>Adicionar Aluno</a>
+            <ul>
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3A')">3A</a>
+                    <ul id="submenu_3A">
+                        <li><a href="#" onclick="mostrarFormulario('3A')">Adicionar Aluno - 3° A</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3A" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3A -->
+                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
+                                <input type="hidden" name="class" value="a">
+                                <button name="add" type="submit">Adicionar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3B')">3B</a>
+                    <ul id="submenu_3B">
+                        <li><a href="#" onclick="mostrarFormulario('3B')">Adicionar Aluno - 3° B</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3B" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3B -->
+                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
+                                <input type="hidden" name="class" value="b">
+                                <button name="add" type="submit">Adicionar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3C')">3C</a>
+                    <ul id="submenu_3C">
+                        <li><a href="#" onclick="mostrarFormulario('3C')">Adicionar Aluno - 3° C</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3C" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3C -->
+                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
+                                <input type="hidden" name="class" value="c">
+                                <button name="add" type="submit">Adicionar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('1D')">1D</a>
+                    <ul id="submenu_1D">
+                        <li><a href="#" onclick="mostrarFormulario('1D')">Adicionar Aluno - 1° D</a></li>
+                        <li>
+                            <form action="" method="post" id="form_1D" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 1D -->
+                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
+                                <input type="hidden" name="class" value="d">
+                                <button name="add" type="submit">Adicionar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li><a>Deletar Aluno</a>
+            <ul>
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3A_2')">3A</a>
+                    <ul id="submenu_3A_2">
+                        <li><a href="#" onclick="mostrarFormulario('3A_2')">Deletar Aluno - 3° A</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3A_2" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3A -->
+                                <input type="text" name="Id" placeholder="Id do Aluno" required>
+                                <input type="hidden" name="turma" value="a">
+                                <button name="delete" type="submit">Deletar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3B_2')">3B</a>
+                    <ul id="submenu_3B_2">
+                        <li><a href="#" onclick="mostrarFormulario('3B_2')">Deletar Aluno - 3° B</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3B_2" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3B -->
+                                <input type="text" name="Id" placeholder="Id do Aluno" required>
+                                <input type="hidden" name="turma" value="b">
+                                <button name="delete" type="submit">Deletar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('3C_2')">3C</a>
+                    <ul id="submenu_3C_2">
+                        <li><a href="#" onclick="mostrarFormulario('3C_2')">Deletar Aluno - 3° C</a></li>
+                        <li>
+                            <form action="" method="post" id="form_3C_2" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 3C -->
+                                <input type="text" name="Id" placeholder="Id do Aluno" required>
+                                <input type="hidden" name="turma" value="c">
+                                <button name="delete" type="submit">Deletar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#" onclick="toggleSubMenu('1D_2')">1D</a>
+                    <ul id="submenu_1D_2">
+                        <li><a href="#" onclick="mostrarFormulario('1D_2')">Deletar Aluno - 1° D</a></li>
+                        <li>
+                            <form action="" method="post" id="form_1D_2" style="display: none;">
+                                <!-- Seu formulário para adicionar aluno para a turma 1D -->
+                                <input type="text" name="Id" placeholder="Id do Aluno" required>
+                                <input type="hidden" name="turma" value="d">
+                                <button name="delete" type="submit">Deletar Aluno</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a>Gerar ranking de PM:</a>
+            <form action="" method="post">
+            <label for="class_id_input">Turma:</label>
+            <input type="text" id="class_id_input" class="low_width" name="class_id_input" required>
+            <button name="update" type="submit">Gerar</button>
+            </form>
+        </li>
+        <li>
+            <a>Gerar Mural:</a>
+            <form action="" method="post">
+            <label for="mural_id_input">Prova:</label>
+            <input type="text" class="low_width" name="prova_input" required>
+            <label for="mural_id_input">Turma:</label>
+            <input type="text" id="mural_id_input" class="low_width" name="mural_id_input" required>
+            <button name="update" type="submit">Gerar</button>
+            </form>
+        </li>
+        <li>
+            <a>Inserir dados de prova</a>
+            <form action="" method="post">
+            <label for="prova_id">Prova:</label>
+            <input type="text" id="prova_id" class="low_width" name="prova" required>
+            <label for="turma_id_input" id="label_turma03">Turma:</label>
+            <input type="text" id="turma_id_input" class="low_width" name="turma" required>
+            <button name="start" type="submit">Começar</button>
+            </form>
+        </li>
+            {% if prova %}
+        <li>
+            <a>Acrescentar nota:</a>
+            <form action="" method="post">
+            <label for="nota_input">Nota:</label>
+            <input type="text" id="nota_input" class="low_width" name="nota" required>
+            <label for="pm_input">PM:</label>
+            <input type="text" id="pm_input" class="low_width" name="pm" required>
+            <label for="id_input">Id:</label>
+            <input type="text" id="id_input" class="low_width" name="id_aluno" required>
+            <button name="update" type="submit">Acrescentar</button>
+            </form>
+        </li>
+            {% endif %}
+    </ul>
+        {% endif %}
+
+</div>
+<script>
+    function toggleSubMenu(turma) {
+        var submenu = document.getElementById('submenu_' + turma);
+        if (submenu.style.display === 'block') {
+            submenu.style.display = 'none';
+        } else {
+            submenu.style.display = 'block';
+        }
+    }
+
+    function mostrarFormulario(turma) {
+        var formulario = document.getElementById('form_' + turma);
+        formulario.style.display = 'block';
+    }
+</script>
 </body>
 </html>
