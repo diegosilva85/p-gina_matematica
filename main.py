@@ -57,6 +57,40 @@ senha = os.environ.get("senha_professor").strip("")
 database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
 
+# Dados das turmas
+with open('nomes_1D.txt', 'r') as arquivo:
+    primeiro_d = arquivo.readlines()
+with open('nomes_3A.txt', 'r') as arquivo:
+    terceiro_a = arquivo.readlines()
+with open('nomes_3B.txt', 'r') as arquivo:
+    terceiro_b = arquivo.readlines()
+with open('nomes_3C.txt', 'r') as arquivo:
+    terceiro_c = arquivo.readlines()
+
+
+def criar_turmas():
+    global turmas, terceiro_a, terceiro_b, terceiro_c, primeiro_d
+
+    for aluno_a in terceiro_a:
+        novo_aluno = Terceiro_A(nome=aluno_a)
+        db.session.add(novo_aluno)
+        db.session.commit()
+
+    for aluno_b in terceiro_b:
+        novo_aluno = Terceiro_B(nome=aluno_b)
+        db.session.add(novo_aluno)
+        db.session.commit()
+
+    for aluno_c in terceiro_c:
+        novo_aluno = Terceiro_C(nome=aluno_c)
+        db.session.add(novo_aluno)
+        db.session.commit()
+
+    for aluno_d in primeiro_d:
+        novo_aluno = Primeiro_D(nome=aluno_d)
+        db.session.add(novo_aluno)
+        db.session.commit()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -165,6 +199,8 @@ def professor():
     if 'exportar' in request.form:
         exportar = request.form['exportar']
         exportar_csv(exportar)
+    if 'criar' in request.form:
+        criar_turmas()
     return render_template('professor.html', login=login, prova=prova, class_id=id_class)
 
 
