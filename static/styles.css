@@ -31,10 +31,6 @@ menu ul li {
     position: relative;
 }
 
-.menu ul li:hover > ul {
-    display: block;
-}
-
 .menu ul ul {
     display: none;
     position: relative;
@@ -50,11 +46,10 @@ menu ul li {
 }
 
 .menu form {
-            /*display: inline-block;*/
+            display: block;
             margin-top: 0; /* Ajuste o espaçamento entre os formulários e os itens de submenu */
-            top: 0;
-            left: 100%;
-            /*border: 10px solid salmon;*/
+            top: 100%;
+            left: 0;
         }
 
 .menu ul ul li a {

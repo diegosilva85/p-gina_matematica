@@ -34,7 +34,6 @@
 
     <table>
             <tr>
-                <th>Id</th>
                 <th>Aluno</th>
                 <th>1°</th>
                 <th>2°</th>
@@ -48,18 +47,16 @@
             </tr>
             {% for row in data %}
                 <tr>
-                    <td>{{ row[0] }}</td>
-                    <td>{{ row[1] }}</td>
-                    <td>{{ row[2] }}</td>
-                    <td>{{ row[3] }}</td>
-                    <td>{{ row[4] }}</td>
-                    <td>{{ row[5] }}</td>
-                    <td>{{ row[6] }}</td>
-                    <td>{{ row[7] }}</td>
-                    <td>{{ row[8] }}</td>
-                    <td>{{ row[9] }}</td>
-                    <td>{{ row[10] }}</td>
-                    <!-- Add more cells if needed -->
+                    <td>{{ row.nome }}</td>
+                    <td>{{ row.prova1 }}</td>
+                    <td>{{ row.prova2 }}</td>
+                    <td>{{ row.prova3 }}</td>
+                    <td>{{ row.prova4 }}</td>
+                    <td>{{ row.prova5 }}</td>
+                    <td>{{ row.prova6 }}</td>
+                    <td>{{ row.prova7 }}</td>
+                    <td>{{ row.prova8 }}</td>
+                    <td>{{ row.pm }}</td>
                 </tr>
             {% endfor %}
         </table>

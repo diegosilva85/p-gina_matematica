@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Ranking</title>
 </head>
 <body>
-<h1>{{ turma_h1 }}</h1>
-<table border="1">
+
+<table border="1" class="menu">
         <tr>
             <th>Nome</th>
             <th>PM</th>
@@ -14,8 +16,8 @@
         </tr>
         {% for row in data %}
             <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
+                <td>{{ row.nome }}</td>
+                <td>{{ row.pm }}</td>
                 <!-- Add more cells if needed -->
             </tr>
         {% endfor %}

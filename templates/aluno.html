@@ -24,16 +24,16 @@
             </tr>
             {% for row in search_results %}
                 <tr>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[4] }}</td>
-                <td>{{ row[5] }}</td>
-                <td>{{ row[6] }}</td>
-                <td>{{ row[7] }}</td>
-                <td>{{ row[8] }}</td>
-                <td>{{ row[9] }}</td>
-                <td>{{ row[10] }}</td>
+                <td>{{ row.nome }}</td>
+                <td>{{ row.prova1 }}</td>
+                <td>{{ row.prova2 }}</td>
+                <td>{{ row.prova3 }}</td>
+                <td>{{ row.prova4 }}</td>
+                <td>{{ row.prova5 }}</td>
+                <td>{{ row.prova6 }}</td>
+                <td>{{ row.prova7 }}</td>
+                <td>{{ row.prova8 }}</td>
+                <td>{{ row.pm }}</td>
                 </tr>
             {% endfor %}
     {% else %}

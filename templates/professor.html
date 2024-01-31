@@ -26,8 +26,8 @@
             </div>
         </li>
         {% if login %}
-        <li><a>Adicionar Aluno</a>
-            <ul>
+        <li><a href="#" onclick="toggleSubMenu('turmas')">Adicionar Aluno</a>
+            <ul id="submenu_turmas">
                 <li>
                     <a href="#" onclick="toggleSubMenu('3A')">3A</a>
                     <ul id="submenu_3A">
@@ -89,8 +89,8 @@
                 </li>
             </ul>
         </li>
-        <li><a>Deletar Aluno</a>
-            <ul>
+        <li><a href="#" onclick="toggleSubMenu('turmas_del')">Deletar Aluno</a>
+            <ul id="submenu_turmas_del">
                 <li>
                     <a href="#" onclick="toggleSubMenu('3A_2')">3A</a>
                     <ul id="submenu_3A_2">
@@ -169,6 +169,20 @@
             <input type="text" id="mural_id_input" class="low_width" name="mural_id_input" required>
             <button name="update" type="submit">Gerar</button>
             </form>
+        </li>
+        <li>
+            <a href="#" onclick="toggleSubMenu('csv')"> Exportar CSV</a>
+                <ul id="submenu_csv">
+                    <li>
+                        <li><a href="#" onclick="mostrarFormulario('export_a')">Escolha turma</a></li>
+                        <li>
+                        <form action="" id="form_export_a" method="post" style="display: none;">
+                            <input type="text" name="exportar" placeholder="turma" required>
+                            <button name="exportar" type="submit">Enviar</button>
+                        </form>
+                    </li>
+                </ul>
+
         </li>
         <li>
             <a>Inserir dados de prova</a>

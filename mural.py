@@ -1,5 +1,3 @@
-import os
-
 from PIL import Image, ImageFont, ImageDraw
 
 font_caminho = "./fonts/LiberationSans-Regular.ttf"
