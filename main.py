@@ -58,13 +58,13 @@ database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
 
 # Dados das turmas
-with open('nomes_1D.txt', 'r') as arquivo:
+with open('nomes_1D.txt', 'r', encoding='ISO-8859-1') as arquivo:
     primeiro_d = arquivo.readlines()
-with open('nomes_3A.txt', 'r') as arquivo:
+with open('nomes_3A.txt', 'r', encoding='ISO-8859-1') as arquivo:
     terceiro_a = arquivo.readlines()
-with open('nomes_3B.txt', 'r') as arquivo:
+with open('nomes_3B.txt', 'r', encoding='ISO-8859-1') as arquivo:
     terceiro_b = arquivo.readlines()
-with open('nomes_3C.txt', 'r') as arquivo:
+with open('nomes_3C.txt', 'r', encoding='ISO-8859-1') as arquivo:
     terceiro_c = arquivo.readlines()
 
 
