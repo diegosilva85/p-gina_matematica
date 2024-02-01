@@ -122,9 +122,9 @@ def home():
 def aluno(aluno_id):
     search_term = aluno_id
     # TODO: Colocar a busca para as demais turmas.
-    resultados = db.session.query(Terceiro_A).filter(Terceiro_A.nome.like(f'%{search_term}%')).all()
+    resultados_busca = db.session.query(Terceiro_A).filter(Terceiro_A.nome.like(f'%{search_term}%')).all()
 
-    return render_template('aluno.html', search_results=resultados)
+    return render_template('aluno.html', search_results=resultados_busca)
 
 
 def add_entry(turma_to_add, aluno):
@@ -197,10 +197,10 @@ def professor():
 def mural(mural_turma, prova_mural):
     prova_mural_banco = f'prova{prova_mural}'
     turma_selecionada = selecionar_turma(mural_turma)
-    resultados = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, prova_mural_banco)).order_by(
+    resultados_mural = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, prova_mural_banco)).order_by(
         getattr(turma_selecionada, prova_mural_banco).desc()).all()
     pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
-    notas = [resultado[1] for resultado in resultados if resultado[1] is not None]
+    notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
 
@@ -215,21 +215,21 @@ def mural(mural_turma, prova_mural):
     lista_prata = []
     lista_bronze = []
     for i in range(10, 5, -1):
-        lista_ouro = [item[0] for item in resultados if item[1] == i]
+        lista_ouro = [item[0] for item in resultados_mural if item[1] == i]
         if lista_ouro:
             nota_outro = i
             break
         else:
             pass
     for i in range(nota_outro - 1, 5, -1):
-        lista_prata = [item[0] for item in resultados if item[1] == i]
+        lista_prata = [item[0] for item in resultados_mural if item[1] == i]
         if lista_prata:
             nota_prata = i
             break
         else:
             pass
     for i in range(nota_prata - 1, 5, -1):
-        lista_bronze = [item[0] for item in resultados if item[1] == i]
+        lista_bronze = [item[0] for item in resultados_mural if item[1] == i]
         if lista_bronze:
             break
         else:
@@ -243,11 +243,11 @@ def mural(mural_turma, prova_mural):
 @app.route('/<class_name>')
 def class_page(class_name):
     turma_selecionada = selecionar_turma(class_name)
-    with app.app_context():
-        resultados = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
-                                       turma_selecionada.prova2, turma_selecionada.prova3, turma_selecionada.prova4,
-                                       turma_selecionada.prova5, turma_selecionada.prova6, turma_selecionada.prova7,
-                                       turma_selecionada.prova8, turma_selecionada.pm).all())
+
+    resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
+                                              turma_selecionada.prova2, turma_selecionada.prova3, turma_selecionada.prova4,
+                                              turma_selecionada.prova5, turma_selecionada.prova6, turma_selecionada.prova7,
+                                              turma_selecionada.prova8, turma_selecionada.pm).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -265,28 +265,29 @@ def class_page(class_name):
             pass
 
     tamanho = len(lista_de_provas)
-    return render_template('class_page.html', class_name=class_name, data=resultados,
+
+    return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
                            estatisticas=lista_de_provas, tamanho=tamanho)
 
 
 @app.route('/ranking/<class_id>', methods=['GET', 'POST'])
 def ranking(class_id):
     turma_selecionada = selecionar_turma(class_id)
-    resultados = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, 'pm')).order_by(
+    resultados_ranking = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, 'pm')).order_by(
         getattr(turma_selecionada, 'pm').desc()).all()
 
-    return render_template('ranking.html', data=resultados, class_id=class_id)
+    return render_template('ranking.html', data=resultados_ranking, class_id=class_id)
 
 
 def exportar_csv(valor):
     turma_selecionada = selecionar_turma(valor)
     with app.app_context():
-        resultados = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1, turma_selecionada.prova2,
-                                       turma_selecionada.prova3, turma_selecionada.prova4, turma_selecionada.prova5,
-                                       turma_selecionada.prova6, turma_selecionada.prova7, turma_selecionada.prova8,
-                                       turma_selecionada.pm).all())
+        resultados_csv = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1, turma_selecionada.prova2,
+                                           turma_selecionada.prova3, turma_selecionada.prova4, turma_selecionada.prova5,
+                                           turma_selecionada.prova6, turma_selecionada.prova7, turma_selecionada.prova8,
+                                           turma_selecionada.pm).all())
 
-    dataframe = DataFrame.from_records(resultados,
+    dataframe = DataFrame.from_records(resultados_csv,
                                        columns=['Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', 'PM'])
     dataframe.to_csv(f'Turma_{valor}.csv', index=False)
 
