@@ -28,12 +28,13 @@
         <tr>
             <td>DESVIO-PADRÃO: {{ estatisticas[i][3] }}</td>
         </tr>
-        {% endfor %}}
+        {% endfor %}
 
     </table>
 
     <table>
             <tr>
+                <th>Id</th>
                 <th>Aluno</th>
                 <th>1°</th>
                 <th>2°</th>
@@ -47,6 +48,7 @@
             </tr>
             {% for row in data %}
                 <tr>
+                    <td>{{ row.id }}</td>
                     <td>{{ row.nome }}</td>
                     <td>{{ row.prova1 }}</td>
                     <td>{{ row.prova2 }}</td>

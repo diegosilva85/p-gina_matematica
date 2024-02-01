@@ -50,7 +50,7 @@ class Primeiro_D(db.Model):
 with app.app_context():
     db.create_all()
 
-turmas = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
+lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
 
 senha = os.environ.get("senha_professor").strip("")
 
@@ -68,8 +68,19 @@ with open('nomes_3C.txt', 'r', encoding='ISO-8859-1') as arquivo:
     terceiro_c = arquivo.readlines()
 
 
+def selecionar_turma(valor):
+    if valor == 'a' or valor == '3ºA':
+        return lista_turmas_db[0]
+    elif valor == 'b' or valor == '3ºB':
+        return lista_turmas_db[1]
+    elif valor == 'c' or valor == '3ºC':
+        return lista_turmas_db[2]
+    elif valor == 'd' or valor == '1ºD':
+        return lista_turmas_db[3]
+
+
 def criar_turmas():
-    global turmas, terceiro_a, terceiro_b, terceiro_c, primeiro_d
+    global lista_turmas_db, terceiro_a, terceiro_b, terceiro_c, primeiro_d
 
     for aluno_a in terceiro_a:
         novo_aluno = Terceiro_A(nome=aluno_a)
@@ -117,45 +128,23 @@ def aluno(aluno_id):
 
 
 def add_entry(turma_to_add, aluno):
-    novo_aluno = None
-    if turma_to_add == "a":
-        novo_aluno = Terceiro_A(nome=aluno)
-    elif turma_to_add == "b":
-        novo_aluno = Terceiro_B(nome=aluno)
-    elif turma_to_add == "c":
-        novo_aluno = Terceiro_C(nome=aluno)
-    elif turma_to_add == "d":
-        novo_aluno = Primeiro_D(nome=aluno)
+    turma_selecionada = selecionar_turma(turma_to_add)
+    novo_aluno = turma_selecionada(nome=aluno)
     db.session.add(novo_aluno)
     db.session.commit()
 
 
 def delete_entry(id_delete, turma_delete):
-    aluno_delete = None
-    if turma_delete == "a":
-        aluno_delete = db.session.execute(db.select(Terceiro_A).where(Terceiro_A.id == id_delete)).scalar()
-    elif turma_delete == "b":
-        aluno_delete = db.session.execute(db.select(Terceiro_B).where(Terceiro_B.id == id_delete)).scalar()
-    elif turma_delete == "c":
-        aluno_delete = db.session.execute(db.select(Terceiro_C).where(Terceiro_C.id == id_delete)).scalar()
-    if turma_delete == 'd':
-        aluno_delete = db.session.execute(db.select(Primeiro_D).where(Primeiro_D.id == id_delete)).scalar()
+    turma_selecionada = selecionar_turma(turma_delete)
+    aluno_delete = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_delete)).scalar()
     db.session.delete(aluno_delete)
     db.session.commit()
 
 
 def update_entry(prova, pm, nota, id_aluno, turma):
-    aluno_update = None
-    if turma == 'a':
-        aluno_update = db.session.execute(db.select(Terceiro_A).where(Terceiro_A.id == id_aluno)).scalar()
-    elif turma == 'b':
-        aluno_update = db.session.execute(db.select(Terceiro_B).where(Terceiro_B.id == id_aluno)).scalar()
-    elif turma == 'c':
-        aluno_update = db.session.execute(db.select(Terceiro_C).where(Terceiro_C.id == id_aluno)).scalar()
-    elif turma == 'd':
-        aluno_update = db.session.execute(db.select(Primeiro_D).where(Primeiro_D.id == id_aluno)).scalar()
+    turma_selecionada = selecionar_turma(turma)
+    aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_aluno)).scalar()
     num_prova = f'prova{prova}'
-
     if aluno_update.pm is None:
         pm_atualizado = int(pm) + 0
     else:
@@ -206,27 +195,11 @@ def professor():
 
 @app.route('/mural/<mural_turma>/<prova_mural>', methods=['GET', 'POST'])
 def mural(mural_turma, prova_mural):
-    resultados = None
     prova_mural_banco = f'prova{prova_mural}'
-    pm_prova = None
-
-    if mural_turma == 'a':
-        resultados = db.session.query(Terceiro_A.nome, getattr(Terceiro_A, prova_mural_banco)).order_by(
-            getattr(Terceiro_A, prova_mural_banco).desc()).all()
-        pm_prova = db.session.query(getattr(Terceiro_A, 'pm')).all()
-    elif mural_turma == 'b':
-        resultados = db.session.query(Terceiro_B.nome, getattr(Terceiro_B, prova_mural_banco)).order_by(
-            getattr(Terceiro_B, prova_mural_banco).desc()).all()
-        pm_prova = db.session.query(getattr(Terceiro_B, 'pm')).all()
-    elif mural_turma == 'c':
-        resultados = db.session.query(Terceiro_C.nome, getattr(Terceiro_C, prova_mural_banco)).order_by(
-            getattr(Terceiro_C, prova_mural_banco).desc()).all()
-        pm_prova = db.session.query(getattr(Terceiro_C, 'pm')).all()
-    elif mural_turma == 'd':
-        resultados = db.session.query(Primeiro_D.nome, getattr(Primeiro_D, prova_mural_banco)).order_by(
-            getattr(Primeiro_D, prova_mural_banco).desc()).all()
-        pm_prova = db.session.query(getattr(Primeiro_D, 'pm')).all()
-
+    turma_selecionada = selecionar_turma(mural_turma)
+    resultados = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, prova_mural_banco)).order_by(
+        getattr(turma_selecionada, prova_mural_banco).desc()).all()
+    pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
     notas = [resultado[1] for resultado in resultados if resultado[1] is not None]
     notas.sort(reverse=True)
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
@@ -269,22 +242,12 @@ def mural(mural_turma, prova_mural):
 
 @app.route('/<class_name>')
 def class_page(class_name):
-    global turmas
-    resultados, turma_selecionada = None, turmas[3]
-    if class_name == '3ºA':
-        turma_selecionada = turmas[0]
-    elif class_name == '3ºB':
-        turma_selecionada = turmas[1]
-    elif class_name == '3°C':
-        turma_selecionada = turmas[2]
-    elif class_name == '1°D':
-        turma_selecionada = turmas[3]
-
+    turma_selecionada = selecionar_turma(class_name)
     with app.app_context():
-        resultados = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1, turma_selecionada.prova2,
-                                       turma_selecionada.prova3, turma_selecionada.prova4, turma_selecionada.prova5,
-                                       turma_selecionada.prova6, turma_selecionada.prova7, turma_selecionada.prova8,
-                                       turma_selecionada.pm).all())
+        resultados = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
+                                       turma_selecionada.prova2, turma_selecionada.prova3, turma_selecionada.prova4,
+                                       turma_selecionada.prova5, turma_selecionada.prova6, turma_selecionada.prova7,
+                                       turma_selecionada.prova8, turma_selecionada.pm).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -308,44 +271,21 @@ def class_page(class_name):
 
 @app.route('/ranking/<class_id>', methods=['GET', 'POST'])
 def ranking(class_id):
-    resultados, turma_h1 = None, None
-    if class_id == 'a':
-        turma_h1 = "3° A"
-        resultados = db.session.query(Terceiro_A.nome, getattr(Terceiro_A, 'pm')).order_by(
-            getattr(Terceiro_A, 'pm').desc()).all()
-    elif class_id == 'b':
-        turma_h1 = "3° B"
-        resultados = db.session.query(Terceiro_B.nome, getattr(Terceiro_B, 'pm')).order_by(
-            getattr(Terceiro_B, 'pm').desc()).all()
-    elif class_id == 'c':
-        turma_h1 = "3° C"
-        resultados = db.session.query(Terceiro_C.nome, getattr(Terceiro_C, 'pm')).order_by(
-            getattr(Terceiro_C, 'pm').desc()).all()
-    elif class_id == 'd':
-        turma_h1 = "1° D"
-        resultados = db.session.query(Primeiro_D.nome, getattr(Primeiro_D, 'pm')).order_by(
-            getattr(Primeiro_D, 'pm').desc()).all()
+    turma_selecionada = selecionar_turma(class_id)
+    resultados = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, 'pm')).order_by(
+        getattr(turma_selecionada, 'pm').desc()).all()
 
-    return render_template('ranking.html', data=resultados, class_id=class_id, turma_h1=turma_h1)
+    return render_template('ranking.html', data=resultados, class_id=class_id)
 
 
 def exportar_csv(valor):
-    global turmas
-    turma_selecionada = turmas[3]
-    if valor == 'a':
-        turma_selecionada = turmas[0]
-    elif valor == 'b':
-        turma_selecionada = turmas[1]
-    elif valor == 'c':
-        turma_selecionada = turmas[2]
-    elif valor == 'd':
-        turma_selecionada = turmas[3]
-
+    turma_selecionada = selecionar_turma(valor)
     with app.app_context():
         resultados = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1, turma_selecionada.prova2,
                                        turma_selecionada.prova3, turma_selecionada.prova4, turma_selecionada.prova5,
                                        turma_selecionada.prova6, turma_selecionada.prova7, turma_selecionada.prova8,
                                        turma_selecionada.pm).all())
+
     dataframe = DataFrame.from_records(resultados,
                                        columns=['Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', 'PM'])
     dataframe.to_csv(f'Turma_{valor}.csv', index=False)
