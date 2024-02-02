@@ -171,6 +171,18 @@
             </form>
         </li>
         <li>
+            <a>Inserir Dados de Boss</a>
+            <form action="" method="post">
+                <label for="boss_turma">Turma:</label>
+                <input type="text" class="low_width" id="boss_turma" name="boss_turma" required>
+                <label for="boss_id">Id:</label>
+                <input type="text" class="low_width" id="boss_id" name="boss_id" required>
+                <label for="boss_pm">PM:</label>
+                <input type="text" class="low_width" id="boss_pm" name="boss_pm" required>
+                <button name="boss" type="submit">Adicionar</button>
+            </form>
+        </li>
+        <li>
             <a href="#" onclick="mostrarFormulario('dados_basicos')">Criar turmas</a>
                 <form action="" id="form_dados_basicos" method="post" style="display: none;">
                     <input type="text" name="criar" placeholder="criar turmas" required>

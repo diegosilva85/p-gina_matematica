@@ -22,6 +22,11 @@ class Base(DeclarativeBase):
     prova7: Mapped[float] = mapped_column(nullable=True)
     prova8: Mapped[float] = mapped_column(nullable=True)
     pm: Mapped[int] = mapped_column(nullable=True)
+    boss_vitoria: Mapped[int] = mapped_column(nullable=True)
+    boss_total: Mapped[int] = mapped_column(nullable=True)
+    coroa_ouro: Mapped[int] = mapped_column(nullable=True)
+    coroa_prata: Mapped[int] = mapped_column(nullable=True)
+    coroa_bronze: Mapped[int] = mapped_column(nullable=True)
 
 
 app = Flask(__name__)
@@ -54,7 +59,6 @@ lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
 
 senha = os.environ.get("senha_professor").strip("")
 
-database = 'database_2024.db'
 login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
 
 # Dados das turmas
@@ -121,15 +125,18 @@ def home():
 @app.route('/aluno/<aluno_id>', methods=['GET', 'POST'])
 def aluno(aluno_id):
     search_term = aluno_id
-    # TODO: Colocar a busca para as demais turmas.
-    resultados_busca = db.session.query(Terceiro_A).filter(Terceiro_A.nome.like(f'%{search_term}%')).all()
+    resultados_busca = None
+    for turma_busca in lista_turmas_db:
+        resultados_busca = db.session.query(turma_busca).filter(turma_busca.nome.like(f'%{search_term}%')).all()
+        if resultados_busca:
+            break
 
     return render_template('aluno.html', search_results=resultados_busca)
 
 
-def add_entry(turma_to_add, aluno):
+def add_entry(turma_to_add, aluno_adicional):
     turma_selecionada = selecionar_turma(turma_to_add)
-    novo_aluno = turma_selecionada(nome=aluno)
+    novo_aluno = turma_selecionada(nome=aluno_adicional)
     db.session.add(novo_aluno)
     db.session.commit()
 
@@ -141,17 +148,40 @@ def delete_entry(id_delete, turma_delete):
     db.session.commit()
 
 
-def update_entry(prova, pm, nota, id_aluno, turma):
+def update_nota(prova, nota, id_aluno, turma):
     turma_selecionada = selecionar_turma(turma)
     aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_aluno)).scalar()
     num_prova = f'prova{prova}'
-    if aluno_update.pm is None:
-        pm_atualizado = int(pm) + 0
-    else:
-        pm_atualizado = int(pm) + int(aluno_update.pm)
     setattr(aluno_update, num_prova, nota)
+    db.session.commit()
+
+
+def update_pm(pm_adicional, id_pm=None, turma_pm=None, aluno_nome=None):
+    aluno_update = None
+    turma_selecionada = selecionar_turma(turma_pm)
+    if id_pm is not None:
+        aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_pm)).scalar()
+    elif aluno_nome is not None:
+        aluno_update = db.session.execute(
+            db.select(turma_selecionada).where(turma_selecionada.nome == aluno_nome)).scalar()
+    if aluno_update.pm is None:
+        pm_atualizado = int(pm_adicional) + 0
+    else:
+        pm_atualizado = int(pm_adicional) + int(aluno_update.pm)
     setattr(aluno_update, "pm", pm_atualizado)
     db.session.commit()
+
+
+def boss(pm_boss, turma_boss, id_boss):
+    turma_selecionada = selecionar_turma(turma_boss)
+    aluno_boss = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_boss)).scalar()
+    if pm_boss == '15':
+        numero_vitorias = 1 + int(aluno_boss.boss_vitoria)
+        setattr(aluno_boss, "boss_vitoria", numero_vitorias)
+        update_pm(15, id_pm=id_boss, turma_pm=turma_boss)
+    elif pm_boss == '5':
+        update_pm(5, id_pm=id_aluno, turma_pm=turma_boss)
+    setattr(aluno_boss, "boss_total", aluno_boss.boss_total + 1)
 
 
 @app.route('/professor', methods=['GET', 'POST'])
@@ -177,7 +207,8 @@ def professor():
         nota = request.form['nota']
         pm = request.form['pm']
         id_aluno = request.form['id_aluno']
-        update_entry(prova, pm, nota, id_aluno, turma)
+        update_nota(prova, nota, id_aluno, turma)
+        update_pm(pm, id_pm=id_aluno, turma_pm=turma)
     if 'class_id_input' in request.form:
         id_class = request.form['class_id_input']
         return redirect(url_for('ranking', class_id=id_class))
@@ -190,6 +221,10 @@ def professor():
         exportar_csv(exportar)
     if 'criar' in request.form:
         criar_turmas()
+    if 'boss' in request.form:
+        boss_pm = request.form['boss_pm']
+        boss_turma = request.form['boss_turma']
+        boss_id = request.form['boss_id']
     return render_template('professor.html', login=login, prova=prova, class_id=id_class)
 
 
@@ -217,6 +252,8 @@ def mural(mural_turma, prova_mural):
     for i in range(10, 5, -1):
         lista_ouro = [item[0] for item in resultados_mural if item[1] == i]
         if lista_ouro:
+            for estudante in lista_ouro:
+                update_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
             nota_outro = i
             break
         else:
@@ -224,6 +261,8 @@ def mural(mural_turma, prova_mural):
     for i in range(nota_outro - 1, 5, -1):
         lista_prata = [item[0] for item in resultados_mural if item[1] == i]
         if lista_prata:
+            for estudante_2 in lista_prata:
+                update_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
             nota_prata = i
             break
         else:
@@ -231,6 +270,8 @@ def mural(mural_turma, prova_mural):
     for i in range(nota_prata - 1, 5, -1):
         lista_bronze = [item[0] for item in resultados_mural if item[1] == i]
         if lista_bronze:
+            for estudante_3 in lista_bronze:
+                update_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
             break
         else:
             pass
@@ -245,8 +286,10 @@ def class_page(class_name):
     turma_selecionada = selecionar_turma(class_name)
 
     resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
-                                              turma_selecionada.prova2, turma_selecionada.prova3, turma_selecionada.prova4,
-                                              turma_selecionada.prova5, turma_selecionada.prova6, turma_selecionada.prova7,
+                                              turma_selecionada.prova2, turma_selecionada.prova3,
+                                              turma_selecionada.prova4,
+                                              turma_selecionada.prova5, turma_selecionada.prova6,
+                                              turma_selecionada.prova7,
                                               turma_selecionada.prova8, turma_selecionada.pm).all())
     lista_de_provas = []
 
