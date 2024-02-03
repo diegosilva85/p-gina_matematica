@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Resultado da busca</title>
+</head>
+<body>
+    <div class="menu">
+        {% if resultados_busca %}
+            <h2>Alunos encontrados:</h2>
+            {% for chave, valor in resultados_busca.items() %}
+                {% for estudante in valor %}
+                <ul>
+                    <li><a href="{{ url_for('aluno', aluno_nome=estudante, turma_aluno=chave) }}">{{ estudante }}</a></li>
+                </ul>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <h2>Nenhum aluno encontrado.</h2>
+        {% endif %}
+    </div>
+</body>
+</html>
