@@ -7,6 +7,7 @@ from scipy.stats import mode
 import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from math import floor
 
 
 class Base(DeclarativeBase):
@@ -21,6 +22,14 @@ class Base(DeclarativeBase):
     prova6: Mapped[float] = mapped_column(nullable=True)
     prova7: Mapped[float] = mapped_column(nullable=True)
     prova8: Mapped[float] = mapped_column(nullable=True)
+    pm1: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm2: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm3: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm4: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm5: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm6: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm7: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    pm8: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     pm: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     boss_vitoria: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     boss_total: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
@@ -157,24 +166,33 @@ def deletar_aluno(id_delete, turma_delete):
     db.session.commit()
 
 
-def atualizar_nota(prova_update, nota_update, id_update, turma_update):
+def inserir_dados_prova(prova_update, nota_update, id_update, turma_update, pm_update, calc=None, anular=None,
+                        caderno=None, formula=None):
     turma_selecionada = selecionar_turma(turma_update)
     aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_update)).scalar()
-    num_prova = f'prova{prova_update}'
-    setattr(aluno_update, num_prova, nota_update)
+    setattr(aluno_update, f"prova{prova_update}", nota_update)
+    setattr(aluno_update, f"pm{prova_update}", pm_update)
+    if calc is not None:
+        acrescentar_pm(-5, id_pm=id_update, turma_pm=turma_update)
+    if anular is not None:
+        acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
+    if formula is not None:
+        acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
+    if caderno is not None:
+        acrescentar_pm(-15, id_pm=id_update, turma_pm=turma_update)
     db.session.commit()
 
 
-def atualizar_pm(pm_adicional, id_pm=None, turma_pm=None, aluno_nome=None):
-    aluno_update = None
+def acrescentar_pm(pm_adicional, id_pm=None, turma_pm=None, aluno_nome=None):
+    aluno_pm = None
     turma_selecionada = selecionar_turma(turma_pm)
     if id_pm is not None:
-        aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_pm)).scalar()
+        aluno_pm = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_pm)).scalar()
     elif aluno_nome is not None:
-        aluno_update = db.session.execute(
+        aluno_pm = db.session.execute(
             db.select(turma_selecionada).where(turma_selecionada.nome == aluno_nome)).scalar()
-    pm_atualizado = int(pm_adicional) + int(aluno_update.pm)
-    setattr(aluno_update, "pm", pm_atualizado)
+    pm_atualizado = int(pm_adicional) + int(aluno_pm.pm)
+    setattr(aluno_pm, "pm", pm_atualizado)
     db.session.commit()
 
 
@@ -185,9 +203,9 @@ def boss(pm_boss, turma_boss, id_boss):
     if pm_boss == '15':
         numero_vitorias = 1 + int(aluno_boss.boss_vitoria)
         setattr(aluno_boss, "boss_vitoria", numero_vitorias)
-        atualizar_pm(15, id_pm=id_boss, turma_pm=turma_boss)
+        acrescentar_pm(15, id_pm=id_boss, turma_pm=turma_boss)
     elif pm_boss == '5':
-        atualizar_pm(5, id_pm=id_boss, turma_pm=turma_boss)
+        acrescentar_pm(5, id_pm=id_boss, turma_pm=turma_boss)
     setattr(aluno_boss, "boss_total", total_boss)
     db.session.commit()
 
@@ -209,6 +227,7 @@ def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa):
 
 @app.route('/professor', methods=['GET', 'POST'])
 def professor():
+    calculadora, anular, formula, caderno = None, None, None, None
     global login, prova, nota, turma, pm, id_aluno, id_class, senha
     if request.method == 'POST':
         if 'Password' in request.form:
@@ -230,10 +249,18 @@ def professor():
         nota = request.form['nota']
         pm = request.form['pm']
         id_aluno = request.form['id_aluno']
-        atualizar_nota(prova, nota, id_aluno, turma)
-        atualizar_pm(pm, id_pm=id_aluno, turma_pm=turma)
-    if 'ranking' in request.form:
-        id_class = request.form['ranking']
+        if 'calc' in request.form:
+            calculadora = request.form['calc']
+        if 'anular' in request.form:
+            anular = request.form['anular']
+        if 'formula' in request.form:
+            formula = request.form['formula']
+        if 'caderno' in request.form:
+            caderno = request.form['caderno']
+        inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula, caderno=caderno)
+        acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+    if 'opcoes_ranking' in request.form:
+        id_class = request.form['opcoes_ranking']
         return redirect(url_for('ranking', class_id=id_class))
     if 'mural_id_input' in request.form:
         mural_turma = request.form['mural_id_input']
@@ -244,9 +271,9 @@ def professor():
         exportar_csv(exportar)
     if 'criar' in request.form:
         criar_turmas()
-    if 'boss' in request.form:
+    if 'opcoes_boss' in request.form:
         boss_pm = request.form['boss_pm']
-        boss_turma = request.form['boss_turma']
+        boss_turma = request.form['opcoes_boss']
         boss_id = request.form['boss_id']
         boss(boss_pm, boss_turma, boss_id)
     return render_template('professor.html', login=login, prova=prova, class_id=id_class)
@@ -256,48 +283,66 @@ def professor():
 def mural(mural_turma, prova_mural):
     prova_mural_banco = f'prova{prova_mural}'
     turma_selecionada = selecionar_turma(mural_turma)
-    resultados_mural = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, prova_mural_banco)).order_by(
+    resultados_mural = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, prova_mural_banco),
+                                        getattr(turma_selecionada, f'pm{prova_mural}')).order_by(
         getattr(turma_selecionada, prova_mural_banco).desc()).all()
-    pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
+
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
-    pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
 
-    media = np.mean(notas)
-    moda = mode(notas)
-    mediana = np.median(notas)
-    desvio = np.std(notas)
-    pm_medio = np.mean(pm_prova_lista)
     nota_outro = None
     nota_prata = None
     lista_ouro = []
+    lista_nao_ouro = []
     lista_prata = []
+    lista_nao_prata = []
     lista_bronze = []
     for i in range(10, 5, -1):
-        lista_ouro = [item[0] for item in resultados_mural if item[1] == i]
+        lista_ouro = [item[0] for item in resultados_mural if item[1] == i and item[2] >= floor(i / 2 + 1)]
+        lista_nao_ouro = [item for item in resultados_mural if item[1] == i and item[2] < floor(i / 2 + 1)]
         if lista_ouro:
             for estudante in lista_ouro:
-                atualizar_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
+                acrescentar_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
                 atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0)
             nota_outro = i
             break
-    for i in range(nota_outro - 1, 5, -1):
-        lista_prata = [item[0] for item in resultados_mural if item[1] == i]
+    for j in range(nota_outro - 1, 5, -1):
+        lista_prata = [item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)]
+        lista_nao_prata = [item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)]
         if lista_prata:
+            for nao_ouro in lista_nao_ouro:
+                if int(nao_ouro[2]) >= floor(j / 2 + 1):
+                    lista_prata.append(nao_ouro[0])
+                    lista_nao_ouro.remove(nao_ouro)
             for estudante_2 in lista_prata:
-                atualizar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
+                acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
                 atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1)
-            nota_prata = i
+            nota_prata = j
             break
-    for i in range(nota_prata - 1, 5, -1):
-        lista_bronze = [item[0] for item in resultados_mural if item[1] == i]
+    for k in range(nota_prata - 1, 5, -1):
+        lista_bronze = [item[0] for item in resultados_mural if item[1] == k and item[2] >= floor(k / 2 + 1)]
         if lista_bronze:
+            for nao_ouro in lista_nao_ouro:
+                if int(nao_ouro[2]) >= floor(k / 2 + 1):
+                    lista_bronze.append(nao_ouro[0])
+            for nao_prata in lista_nao_prata:
+                if int(nao_prata[2]) >= floor(k / 2 + 1):
+                    lista_bronze.append(nao_prata[0])
             for estudante_3 in lista_bronze:
-                atualizar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
+                acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
                 atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2)
             break
-    imagem_mural = Mural(mural_turma, prova_mural, round(media, 2), int(moda[0]), mediana, round(desvio, 2),
-                         round(pm_medio, 2), lista_ouro, lista_prata, lista_bronze)
+
+    pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
+    pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
+    media = round(np.mean(notas), 2)
+    moda = int(mode(notas)[0])
+    mediana = np.median(notas)
+    desvio = round(np.std(notas), 2)
+    pm_medio = round(np.mean(pm_prova_lista), 2)
+
+    imagem_mural = Mural(mural_turma, prova_mural, media, moda, mediana, desvio,
+                         pm_medio, lista_ouro, lista_prata, lista_bronze)
 
     return render_template('mural.html', imagem=imagem_mural.caminho_static)
 
@@ -308,10 +353,10 @@ def class_page(class_name):
 
     resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
                                               turma_selecionada.prova2, turma_selecionada.prova3,
-                                              turma_selecionada.prova4,
-                                              turma_selecionada.prova5, turma_selecionada.prova6,
-                                              turma_selecionada.prova7,
-                                              turma_selecionada.prova8, turma_selecionada.pm).all())
+                                              turma_selecionada.prova4, turma_selecionada.prova5,
+                                              turma_selecionada.prova6,
+                                              turma_selecionada.prova7, turma_selecionada.prova8,
+                                              turma_selecionada.pm).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -344,13 +389,12 @@ def ranking(class_id):
 def exportar_csv(valor):
     turma_selecionada = selecionar_turma(valor)
     with app.app_context():
-        resultados_csv = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1, turma_selecionada.prova2,
-                                           turma_selecionada.prova3, turma_selecionada.prova4, turma_selecionada.prova5,
-                                           turma_selecionada.prova6, turma_selecionada.prova7, turma_selecionada.prova8,
-                                           turma_selecionada.pm).all())
+        resultados_csv = db.session.query(turma_selecionada).all()
 
-    dataframe = DataFrame.from_records(resultados_csv,
-                                       columns=['Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', 'PM'])
+    dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
+                                                                '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
+                                                                'pm8', 'PM', 'BossV', 'BoosT', 'Ouro', 'Prata',
+                                                                'Bronze'])
     dataframe.to_csv(f'Turma_{valor}.csv', index=False)
 
     email = Email(valor)

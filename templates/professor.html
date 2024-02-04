@@ -155,8 +155,14 @@
         <li>
             <a>Gerar ranking de PM:</a>
             <form action="" method="post">
-            <label for="ranking_id_input">Turma:</label>
-            <input type="text" id="ranking_id_input" class="low_width" name="ranking" required>
+            <label for="ranking_turma_a">3°A:</label>
+                <input type="radio" id="ranking_turma_a" name="opcoes_ranking" value="a" required>
+                <label for="ranking_turma_b">3°B:</label>
+                <input type="radio" id="ranking_turma_b" name="opcoes_ranking" value="b" required>
+                <label for="ranking_turma_c">3°C:</label>
+                <input type="radio" id="ranking_turma_c" name="opcoes_ranking" value="c" required>
+                <label for="ranking_turma_d">1°D:</label>
+                <input type="radio" id="ranking_turma_d" name="opcoes_ranking" value="d" required><br>
             <button name="ranking" type="submit">Gerar</button>
             </form>
         </li>
@@ -173,8 +179,14 @@
         <li>
             <a>Inserir Dados de Boss</a>
             <form action="" method="post">
-                <label for="boss_turma">Turma:</label>
-                <input type="text" class="low_width" id="boss_turma" name="boss_turma" required>
+                <label for="boss_turma_a">3°A:</label>
+                <input type="radio" id="boss_turma_a" name="opcoes_boss" value="a" required>
+                <label for="boss_turma_b">3°B:</label>
+                <input type="radio" id="boss_turma_b" name="opcoes_boss" value="b" required>
+                <label for="boss_turma_c">3°C:</label>
+                <input type="radio" id="boss_turma_c" name="opcoes_boss" value="c" required>
+                <label for="boss_turma_d">1°D:</label>
+                <input type="radio" id="boss_turma_d" name="opcoes_boss" value="d" required><br>
                 <label for="boss_id">Id:</label>
                 <input type="text" class="low_width" id="boss_id" name="boss_id" required>
                 <label for="boss_pm">PM:</label>
@@ -222,7 +234,15 @@
             <label for="pm_input">PM:</label>
             <input type="text" id="pm_input" class="low_width" name="pm" required>
             <label for="id_input">Id:</label>
-            <input type="text" id="id_input" class="low_width" name="id_aluno" required>
+            <input type="text" id="id_input" class="low_width" name="id_aluno" required><br>
+            <label for="calc">Calculadora</label>
+            <input type="checkbox" id="calc" name="calc" value="1"><br>
+            <label for="anular">Anular</label>
+            <input type="checkbox" id="anular" name="anular" value="1"><br>
+            <label for="formula">Fórmulas</label>
+            <input type="checkbox" id="formula" name="formula" value="1"><br>
+            <label for="caderno">Caderno</label>
+            <input type="checkbox" id="caderno" name="caderno" value="1"><br>
             <button name="update" type="submit">Acrescentar</button>
             </form>
         </li>
