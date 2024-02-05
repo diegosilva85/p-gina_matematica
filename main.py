@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_file
 from pandas import DataFrame
 from sendcsv import Email
 from mural import Mural
@@ -8,6 +8,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from math import floor
+from pathlib import Path
 
 
 class Base(DeclarativeBase):
@@ -40,7 +41,7 @@ class Base(DeclarativeBase):
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI ", "sqlite:///database_2024.db")
-
+app.config['UPLOAD_FOLDER'] = 'exercicios'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -152,6 +153,28 @@ def busca(aluno_id):
     return render_template('busca.html', resultados_busca=aluno_turma)
 
 
+@app.route('/downloads', methods=['GET', 'POST'])
+def downloads():
+    files = os.listdir(app.config['UPLOAD_FOLDER'])
+    return render_template('downloads.html', files=files)
+
+
+@app.route('/download_file/<filename>')
+def download_file(filename):
+    file_path = Path(app.config['UPLOAD_FOLDER']) / filename
+    return send_file(file_path, mimetype='application/octet-stream', as_attachment=True)
+
+
+@app.route('/upload_arquivo', methods=['GET', 'POST'])
+def upload_arquivo():
+    mensagem = ''
+    if request.method == 'POST':
+        file = request.files['arquivo']
+        file.save(f'./exercicios/{file.filename}')
+        mensagem = 'Arquivo enviado com sucesso!'
+    return render_template('upload.html', mensagem=mensagem)
+
+
 def adicionar_aluno(turma_to_add, aluno_adicional):
     turma_selecionada = selecionar_turma(turma_to_add)
     novo_aluno = turma_selecionada(nome=aluno_adicional)
@@ -257,13 +280,14 @@ def professor():
             formula = request.form['formula']
         if 'caderno' in request.form:
             caderno = request.form['caderno']
-        inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula, caderno=caderno)
+        inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula,
+                            caderno=caderno)
         acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
     if 'opcoes_ranking' in request.form:
         id_class = request.form['opcoes_ranking']
         return redirect(url_for('ranking', class_id=id_class))
-    if 'mural_id_input' in request.form:
-        mural_turma = request.form['mural_id_input']
+    if 'opcoes_mural' in request.form:
+        mural_turma = request.form['opcoes_mural']
         prova_mural = request.form['prova_input']
         return redirect(url_for('mural', mural_turma=mural_turma, prova_mural=prova_mural))
     if 'exportar' in request.form:
@@ -276,6 +300,8 @@ def professor():
         boss_turma = request.form['opcoes_boss']
         boss_id = request.form['boss_id']
         boss(boss_pm, boss_turma, boss_id)
+    if 'arquivo' in request.form:
+        return redirect(url_for('upload_arquivo'))
     return render_template('professor.html', login=login, prova=prova, class_id=id_class)
 
 
@@ -298,8 +324,13 @@ def mural(mural_turma, prova_mural):
     lista_nao_prata = []
     lista_bronze = []
     for i in range(10, 5, -1):
-        lista_ouro = [item[0] for item in resultados_mural if item[1] == i and item[2] >= floor(i / 2 + 1)]
-        lista_nao_ouro = [item for item in resultados_mural if item[1] == i and item[2] < floor(i / 2 + 1)]
+        if lista_nao_ouro:
+            for nao_ouro in lista_nao_ouro:
+                if int(nao_ouro[2]) >= floor(i / 2 + 1):
+                    lista_ouro.append(nao_ouro[0])
+                    lista_nao_ouro.remove(nao_ouro)
+        lista_ouro.extend([item[0] for item in resultados_mural if item[1] == i and item[2] >= floor(i / 2 + 1)])
+        lista_nao_ouro.extend([item for item in resultados_mural if item[1] == i and item[2] < floor(i / 2 + 1)])
         if lista_ouro:
             for estudante in lista_ouro:
                 acrescentar_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
@@ -307,8 +338,13 @@ def mural(mural_turma, prova_mural):
             nota_outro = i
             break
     for j in range(nota_outro - 1, 5, -1):
-        lista_prata = [item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)]
-        lista_nao_prata = [item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)]
+        if lista_nao_prata:
+            for nao_prata in lista_nao_prata:
+                if int(nao_prata[2]) >= floor(j / 2 + 1):
+                    lista_prata.append(nao_prata[0])
+                    lista_nao_prata.remove(nao_prata)
+        lista_prata.extend([item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)])
+        lista_nao_prata.extend([item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)])
         if lista_prata:
             for nao_ouro in lista_nao_ouro:
                 if int(nao_ouro[2]) >= floor(j / 2 + 1):

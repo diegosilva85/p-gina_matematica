@@ -169,11 +169,24 @@
         <li>
             <a>Gerar Mural:</a>
             <form action="" method="post">
-            <label for="mural_id_input">Prova:</label>
-            <input type="text" class="low_width" name="prova_input" required>
-            <label for="mural_id_input">Turma:</label>
-            <input type="text" id="mural_id_input" class="low_width" name="mural_id_input" required>
+            <label for="id_prova_mural">Prova:</label>
+            <input type="text" id='id_prova_mural' class="low_width" name="prova_input" required><br>
+            <label for="mural_turma_a">3°A:</label>
+            <input type="radio" id="mural_turma_a" name="opcoes_mural" value="a" required>
+            <label for="mural_turma_b">3°B:</label>
+            <input type="radio" id="mural_turma_b" name="opcoes_mural" value="b" required>
+            <label for="mural_turma_c">3°C:</label>
+            <input type="radio" id="mural_turma_c" name="opcoes_mural" value="c" required>
+            <label for="mural_turma_d">1°D:</label>
+            <input type="radio" id="mural_turma_d" name="opcoes_mural" value="d" required><br>
             <button name="mural" type="submit">Gerar</button>
+            </form>
+        </li>
+        <li>
+            <a>Upload de arquivos</a>
+            <form action="{{ url_for('upload_arquivo') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="arquivo">
+            <input type="submit" value="Upload">
             </form>
         </li>
         <li>

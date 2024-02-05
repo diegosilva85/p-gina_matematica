@@ -30,22 +30,37 @@ class Mural:
         draw.line([(x_top, y_top), (x_bottom, y_top), (x_bottom, y_bottom), (x_top, y_bottom), (x_top, y_top)],
                   fill='black', width=2)
         lista_ouro = ouro
-        x_gold = 370
+        x_gold = 360
         y_gold = 380
         for nome in lista_ouro:
-            draw.text((x_gold, y_gold), text=nome, fill='black', font=font)
+            nome_lista = nome.split()
+            if len(nome_lista) == 2:
+                nome_para_mural = " ".join(nome_lista[:3])
+            else:
+                nome_para_mural = " ".join(nome_lista[:2])
+            draw.text((x_gold, y_gold), text=nome_para_mural, fill='black', font=font)
             y_gold += 30
         lista_prata = prata
-        x_silver = 70
+        x_silver = 60
         y_silver = 620
         for nome_pr in lista_prata:
-            draw.text((x_silver, y_silver), text=nome_pr, fill='black', font=font)
+            nome_lista_pr = nome_pr.split()
+            if len(nome_lista_pr[1]) == 2:
+                nome_para_mural_pr = " ".join(nome_lista_pr[:3])
+            else:
+                nome_para_mural_pr = " ".join(nome_lista_pr[:2])
+            draw.text((x_silver, y_silver), text=nome_para_mural_pr, fill='black', font=font)
             y_silver += 30
         lista_bronze = bronze
-        x_bronze = 710
+        x_bronze = 700
         y_bronze = 690
         for nome_br in lista_bronze:
-            draw.text((x_bronze, y_bronze), text=nome_br, fill='black', font=font)
+            nome_lista_br = nome_br.split()
+            if len(nome_lista_br[1]) == 2:
+                nome_para_mural_br = " ".join(nome_lista_br[:3])
+            else:
+                nome_para_mural_br = " ".join(nome_lista_br[:2])
+            draw.text((x_bronze, y_bronze), text=nome_para_mural_br, fill='black', font=font)
             y_bronze += 30
         self.caminho = f"./static/mural_{turma}_{prova}.png"
         self.caminho_static = f"mural_{turma}_{prova}.png"
