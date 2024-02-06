@@ -32,6 +32,22 @@ class Base(DeclarativeBase):
     pm7: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     pm8: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     pm: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    coroa1: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa2: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa3: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa4: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa5: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa6: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa7: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    coroa8: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios1: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios2: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios3: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios4: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios5: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios6: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios7: Mapped[str] = mapped_column(nullable=True, server_default="-")
+    beneficios8: Mapped[str] = mapped_column(nullable=True, server_default="-")
     boss_vitoria: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     boss_total: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     coroa_ouro: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
@@ -197,12 +213,16 @@ def inserir_dados_prova(prova_update, nota_update, id_update, turma_update, pm_u
     setattr(aluno_update, f"pm{prova_update}", pm_update)
     if calc is not None:
         acrescentar_pm(-5, id_pm=id_update, turma_pm=turma_update)
+        setattr(aluno_update, f'beneficios{prova_update}', "Calculadora")
     if anular is not None:
         acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
+        setattr(aluno_update, f'beneficios{prova_update}', "Anular")
     if formula is not None:
         acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
+        setattr(aluno_update, f'beneficios{prova_update}', "Fórmulas")
     if caderno is not None:
         acrescentar_pm(-15, id_pm=id_update, turma_pm=turma_update)
+        setattr(aluno_update, f'beneficios{prova_update}', "Caderno")
     db.session.commit()
 
 
@@ -233,18 +253,21 @@ def boss(pm_boss, turma_boss, id_boss):
     db.session.commit()
 
 
-def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa):
+def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa, prova_coroa):
     turma_selecionada = selecionar_turma(turma_coroa)
     aluno_coroa = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome_coroa)).scalar()
     if valor_coroa == 0:
         total_selecionada = int(aluno_coroa.coroa_ouro) + 1
         setattr(aluno_coroa, "coroa_ouro", total_selecionada)
+        setattr(aluno_coroa, f"coroa{prova_coroa}", "ouro")
     elif valor_coroa == 1:
         total_selecionada = int(aluno_coroa.coroa_prata) + 1
         setattr(aluno_coroa, "coroa_prata", total_selecionada)
+        setattr(aluno_coroa, f"coroa{prova_coroa}", "prata")
     elif valor_coroa == 2:
         total_selecionada = int(aluno_coroa.coroa_bronze) + 1
         setattr(aluno_coroa, "coroa_bronze", total_selecionada)
+        setattr(aluno_coroa, f"coroa{prova_coroa}", "bronze")
     db.session.commit()
 
 
@@ -334,7 +357,7 @@ def mural(mural_turma, prova_mural):
         if lista_ouro:
             for estudante in lista_ouro:
                 acrescentar_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0)
+                atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0, prova_coroa=prova_mural)
             nota_outro = i
             break
     for j in range(nota_outro - 1, 5, -1):
@@ -352,7 +375,7 @@ def mural(mural_turma, prova_mural):
                     lista_nao_ouro.remove(nao_ouro)
             for estudante_2 in lista_prata:
                 acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1)
+                atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1, prova_coroa=prova_mural)
             nota_prata = j
             break
     for k in range(nota_prata - 1, 5, -1):
@@ -366,7 +389,7 @@ def mural(mural_turma, prova_mural):
                     lista_bronze.append(nao_prata[0])
             for estudante_3 in lista_bronze:
                 acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2)
+                atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2, prova_coroa=prova_mural)
             break
 
     pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
@@ -397,8 +420,8 @@ def class_page(class_name):
 
     for i in range(1, 9):
         atributo = getattr(turma_selecionada, f"prova{i}")
-        dados = db.session.query(atributo).all()
-        notas_validas = [nota[0] for nota in dados if nota[0] is not None]
+        dados_turma = db.session.query(atributo).all()
+        notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
         if notas_validas:
             media = round(np.mean(notas_validas), 2)
             mediana = np.median(notas_validas)
@@ -429,7 +452,11 @@ def exportar_csv(valor):
 
     dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
                                                                 '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
-                                                                'pm8', 'PM', 'BossV', 'BoosT', 'Ouro', 'Prata',
+                                                                'pm8', 'PM', "coroa1", "coroa2", "coroa3", "coroa4",
+                                                                'coroa5', 'coroa6', 'coroa7', 'coroa8', 'beneficios1',
+                                                                'beneficios2', 'beneficios3', 'beneficios4',
+                                                                'beneficios5', 'beneficios6', 'beneficios7',
+                                                                'beneficios8', 'BossV', 'BoosT', 'Ouro', 'Prata',
                                                                 'Bronze'])
     dataframe.to_csv(f'Turma_{valor}.csv', index=False)
 

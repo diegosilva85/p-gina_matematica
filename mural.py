@@ -34,7 +34,7 @@ class Mural:
         y_gold = 380
         for nome in lista_ouro:
             nome_lista = nome.split()
-            if len(nome_lista) == 2:
+            if len(nome_lista[1]) == 2:
                 nome_para_mural = " ".join(nome_lista[:3])
             else:
                 nome_para_mural = " ".join(nome_lista[:2])
