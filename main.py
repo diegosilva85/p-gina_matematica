@@ -57,7 +57,7 @@ class Base(DeclarativeBase):
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI ", "sqlite:///database_2024.db")
-app.config['UPLOAD_FOLDER'] = 'exercicios'
+app.config['UPLOAD_FOLDER'] = 'static/upload'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -186,7 +186,7 @@ def upload_arquivo():
     mensagem = ''
     if request.method == 'POST':
         file = request.files['arquivo']
-        file.save(f'./exercicios/{file.filename}')
+        file.save(f'./static/upload/{file.filename}')
         mensagem = 'Arquivo enviado com sucesso!'
     return render_template('upload.html', mensagem=mensagem)
 
@@ -306,21 +306,21 @@ def professor():
         inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula,
                             caderno=caderno)
         acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
-    if 'opcoes_ranking' in request.form:
-        id_class = request.form['opcoes_ranking']
+    if 'ranking' in request.form:
+        id_class = request.form['ranking']
         return redirect(url_for('ranking', class_id=id_class))
-    if 'opcoes_mural' in request.form:
-        mural_turma = request.form['opcoes_mural']
-        prova_mural = request.form['prova_input']
+    if 'turma_mural' in request.form:
+        mural_turma = request.form['turma_mural']
+        prova_mural = request.form['prova_mural']
         return redirect(url_for('mural', mural_turma=mural_turma, prova_mural=prova_mural))
-    if 'exportar' in request.form:
-        exportar = request.form['exportar']
+    if 'exportar_turma' in request.form:
+        exportar = request.form['exportar_turma']
         exportar_csv(exportar)
     if 'criar' in request.form:
         criar_turmas()
-    if 'opcoes_boss' in request.form:
+    if 'boss_turma' in request.form:
         boss_pm = request.form['boss_pm']
-        boss_turma = request.form['opcoes_boss']
+        boss_turma = request.form['boss_turma']
         boss_id = request.form['boss_id']
         boss(boss_pm, boss_turma, boss_id)
     if 'arquivo' in request.form:
@@ -446,9 +446,20 @@ def ranking(class_id):
 
 
 def exportar_csv(valor):
-    turma_selecionada = selecionar_turma(valor)
+    turma_sel = selecionar_turma(valor)
     with app.app_context():
-        resultados_csv = db.session.query(turma_selecionada).all()
+        resultados_csv = db.session.query(turma_sel.id, turma_sel.nome, turma_sel.prova1,
+                                          turma_sel.prova2, turma_sel.prova3, turma_sel.prova4,
+                                          turma_sel.prova5, turma_sel.prova6, turma_sel.prova7,
+                                          turma_sel.prova8, turma_sel.pm1, turma_sel.pm2, turma_sel.pm3, turma_sel.pm4,
+                                          turma_sel.pm5, turma_sel.pm6, turma_sel.pm7, turma_sel.pm8, turma_sel.pm,
+                                          turma_sel.coroa1, turma_sel.coroa2, turma_sel.coroa3, turma_sel.coroa4,
+                                          turma_sel.coroa5, turma_sel.coroa6, turma_sel.coroa7, turma_sel.coroa8,
+                                          turma_sel.beneficios1, turma_sel.beneficios2, turma_sel.beneficios3,
+                                          turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
+                                          turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
+                                          turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
+                                          turma_sel.coroa_bronze).all()
 
     dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
                                                                 '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',

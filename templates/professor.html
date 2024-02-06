@@ -26,159 +26,68 @@
             </div>
         </li>
         {% if login %}
-        <li><a href="#" onclick="toggleSubMenu('turmas')">Adicionar Aluno</a>
-            <ul id="submenu_turmas">
                 <li>
-                    <a href="#" onclick="toggleSubMenu('3A')">3A</a>
-                    <ul id="submenu_3A">
-                        <li><a href="#" onclick="mostrarFormulario('3A')">Adicionar Aluno - 3° A</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3A" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3A -->
+                    <a href="#" onclick="mostrarFormulario('adicionar')">Adicionar Aluno</a>
+                        <form action="" method="post" id="form_adicionar" style="display: none;">
+                                <label for="turmas_adcionar">Turma:</label>
+                                <select id="turmas_adicionar" name="class" required>
+                                <option value="a">3°A</option>
+                                <option value="b">3°B</option>
+                                <option value="c">3°C</option>
+                                <option value="d">1°D</option>
+                                </select>
                                 <input type="text" name="Id" placeholder="Nome do Aluno" required>
-                                <input type="hidden" name="class" value="a">
-                                <button name="add" type="submit">Adicionar Aluno</button>
+                                <button name="add" type="submit">Adicionar</button>
                             </form>
-                        </li>
-                    </ul>
                 </li>
-
                 <li>
-                    <a href="#" onclick="toggleSubMenu('3B')">3B</a>
-                    <ul id="submenu_3B">
-                        <li><a href="#" onclick="mostrarFormulario('3B')">Adicionar Aluno - 3° B</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3B" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3B -->
+                    <a href="#" onclick="mostrarFormulario('deletar')">Excluir Aluno</a>
+                        <form action="" method="post" id="form_deletar" style="display: none;">
+                                <label for="turmas_deletar">Turma:</label>
+                                <select id="turmas_deletar" name="turma" required>
+                                <option value="a">3°A</option>
+                                <option value="b">3°B</option>
+                                <option value="c">3°C</option>
+                                <option value="d">1°D</option>
+                                </select>
                                 <input type="text" name="Id" placeholder="Nome do Aluno" required>
-                                <input type="hidden" name="class" value="b">
-                                <button name="add" type="submit">Adicionar Aluno</button>
+                                <button name="delete" type="submit">Excluir</button>
                             </form>
-                        </li>
-                    </ul>
                 </li>
-
-                <li>
-                    <a href="#" onclick="toggleSubMenu('3C')">3C</a>
-                    <ul id="submenu_3C">
-                        <li><a href="#" onclick="mostrarFormulario('3C')">Adicionar Aluno - 3° C</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3C" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3C -->
-                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
-                                <input type="hidden" name="class" value="c">
-                                <button name="add" type="submit">Adicionar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-
-                <li>
-                    <a href="#" onclick="toggleSubMenu('1D')">1D</a>
-                    <ul id="submenu_1D">
-                        <li><a href="#" onclick="mostrarFormulario('1D')">Adicionar Aluno - 1° D</a></li>
-                        <li>
-                            <form action="" method="post" id="form_1D" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 1D -->
-                                <input type="text" name="Id" placeholder="Nome do Aluno" required>
-                                <input type="hidden" name="class" value="d">
-                                <button name="add" type="submit">Adicionar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-        <li><a href="#" onclick="toggleSubMenu('turmas_del')">Deletar Aluno</a>
-            <ul id="submenu_turmas_del">
-                <li>
-                    <a href="#" onclick="toggleSubMenu('3A_2')">3A</a>
-                    <ul id="submenu_3A_2">
-                        <li><a href="#" onclick="mostrarFormulario('3A_2')">Deletar Aluno - 3° A</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3A_2" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3A -->
-                                <input type="text" name="Id" placeholder="Id do Aluno" required>
-                                <input type="hidden" name="turma" value="a">
-                                <button name="delete" type="submit">Deletar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-
-                <li>
-                    <a href="#" onclick="toggleSubMenu('3B_2')">3B</a>
-                    <ul id="submenu_3B_2">
-                        <li><a href="#" onclick="mostrarFormulario('3B_2')">Deletar Aluno - 3° B</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3B_2" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3B -->
-                                <input type="text" name="Id" placeholder="Id do Aluno" required>
-                                <input type="hidden" name="turma" value="b">
-                                <button name="delete" type="submit">Deletar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-
-                <li>
-                    <a href="#" onclick="toggleSubMenu('3C_2')">3C</a>
-                    <ul id="submenu_3C_2">
-                        <li><a href="#" onclick="mostrarFormulario('3C_2')">Deletar Aluno - 3° C</a></li>
-                        <li>
-                            <form action="" method="post" id="form_3C_2" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 3C -->
-                                <input type="text" name="Id" placeholder="Id do Aluno" required>
-                                <input type="hidden" name="turma" value="c">
-                                <button name="delete" type="submit">Deletar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-
-                <li>
-                    <a href="#" onclick="toggleSubMenu('1D_2')">1D</a>
-                    <ul id="submenu_1D_2">
-                        <li><a href="#" onclick="mostrarFormulario('1D_2')">Deletar Aluno - 1° D</a></li>
-                        <li>
-                            <form action="" method="post" id="form_1D_2" style="display: none;">
-                                <!-- Seu formulário para adicionar aluno para a turma 1D -->
-                                <input type="text" name="Id" placeholder="Id do Aluno" required>
-                                <input type="hidden" name="turma" value="d">
-                                <button name="delete" type="submit">Deletar Aluno</button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
         <li>
             <a>Gerar ranking de PM:</a>
             <form action="" method="post">
-            <label for="ranking_turma_a">3°A:</label>
-                <input type="radio" id="ranking_turma_a" name="opcoes_ranking" value="a" required>
-                <label for="ranking_turma_b">3°B:</label>
-                <input type="radio" id="ranking_turma_b" name="opcoes_ranking" value="b" required>
-                <label for="ranking_turma_c">3°C:</label>
-                <input type="radio" id="ranking_turma_c" name="opcoes_ranking" value="c" required>
-                <label for="ranking_turma_d">1°D:</label>
-                <input type="radio" id="ranking_turma_d" name="opcoes_ranking" value="d" required><br>
+            <label for="turmas_ranking">Turma:</label>
+                <select id="turmas_ranking" name="ranking" required>
+                <option value="a">3°A</option>
+                <option value="b">3°B</option>
+                <option value="c">3°C</option>
+                <option value="d">1°D</option>
+                </select>
             <button name="ranking" type="submit">Gerar</button>
             </form>
         </li>
         <li>
             <a>Gerar Mural:</a>
             <form action="" method="post">
-            <label for="id_prova_mural">Prova:</label>
-            <input type="text" id='id_prova_mural' class="low_width" name="prova_input" required><br>
-            <label for="mural_turma_a">3°A:</label>
-            <input type="radio" id="mural_turma_a" name="opcoes_mural" value="a" required>
-            <label for="mural_turma_b">3°B:</label>
-            <input type="radio" id="mural_turma_b" name="opcoes_mural" value="b" required>
-            <label for="mural_turma_c">3°C:</label>
-            <input type="radio" id="mural_turma_c" name="opcoes_mural" value="c" required>
-            <label for="mural_turma_d">1°D:</label>
-            <input type="radio" id="mural_turma_d" name="opcoes_mural" value="d" required><br>
+            <label for="prova_mural">Prova:</label>
+                <select id="prova_mural" name="prova_mural" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                </select>
+            <label for="turmas_mural">Turma:</label>
+                <select id="turmas_mural" name="turma_mural" required>
+                <option value="a">3°A</option>
+                <option value="b">3°B</option>
+                <option value="c">3°C</option>
+                <option value="d">1°D</option>
+                </select>
             <button name="mural" type="submit">Gerar</button>
             </form>
         </li>
@@ -192,18 +101,20 @@
         <li>
             <a>Inserir Dados de Boss</a>
             <form action="" method="post">
-                <label for="boss_turma_a">3°A:</label>
-                <input type="radio" id="boss_turma_a" name="opcoes_boss" value="a" required>
-                <label for="boss_turma_b">3°B:</label>
-                <input type="radio" id="boss_turma_b" name="opcoes_boss" value="b" required>
-                <label for="boss_turma_c">3°C:</label>
-                <input type="radio" id="boss_turma_c" name="opcoes_boss" value="c" required>
-                <label for="boss_turma_d">1°D:</label>
-                <input type="radio" id="boss_turma_d" name="opcoes_boss" value="d" required><br>
                 <label for="boss_id">Id:</label>
                 <input type="text" class="low_width" id="boss_id" name="boss_id" required>
-                <label for="boss_pm">PM:</label>
-                <input type="text" class="low_width" id="boss_pm" name="boss_pm" required>
+                <label for="turmas_boss">Turma:</label>
+                <select id="turmas_boss" name="boss_turma" required>
+                <option value="a">3°A</option>
+                <option value="b">3°B</option>
+                <option value="c">3°C</option>
+                <option value="d">1°D</option>
+                </select>
+                <label for="pm_boss">PM:</label>
+                <select id="turmas_inserir" name="boss_pm" required>
+                <option value="5">5</option>
+                <option value="15">15</option>
+                </select>
                 <button name="boss" type="submit">Adicionar</button>
             </form>
         </li>
@@ -215,26 +126,39 @@
                 </form>
         </li>
         <li>
-            <a href="#" onclick="toggleSubMenu('csv')"> Exportar CSV</a>
-                <ul id="submenu_csv">
-                    <li>
-                        <li><a href="#" onclick="mostrarFormulario('export_a')">Escolha turma</a></li>
-                        <li>
-                        <form action="" id="form_export_a" method="post" style="display: none;">
-                            <input type="text" name="exportar" placeholder="turma" required>
-                            <button name="exportar" type="submit">Enviar</button>
-                        </form>
-                    </li>
-                </ul>
-
+            <a href="#" onclick="mostrarFormulario('export_a')">Exportar CSV</a>
+                 <form action="" id="form_export_a" method="post" style="display: none;">
+                       <label for="turmas_exportar">Turma:</label>
+                            <select id="turmas_boss" name="exportar_turma" required>
+                            <option value="a">3°A</option>
+                            <option value="b">3°B</option>
+                            <option value="c">3°C</option>
+                            <option value="d">1°D</option>
+                            </select>
+                       <button name="exportar" type="submit">Enviar</button>
+                 </form>
         </li>
         <li>
             <a>Inserir dados de prova</a>
             <form action="" method="post">
-            <label for="prova_id">Prova:</label>
-            <input type="text" id="prova_id" class="low_width" name="prova" required>
-            <label for="turma_id_input" id="label_turma03">Turma:</label>
-            <input type="text" id="turma_id_input" class="low_width" name="turma" required>
+                <label for="turmas_inserir">Turma:</label>
+                <select id="turmas_inserir" name="turma" required>
+                <option value="a">3°A</option>
+                <option value="b">3°B</option>
+                <option value="c">3°C</option>
+                <option value="d">1°D</option>
+                </select>
+                <label for="prova_inserir">Prova:</label>
+                <select id="prova_inserir" name="prova" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                </select>
             <button name="start" type="submit">Começar</button>
             </form>
         </li>
@@ -249,11 +173,11 @@
             <label for="id_input">Id:</label>
             <input type="text" id="id_input" class="low_width" name="id_aluno" required><br>
             <label for="calc">Calculadora</label>
-            <input type="checkbox" id="calc" name="calc" value="1"><br>
+            <input type="checkbox" id="calc" name="calc" value="1">
             <label for="anular">Anular</label>
             <input type="checkbox" id="anular" name="anular" value="1"><br>
             <label for="formula">Fórmulas</label>
-            <input type="checkbox" id="formula" name="formula" value="1"><br>
+            <input type="checkbox" id="formula" name="formula" value="1">
             <label for="caderno">Caderno</label>
             <input type="checkbox" id="caderno" name="caderno" value="1"><br>
             <button name="update" type="submit">Acrescentar</button>
