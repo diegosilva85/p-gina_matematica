@@ -177,7 +177,12 @@ def downloads():
 
 @app.route('/download_file/<filename>')
 def download_file(filename):
-    file_path = Path(app.config['UPLOAD_FOLDER']) / filename
+    try:
+        file_path = Path(app.config['UPLOAD_FOLDER']) / filename
+        return send_file(file_path, mimetype='application/octet-stream', as_attachment=True)
+    except FileNotFoundError:
+        file_path = Path("./static") / filename
+
     return send_file(file_path, mimetype='application/octet-stream', as_attachment=True)
 
 
@@ -189,6 +194,14 @@ def upload_arquivo():
         file.save(f'./static/upload/{file.filename}')
         mensagem = 'Arquivo enviado com sucesso!'
     return render_template('upload.html', mensagem=mensagem)
+
+
+@app.route('/download_professor', methods=['GET', 'POST'])
+def download_professor():
+    # files = os.listdir("./static")
+    directory = "./static"  # Caminho do diretório
+    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+    return render_template('download_professor.html', files=files)
 
 
 def adicionar_aluno(turma_to_add, aluno_adicional):
@@ -339,7 +352,7 @@ def mural(mural_turma, prova_mural):
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
 
-    nota_outro = None
+    nota_ouro = None
     nota_prata = None
     lista_ouro = []
     lista_nao_ouro = []
@@ -358,9 +371,10 @@ def mural(mural_turma, prova_mural):
             for estudante in lista_ouro:
                 acrescentar_pm(9, aluno_nome=estudante, turma_pm=mural_turma)
                 atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0, prova_coroa=prova_mural)
-            nota_outro = i
+            nota_ouro = i
             break
-    for j in range(nota_outro - 1, 5, -1):
+    if nota_ouro is None: nota_ouro = 10
+    for j in range(nota_ouro - 1, 5, -1):
         if lista_nao_prata:
             for nao_prata in lista_nao_prata:
                 if int(nao_prata[2]) >= floor(j / 2 + 1):
@@ -375,9 +389,11 @@ def mural(mural_turma, prova_mural):
                     lista_nao_ouro.remove(nao_ouro)
             for estudante_2 in lista_prata:
                 acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1, prova_coroa=prova_mural)
+                atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
+                                 prova_coroa=prova_mural)
             nota_prata = j
             break
+    if nota_prata is None: nota_prata = 10
     for k in range(nota_prata - 1, 5, -1):
         lista_bronze = [item[0] for item in resultados_mural if item[1] == k and item[2] >= floor(k / 2 + 1)]
         if lista_bronze:
@@ -389,13 +405,17 @@ def mural(mural_turma, prova_mural):
                     lista_bronze.append(nao_prata[0])
             for estudante_3 in lista_bronze:
                 acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2, prova_coroa=prova_mural)
+                atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
+                                 prova_coroa=prova_mural)
             break
 
     pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
     media = round(np.mean(notas), 2)
-    moda = int(mode(notas)[0])
+    try:
+        moda = int(mode(notas)[0])
+    except ValueError:
+        moda = 0
     mediana = np.median(notas)
     desvio = round(np.std(notas), 2)
     pm_medio = round(np.mean(pm_prova_lista), 2)
@@ -406,8 +426,9 @@ def mural(mural_turma, prova_mural):
     return render_template('mural.html', imagem=imagem_mural.caminho_static)
 
 
-@app.route('/<class_name>')
+@app.route('/<class_name>', methods=['GET', 'POST'])
 def class_page(class_name):
+    print(f'CAUGHT = {class_name}')
     turma_selecionada = selecionar_turma(class_name)
 
     resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,

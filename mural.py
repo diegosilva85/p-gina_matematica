@@ -5,8 +5,7 @@ font_caminho = "./fonts/LiberationSans-Regular.ttf"
 
 class Mural:
     def __init__(self, turma: str, prova: str, media: float, moda: int, mediana: float, desvio: float, pm: float,
-                 ouro: list,
-                 prata: list, bronze: list):
+                 ouro: list, prata: list, bronze: list):
         self.mural = Image.open("./static/Mural.png")
         draw = ImageDraw.Draw(self.mural)
         font = ImageFont.truetype(font=font_caminho, size=24)

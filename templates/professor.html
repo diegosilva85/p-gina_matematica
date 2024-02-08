@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
     <title>Área do professor</title>
     <style>
         .low_width {
@@ -92,13 +93,6 @@
             </form>
         </li>
         <li>
-            <a>Upload de arquivos</a>
-            <form action="{{ url_for('upload_arquivo') }}" method="post" enctype="multipart/form-data">
-            <input type="file" name="arquivo">
-            <input type="submit" value="Upload">
-            </form>
-        </li>
-        <li>
             <a>Inserir Dados de Boss</a>
             <form action="" method="post">
                 <label for="boss_id">Id:</label>
@@ -118,6 +112,16 @@
                 <button name="boss" type="submit">Adicionar</button>
             </form>
         </li>
+            <li>
+            <a>Upload de arquivos</a>
+            <form action="{{ url_for('upload_arquivo') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="arquivo">
+            <input type="submit" value="Upload">
+            </form>
+        </li>
+             <li>
+                <a href="{{ url_for('download_professor') }}">Downloads</a>
+            </li>
         <li>
             <a href="#" onclick="mostrarFormulario('dados_basicos')">Criar turmas</a>
                 <form action="" id="form_dados_basicos" method="post" style="display: none;">
