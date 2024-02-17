@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+    <title>Login</title>
+</head>
+<body>
+<div class="menu">
+    <ul>
+{% if not logged_in %}
+        <li>
+            <div>
+            <a href="#">Senha</a>
+            <form action="{{ url_for('login') }}" method="post">
+            <input type="text" id ="Password" name="Password" required>
+            <button type="submit">Acessar</button>
+            </form>
+            </div>
+        </li>
+        {% else %}
+    <p> (you are already logged in) </p>
+    <a href="{{ url_for('logout') }}">Log Out</a>
+  {% endif %}
+    </ul>
+</div>
+</body>
+</html>

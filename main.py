@@ -9,6 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from math import floor
 from pathlib import Path
+from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import pyarrow
 
 
@@ -56,11 +58,20 @@ class Base(DeclarativeBase):
     coroa_bronze: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
 
 
+class BaseProfessor(DeclarativeBase):
+    __abstract__ = True
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+
+senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
+app.config['SECRET_KEY'] = senha_sessao_flask
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI ", "sqlite:///database_2024.db")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 
 class Terceiro_A(db.Model):
@@ -79,14 +90,23 @@ class Primeiro_D(db.Model):
     __tablename__ = 'Primeiro_D'
 
 
-with app.app_context():
-    db.create_all()
+class Professor(BaseProfessor, UserMixin):
+    __tablename__ = 'professor'
+    nome: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str] = mapped_column()
+
 
 lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
-
 senha = os.environ.get("senha_professor").strip("")
+prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None
 
-login, prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None, None
+with app.app_context():
+    db.create_all()
+    # senha_hash = hash_and_salted_password = generate_password_hash(password=senha, method='pbkdf2:sha256',
+    #                                                                salt_length=8)
+    # professor = Professor(nome="diego", password=senha_hash)
+    # db.session.add(professor)
+    # db.session.commit()
 
 # Dados das turmas
 with open('nomes_1D.txt', 'r', encoding='ISO-8859-1') as arquivo:
@@ -132,6 +152,11 @@ def criar_turmas():
         novo_aluno = Primeiro_D(nome=aluno_d)
         db.session.add(novo_aluno)
         db.session.commit()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.get_or_404(Professor, user_id)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -198,6 +223,7 @@ def upload_arquivo():
 
 
 @app.route('/download_professor', methods=['GET', 'POST'])
+@login_required
 def download_professor():
     # files = os.listdir("./static")
     directory = "./static"
@@ -285,61 +311,78 @@ def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa, prova_coroa):
     db.session.commit()
 
 
-@app.route('/professor', methods=['GET', 'POST'])
-def professor():
-    calculadora, anular, formula, caderno = None, None, None, None
-    global login, prova, nota, turma, pm, id_aluno, id_class, senha
+@app.route("/login", methods=["GET", "POST"])
+def login():
     if request.method == 'POST':
         if 'Password' in request.form:
+            professor_login = db.session.execute(db.select(Professor).where(Professor.nome == "diego")).scalar()
             password = request.form['Password']
-            if password == senha:
-                login = True
-    if 'add' in request.form:
-        aluno_adicionar = request.form['Id']
-        turma_adicionar = request.form['class']
-        adicionar_aluno(turma_adicionar, aluno_adicionar)
-    if 'delete' in request.form:
-        id_delete = request.form['Id']
-        turma_deletar = request.form['turma']
-        deletar_aluno(id_delete, turma_deletar)
-    if 'start' in request.form:
-        prova = request.form['prova']
-        turma = request.form['turma']
-    if 'nota' in request.form:
-        nota = request.form['nota']
-        pm = request.form['pm']
-        id_aluno = request.form['id_aluno']
-        if 'calc' in request.form:
-            calculadora = request.form['calc']
-        if 'anular' in request.form:
-            anular = request.form['anular']
-        if 'formula' in request.form:
-            formula = request.form['formula']
-        if 'caderno' in request.form:
-            caderno = request.form['caderno']
-        inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula,
-                            caderno=caderno)
-        acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
-    if 'ranking' in request.form:
-        id_class = request.form['ranking']
-        return redirect(url_for('ranking', class_id=id_class))
-    if 'turma_mural' in request.form:
-        mural_turma = request.form['turma_mural']
-        prova_mural = request.form['prova_mural']
-        return redirect(url_for('mural', mural_turma=mural_turma, prova_mural=prova_mural))
-    if 'exportar_turma' in request.form:
-        exportar = request.form['exportar_turma']
-        exportar_csv(exportar)
-    if 'criar' in request.form:
-        criar_turmas()
-    if 'boss_turma' in request.form:
-        boss_pm = request.form['boss_pm']
-        boss_turma = request.form['boss_turma']
-        boss_id = request.form['boss_id']
-        boss(boss_pm, boss_turma, boss_id)
-    if 'arquivo' in request.form:
-        return redirect(url_for('upload_arquivo'))
-    return render_template('professor.html', login=login, prova=prova, class_id=id_class)
+            if check_password_hash(professor_login.password, password):
+                login_user(professor_login)
+                return redirect(url_for("professor"))
+
+    return render_template("login.html", logged_in=current_user.is_authenticated)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
+@app.route('/professor', methods=['GET', 'POST'])
+@login_required
+def professor():
+    calculadora, anular, formula, caderno = None, None, None, None
+    global prova, nota, turma, pm, id_aluno, id_class, senha
+    if request.method == 'POST':
+        if 'add' in request.form:
+            aluno_adicionar = request.form['Id']
+            turma_adicionar = request.form['class']
+            adicionar_aluno(turma_adicionar, aluno_adicionar)
+        if 'delete' in request.form:
+            id_delete = request.form['Id']
+            turma_deletar = request.form['turma']
+            deletar_aluno(id_delete, turma_deletar)
+        if 'start' in request.form:
+            prova = request.form['prova']
+            turma = request.form['turma']
+        if 'nota' in request.form:
+            nota = request.form['nota']
+            pm = request.form['pm']
+            id_aluno = request.form['id_aluno']
+            if 'calc' in request.form:
+                calculadora = request.form['calc']
+            if 'anular' in request.form:
+                anular = request.form['anular']
+            if 'formula' in request.form:
+                formula = request.form['formula']
+            if 'caderno' in request.form:
+                caderno = request.form['caderno']
+            inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula,
+                                caderno=caderno)
+            acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+        if 'ranking' in request.form:
+            id_class = request.form['ranking']
+            return redirect(url_for('ranking', class_id=id_class))
+        if 'turma_mural' in request.form:
+            mural_turma = request.form['turma_mural']
+            prova_mural = request.form['prova_mural']
+            return redirect(url_for('mural', mural_turma=mural_turma, prova_mural=prova_mural))
+        if 'exportar_turma' in request.form:
+            exportar = request.form['exportar_turma']
+            exportar_csv(exportar)
+        if 'criar' in request.form:
+            criar_turmas()
+        if 'boss_turma' in request.form:
+            boss_pm = request.form['boss_pm']
+            boss_turma = request.form['boss_turma']
+            boss_id = request.form['boss_id']
+            boss(boss_pm, boss_turma, boss_id)
+        if 'arquivo' in request.form:
+            return redirect(url_for('upload_arquivo'))
+    return render_template('professor.html', prova=prova, class_id=id_class,
+                           logged_in=current_user.is_authenticated)
 
 
 @app.route('/mural/<mural_turma>/<prova_mural>', methods=['GET', 'POST'])
@@ -433,7 +476,6 @@ def mural(mural_turma, prova_mural):
 
 @app.route('/<class_name>', methods=['GET', 'POST'])
 def class_page(class_name):
-    print(f'CAUGHT = {class_name}')
     turma_selecionada = selecionar_turma(class_name)
 
     resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
@@ -472,6 +514,7 @@ def ranking(class_id):
 
 
 @app.route("/manual", methods=['GET', 'POST'])
+@login_required
 def manual():
     manual = None
     resultado = None
@@ -480,10 +523,11 @@ def manual():
         if manual:
             turma_selecionada = selecionar_turma(manual)
             resultado = db.session.query(turma_selecionada).all()
-    return render_template("manual.html", manual=manual, resultados=resultado)
+    return render_template("manual.html", manual=manual, resultados=resultado, logged_in=True)
 
 
 @app.route("/aluno_alterar/<nome>/<turma>", methods=['GET', 'POST'])
+@login_required
 def aluno_alterar(nome, turma):
     turma_selecionada = selecionar_turma(turma)
     resultados = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome)).scalar()

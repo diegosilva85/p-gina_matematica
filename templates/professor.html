@@ -16,17 +16,7 @@
 <body>
 <div class="menu">
     <ul>
-
-        <li>
-            <div>
-            <a href="#">Senha</a>
-            <form action="" method="post">
-            <input type="text" id ="id_label_01" name="Password" required>
-            <button type="submit">Acessar</button>
-            </form>
-            </div>
-        </li>
-        {% if login %}
+        {% if logged_in %}
                 <li>
                     <a href="#" onclick="mostrarFormulario('adicionar')">Adicionar Aluno</a>
                         <form action="" method="post" id="form_adicionar" style="display: none;">
