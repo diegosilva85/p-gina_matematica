@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from math import floor
 from pathlib import Path
+import pyarrow
 
 
 class Base(DeclarativeBase):
@@ -199,7 +200,7 @@ def upload_arquivo():
 @app.route('/download_professor', methods=['GET', 'POST'])
 def download_professor():
     # files = os.listdir("./static")
-    directory = "./static"  # Caminho do diretório
+    directory = "./static"
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     return render_template('download_professor.html', files=files)
 
@@ -373,41 +374,45 @@ def mural(mural_turma, prova_mural):
                 atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0, prova_coroa=prova_mural)
             nota_ouro = i
             break
-    if nota_ouro is None: nota_ouro = 10
-    for j in range(nota_ouro - 1, 5, -1):
-        if lista_nao_prata:
-            for nao_prata in lista_nao_prata:
-                if int(nao_prata[2]) >= floor(j / 2 + 1):
-                    lista_prata.append(nao_prata[0])
-                    lista_nao_prata.remove(nao_prata)
-        lista_prata.extend([item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)])
-        lista_nao_prata.extend([item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)])
-        if lista_prata:
-            for nao_ouro in lista_nao_ouro:
-                if int(nao_ouro[2]) >= floor(j / 2 + 1):
-                    lista_prata.append(nao_ouro[0])
-                    lista_nao_ouro.remove(nao_ouro)
-            for estudante_2 in lista_prata:
-                acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
-                                 prova_coroa=prova_mural)
-            nota_prata = j
-            break
-    if nota_prata is None: nota_prata = 10
-    for k in range(nota_prata - 1, 5, -1):
-        lista_bronze = [item[0] for item in resultados_mural if item[1] == k and item[2] >= floor(k / 2 + 1)]
-        if lista_bronze:
-            for nao_ouro in lista_nao_ouro:
-                if int(nao_ouro[2]) >= floor(k / 2 + 1):
-                    lista_bronze.append(nao_ouro[0])
-            for nao_prata in lista_nao_prata:
-                if int(nao_prata[2]) >= floor(k / 2 + 1):
-                    lista_bronze.append(nao_prata[0])
-            for estudante_3 in lista_bronze:
-                acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
-                atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
-                                 prova_coroa=prova_mural)
-            break
+    if nota_ouro is None:
+        pass
+    else:
+        for j in range(nota_ouro - 1, 5, -1):
+            if lista_nao_prata:
+                for nao_prata in lista_nao_prata:
+                    if int(nao_prata[2]) >= floor(j / 2 + 1):
+                        lista_prata.append(nao_prata[0])
+                        lista_nao_prata.remove(nao_prata)
+            lista_prata.extend([item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)])
+            lista_nao_prata.extend([item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)])
+            if lista_prata:
+                for nao_ouro in lista_nao_ouro:
+                    if int(nao_ouro[2]) >= floor(j / 2 + 1):
+                        lista_prata.append(nao_ouro[0])
+                        lista_nao_ouro.remove(nao_ouro)
+                for estudante_2 in lista_prata:
+                    acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
+                    atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
+                                     prova_coroa=prova_mural)
+                nota_prata = j
+                break
+        if nota_prata is None:
+            pass
+        else:
+            for k in range(nota_prata - 1, 5, -1):
+                lista_bronze = [item[0] for item in resultados_mural if item[1] == k and item[2] >= floor(k / 2 + 1)]
+                if lista_bronze:
+                    for nao_ouro in lista_nao_ouro:
+                        if int(nao_ouro[2]) >= floor(k / 2 + 1):
+                            lista_bronze.append(nao_ouro[0])
+                    for nao_prata in lista_nao_prata:
+                        if int(nao_prata[2]) >= floor(k / 2 + 1):
+                            lista_bronze.append(nao_prata[0])
+                    for estudante_3 in lista_bronze:
+                        acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
+                        atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
+                                         prova_coroa=prova_mural)
+                    break
 
     pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
@@ -464,6 +469,44 @@ def ranking(class_id):
         getattr(turma_selecionada, 'pm').desc()).all()
 
     return render_template('ranking.html', data=resultados_ranking, class_id=class_id)
+
+
+@app.route("/manual", methods=['GET', 'POST'])
+def manual():
+    manual = None
+    resultado = None
+    if request.method == 'POST':
+        manual = request.form['manual']
+        if manual:
+            turma_selecionada = selecionar_turma(manual)
+            resultado = db.session.query(turma_selecionada).all()
+    return render_template("manual.html", manual=manual, resultados=resultado)
+
+
+@app.route("/aluno_alterar/<nome>/<turma>", methods=['GET', 'POST'])
+def aluno_alterar(nome, turma):
+    turma_selecionada = selecionar_turma(turma)
+    resultados = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome)).scalar()
+    nome = resultados.nome
+    dado_alterar = None
+    if request.method == 'POST':
+        if 'prova_aluno' in request.form and request.form['prova_aluno'] != "":
+            dado_alterar = request.form['prova_aluno']
+        if 'pm_aluno' in request.form and request.form['pm_aluno'] != "":
+            dado_alterar = request.form['pm_aluno']
+        if 'coroa_aluno' in request.form and request.form['coroa_aluno'] != "":
+            dado_alterar = request.form['coroa_aluno']
+        if 'beneficio_aluno' in request.form and request.form['beneficio_aluno'] != "":
+            dado_alterar = request.form['beneficio_aluno']
+        if 'boss_aluno' in request.form and request.form['boss_aluno'] != "":
+            dado_alterar = request.form['boss_aluno']
+        if "coroas_aluno" in request.form and request.form['coroas_aluno'] != "":
+            dado_alterar = request.form['coroas_aluno']
+
+        setattr(resultados, dado_alterar, request.form['valor'])
+        db.session.commit()
+        return render_template("aluno_alterar.html", nome=nome)
+    return render_template("aluno_alterar.html", nome=nome)
 
 
 def exportar_csv(valor):
