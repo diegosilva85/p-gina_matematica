@@ -66,7 +66,7 @@ class BaseProfessor(DeclarativeBase):
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = senha_sessao_flask
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI ", "sqlite:///database_2024.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///database_2024.db")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
@@ -152,6 +152,12 @@ def criar_turmas():
         novo_aluno = Primeiro_D(nome=aluno_d)
         db.session.add(novo_aluno)
         db.session.commit()
+
+    senha_hash = generate_password_hash(password=senha, method='pbkdf2:sha256',
+                                                                   salt_length=8)
+    professor = Professor(nome="diego", password=senha_hash)
+    db.session.add(professor)
+    db.session.commit()
 
 
 @login_manager.user_loader
