@@ -117,7 +117,13 @@
         <li>
             <a href="#" onclick="mostrarFormulario('dados_basicos')">Criar turmas</a>
                 <form action="" id="form_dados_basicos" method="post" style="display: none;">
-                    <input type="text" name="criar" placeholder="criar turmas" required>
+                    <label for="criar_turmas">Criar turmas:</label>
+                    <select id="criar_turmas" name="criar_turmas" required>
+                        <option value="a">3°A</option>
+                        <option value="b">3°B</option>
+                        <option value="c">3°C</option>
+                        <option value="d">1°D</option>
+                    </select>
                     <button name="criar" type="submit">Criar</button>
                 </form>
         </li>

@@ -130,34 +130,29 @@ def selecionar_turma(valor):
         return lista_turmas_db[3]
 
 
-def criar_turmas():
+def criar_turmas(letra_turma):
     global lista_turmas_db, terceiro_a, terceiro_b, terceiro_c, primeiro_d
 
-    for aluno_a in terceiro_a:
-        novo_aluno = Terceiro_A(nome=aluno_a)
-        db.session.add(novo_aluno)
-        db.session.commit()
-
-    for aluno_b in terceiro_b:
-        novo_aluno = Terceiro_B(nome=aluno_b)
-        db.session.add(novo_aluno)
-        db.session.commit()
-
-    for aluno_c in terceiro_c:
-        novo_aluno = Terceiro_C(nome=aluno_c)
-        db.session.add(novo_aluno)
-        db.session.commit()
-
-    for aluno_d in primeiro_d:
-        novo_aluno = Primeiro_D(nome=aluno_d)
-        db.session.add(novo_aluno)
-        db.session.commit()
-
-    senha_hash = generate_password_hash(password=senha, method='pbkdf2:sha256',
-                                                                   salt_length=8)
-    professor = Professor(nome="diego", password=senha_hash)
-    db.session.add(professor)
-    db.session.commit()
+    if letra_turma == 'a':
+        for aluno_a in terceiro_a:
+            novo_aluno = Terceiro_A(nome=aluno_a)
+            db.session.add(novo_aluno)
+            db.session.commit()
+    elif letra_turma == 'b':
+        for aluno_b in terceiro_b:
+            novo_aluno = Terceiro_B(nome=aluno_b)
+            db.session.add(novo_aluno)
+            db.session.commit()
+    elif letra_turma == 'c':
+        for aluno_c in terceiro_c:
+            novo_aluno = Terceiro_C(nome=aluno_c)
+            db.session.add(novo_aluno)
+            db.session.commit()
+    else:
+        for aluno_d in primeiro_d:
+            novo_aluno = Primeiro_D(nome=aluno_d)
+            db.session.add(novo_aluno)
+            db.session.commit()
 
 
 @login_manager.user_loader
@@ -378,8 +373,8 @@ def professor():
         if 'exportar_turma' in request.form:
             exportar = request.form['exportar_turma']
             exportar_csv(exportar)
-        if 'criar' in request.form:
-            criar_turmas()
+        if 'criar_turmas' in request.form:
+            criar_turmas(request.form['criar_turmas'])
         if 'boss_turma' in request.form:
             boss_pm = request.form['boss_pm']
             boss_turma = request.form['boss_turma']
@@ -522,20 +517,20 @@ def ranking(class_id):
 @app.route("/manual", methods=['GET', 'POST'])
 @login_required
 def manual():
-    manual = None
+    manual_ajuste = None
     resultado = None
     if request.method == 'POST':
-        manual = request.form['manual']
-        if manual:
-            turma_selecionada = selecionar_turma(manual)
+        manual_ajuste = request.form['manual']
+        if manual_ajuste:
+            turma_selecionada = selecionar_turma(manual_ajuste)
             resultado = db.session.query(turma_selecionada).all()
-    return render_template("manual.html", manual=manual, resultados=resultado, logged_in=True)
+    return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
 
 @app.route("/aluno_alterar/<nome>/<turma>", methods=['GET', 'POST'])
 @login_required
-def aluno_alterar(nome, turma):
-    turma_selecionada = selecionar_turma(turma)
+def aluno_alterar(nome, turma_alterar):
+    turma_selecionada = selecionar_turma(turma_alterar)
     resultados = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome)).scalar()
     nome = resultados.nome
     dado_alterar = None
