@@ -185,7 +185,7 @@ def aluno(aluno_nome, turma_aluno):
 
 @app.route('/busca/<aluno_id>', methods=['GET', 'POST'])
 def busca(aluno_id):
-    search_term = aluno_id
+    search_term = aluno_id.upper()
     aluno_turma = {'3ºA': [], '3ºB': [], '3ºC': [], '1ºD': []}
     for chave in aluno_turma.keys():
         turma_busca = selecionar_turma(chave)
