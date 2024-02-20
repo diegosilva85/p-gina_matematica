@@ -529,8 +529,8 @@ def manual():
 
 @app.route("/aluno_alterar/<nome>/<turma>", methods=['GET', 'POST'])
 @login_required
-def aluno_alterar(nome, turma_alterar):
-    turma_selecionada = selecionar_turma(turma_alterar)
+def aluno_alterar(nome, turma):
+    turma_selecionada = selecionar_turma(turma)
     resultados = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome)).scalar()
     nome = resultados.nome
     dado_alterar = None
