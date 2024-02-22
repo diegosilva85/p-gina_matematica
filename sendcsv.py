@@ -20,7 +20,7 @@ class Email:
         message['Subject'] = subject
         message.attach(MIMEText(body, 'plain'))
         # Anexo - Caminho do arquivo CSV
-        csv_file_path = f'Turma_{valor}.csv'
+        csv_file_path = f'./static/Turma_{valor}.csv'
         # Criar a parte do anexo (CSV)
         with open(csv_file_path, 'rb') as csv_file:
             part = MIMEBase('application', 'octet-stream')
