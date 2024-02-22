@@ -44,6 +44,14 @@
             <li>
                 <a href="{{ url_for('downloads') }}">Listas de exercícios</a>
             </li>
+            <li><a href="#" onclick="toggleSubMenu('ranking')">Ranking de PM</a>
+                <ul id="ranking">
+                    {% for class_name, class_url in classes.items() %}
+                        <li><a href="{{ url_for('ranking', class_id=class_name) }}">{{ class_name }}</a></li>
+                    {% endfor %}
+                </ul>
+
+            </li>
         </ul>
     </div>
 <script>

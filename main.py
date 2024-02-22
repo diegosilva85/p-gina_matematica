@@ -484,7 +484,7 @@ def class_page(class_name):
                                               turma_selecionada.prova4, turma_selecionada.prova5,
                                               turma_selecionada.prova6,
                                               turma_selecionada.prova7, turma_selecionada.prova8,
-                                              turma_selecionada.pm).all())
+                                              turma_selecionada.pm).order_by(turma_selecionada.id).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -556,19 +556,18 @@ def aluno_alterar(nome, turma):
 
 def exportar_csv(valor):
     turma_sel = selecionar_turma(valor)
-    with app.app_context():
-        resultados_csv = db.session.query(turma_sel.id, turma_sel.nome, turma_sel.prova1,
-                                          turma_sel.prova2, turma_sel.prova3, turma_sel.prova4,
-                                          turma_sel.prova5, turma_sel.prova6, turma_sel.prova7,
-                                          turma_sel.prova8, turma_sel.pm1, turma_sel.pm2, turma_sel.pm3, turma_sel.pm4,
-                                          turma_sel.pm5, turma_sel.pm6, turma_sel.pm7, turma_sel.pm8, turma_sel.pm,
-                                          turma_sel.coroa1, turma_sel.coroa2, turma_sel.coroa3, turma_sel.coroa4,
-                                          turma_sel.coroa5, turma_sel.coroa6, turma_sel.coroa7, turma_sel.coroa8,
-                                          turma_sel.beneficios1, turma_sel.beneficios2, turma_sel.beneficios3,
-                                          turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
-                                          turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
-                                          turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
-                                          turma_sel.coroa_bronze).all()
+    resultados_csv = db.session.query(turma_sel.id, turma_sel.nome, turma_sel.prova1,
+                                      turma_sel.prova2, turma_sel.prova3, turma_sel.prova4,
+                                      turma_sel.prova5, turma_sel.prova6, turma_sel.prova7,
+                                      turma_sel.prova8, turma_sel.pm1, turma_sel.pm2, turma_sel.pm3, turma_sel.pm4,
+                                      turma_sel.pm5, turma_sel.pm6, turma_sel.pm7, turma_sel.pm8, turma_sel.pm,
+                                      turma_sel.coroa1, turma_sel.coroa2, turma_sel.coroa3, turma_sel.coroa4,
+                                      turma_sel.coroa5, turma_sel.coroa6, turma_sel.coroa7, turma_sel.coroa8,
+                                      turma_sel.beneficios1, turma_sel.beneficios2, turma_sel.beneficios3,
+                                      turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
+                                      turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
+                                      turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
+                                      turma_sel.coroa_bronze).all()
 
     dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
                                                                 '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
