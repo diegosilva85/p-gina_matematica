@@ -523,7 +523,7 @@ def manual():
         manual_ajuste = request.form['manual']
         if manual_ajuste:
             turma_selecionada = selecionar_turma(manual_ajuste)
-            resultado = db.session.query(turma_selecionada).all()
+            resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
     return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
 
@@ -556,27 +556,31 @@ def aluno_alterar(nome, turma):
 
 def exportar_csv(valor):
     turma_sel = selecionar_turma(valor)
-    resultados_csv = db.session.query(turma_sel.id, turma_sel.nome, turma_sel.prova1,
-                                      turma_sel.prova2, turma_sel.prova3, turma_sel.prova4,
-                                      turma_sel.prova5, turma_sel.prova6, turma_sel.prova7,
-                                      turma_sel.prova8, turma_sel.pm1, turma_sel.pm2, turma_sel.pm3, turma_sel.pm4,
-                                      turma_sel.pm5, turma_sel.pm6, turma_sel.pm7, turma_sel.pm8, turma_sel.pm,
-                                      turma_sel.coroa1, turma_sel.coroa2, turma_sel.coroa3, turma_sel.coroa4,
-                                      turma_sel.coroa5, turma_sel.coroa6, turma_sel.coroa7, turma_sel.coroa8,
-                                      turma_sel.beneficios1, turma_sel.beneficios2, turma_sel.beneficios3,
-                                      turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
-                                      turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
-                                      turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
-                                      turma_sel.coroa_bronze).all()
-
-    dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
-                                                                '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
-                                                                'pm8', 'PM', "coroa1", "coroa2", "coroa3", "coroa4",
-                                                                'coroa5', 'coroa6', 'coroa7', 'coroa8', 'beneficios1',
-                                                                'beneficios2', 'beneficios3', 'beneficios4',
-                                                                'beneficios5', 'beneficios6', 'beneficios7',
-                                                                'beneficios8', 'BossV', 'BoosT', 'Ouro', 'Prata',
-                                                                'Bronze'])
+    resultados_csv = db.session.query(turma_sel).order_by(turma_sel.id).all()
+    dataframe = DataFrame([resultado.__dict__ for resultado in resultados_csv])
+    dataframe = dataframe.drop(columns=['_sa_instance_state'], errors='ignore')
+    # dataframe = DataFrame(resultados_csv.__dict__)
+    # resultados_csv = db.session.query(turma_sel.id, turma_sel.nome, turma_sel.prova1,
+    #                                   turma_sel.prova2, turma_sel.prova3, turma_sel.prova4,
+    #                                   turma_sel.prova5, turma_sel.prova6, turma_sel.prova7,
+    #                                   turma_sel.prova8, turma_sel.pm1, turma_sel.pm2, turma_sel.pm3, turma_sel.pm4,
+    #                                   turma_sel.pm5, turma_sel.pm6, turma_sel.pm7, turma_sel.pm8, turma_sel.pm,
+    #                                   turma_sel.coroa1, turma_sel.coroa2, turma_sel.coroa3, turma_sel.coroa4,
+    #                                   turma_sel.coroa5, turma_sel.coroa6, turma_sel.coroa7, turma_sel.coroa8,
+    #                                   turma_sel.beneficios1, turma_sel.beneficios2, turma_sel.beneficios3,
+    #                                   turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
+    #                                   turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
+    #                                   turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
+    #                                   turma_sel.coroa_bronze).all()
+    #
+    # dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
+    #                                                             '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
+    #                                                             'pm8', 'PM', "coroa1", "coroa2", "coroa3", "coroa4",
+    #                                                             'coroa5', 'coroa6', 'coroa7', 'coroa8', 'beneficios1',
+    #                                                             'beneficios2', 'beneficios3', 'beneficios4',
+    #                                                             'beneficios5', 'beneficios6', 'beneficios7',
+    #                                                             'beneficios8', 'BossV', 'BoosT', 'Ouro', 'Prata',
+    #                                                             'Bronze'])
     dataframe.to_csv(f'Turma_{valor}.csv', index=False)
 
     email = Email(valor)
