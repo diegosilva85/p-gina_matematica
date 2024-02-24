@@ -567,7 +567,7 @@ def exportar_csv(valor):
                                       turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
                                       turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
                                       turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
-                                      turma_sel.coroa_bronze).all()
+                                      turma_sel.coroa_bronze).order_by(turma_sel.id).all()
 
     dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
                                                                 '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',

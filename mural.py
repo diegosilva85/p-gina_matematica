@@ -51,7 +51,7 @@ class Mural:
             draw.text((x_silver, y_silver), text=nome_para_mural_pr, fill='black', font=font)
             y_silver += 30
         lista_bronze = bronze
-        x_bronze = 700
+        x_bronze = 650
         y_bronze = 690
         for nome_br in lista_bronze:
             nome_lista_br = nome_br.split()
