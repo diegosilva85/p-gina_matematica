@@ -401,15 +401,19 @@ def mural(mural_turma, prova_mural):
     nota_prata = None
     lista_ouro = []
     lista_nao_ouro = []
+    lista_nao_ouro_2 = []
     lista_prata = []
     lista_nao_prata = []
+    lista_nao_prata_2 = []
     lista_bronze = []
     for i in range(10, 5, -1):
         if lista_nao_ouro:
             for nao_ouro in lista_nao_ouro:
                 if int(nao_ouro[2]) >= floor(i / 2 + 1):
                     lista_ouro.append(nao_ouro[0])
-                    lista_nao_ouro.remove(nao_ouro)
+                else:
+                    lista_nao_ouro_2.append(nao_ouro)
+            lista_nao_ouro = lista_nao_ouro_2
         lista_ouro.extend([item[0] for item in resultados_mural if item[1] == i and item[2] >= floor(i / 2 + 1)])
         lista_nao_ouro.extend([item for item in resultados_mural if item[1] == i and item[2] < floor(i / 2 + 1)])
         if lista_ouro:
@@ -421,19 +425,25 @@ def mural(mural_turma, prova_mural):
     if nota_ouro is None:
         pass
     else:
+        lista_nao_ouro_2 = []
         for j in range(nota_ouro - 1, 5, -1):
             if lista_nao_prata:
                 for nao_prata in lista_nao_prata:
                     if int(nao_prata[2]) >= floor(j / 2 + 1):
                         lista_prata.append(nao_prata[0])
                         lista_nao_prata.remove(nao_prata)
+                    else:
+                        lista_nao_prata_2.append(nao_prata)
+                lista_nao_prata = lista_nao_prata_2
             lista_prata.extend([item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j / 2 + 1)])
             lista_nao_prata.extend([item for item in resultados_mural if item[1] == j and item[2] < floor(j / 2 + 1)])
             if lista_prata:
                 for nao_ouro in lista_nao_ouro:
                     if int(nao_ouro[2]) >= floor(j / 2 + 1):
                         lista_prata.append(nao_ouro[0])
-                        lista_nao_ouro.remove(nao_ouro)
+                    else:
+                        lista_nao_ouro_2.append(nao_ouro)
+                lista_nao_ouro = lista_nao_ouro_2
                 for estudante_2 in lista_prata:
                     acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
                     atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
