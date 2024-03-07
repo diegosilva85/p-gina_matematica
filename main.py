@@ -246,22 +246,21 @@ def deletar_aluno(id_delete, turma_delete):
     db.session.commit()
 
 
-def inserir_dados_prova(prova_update, nota_update, id_update, turma_update, pm_update, calc=None, anular=None,
-                        caderno=None, formula=None):
+def inserir_dados_prova(prova_update, nota_update, id_update, turma_update, pm_update, beneficio):
     turma_selecionada = selecionar_turma(turma_update)
     aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_update)).scalar()
     setattr(aluno_update, f"prova{prova_update}", nota_update)
     setattr(aluno_update, f"pm{prova_update}", pm_update)
-    if calc is not None:
+    if beneficio == "calc":
         acrescentar_pm(-5, id_pm=id_update, turma_pm=turma_update)
         setattr(aluno_update, f'beneficios{prova_update}', "Calculadora")
-    if anular is not None:
+    if beneficio == "anular":
         acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
         setattr(aluno_update, f'beneficios{prova_update}', "Anular")
-    if formula is not None:
+    if beneficio == "formula":
         acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
         setattr(aluno_update, f'beneficios{prova_update}', "Fórmulas")
-    if caderno is not None:
+    if beneficio == "caderno":
         acrescentar_pm(-15, id_pm=id_update, turma_pm=turma_update)
         setattr(aluno_update, f'beneficios{prova_update}', "Caderno")
     db.session.commit()
@@ -334,7 +333,6 @@ def logout():
 @app.route('/professor', methods=['GET', 'POST'])
 @login_required
 def professor():
-    calculadora, anular, formula, caderno = None, None, None, None
     global prova, nota, turma, pm, id_aluno, id_class, senha
     if request.method == 'POST':
         if 'add' in request.form:
@@ -348,21 +346,7 @@ def professor():
         if 'start' in request.form:
             prova = request.form['prova']
             turma = request.form['turma']
-        if 'nota' in request.form:
-            nota = request.form['nota']
-            pm = request.form['pm']
-            id_aluno = request.form['id_aluno']
-            if 'calc' in request.form:
-                calculadora = request.form['calc']
-            if 'anular' in request.form:
-                anular = request.form['anular']
-            if 'formula' in request.form:
-                formula = request.form['formula']
-            if 'caderno' in request.form:
-                caderno = request.form['caderno']
-            inserir_dados_prova(prova, nota, id_aluno, turma, pm, calc=calculadora, anular=anular, formula=formula,
-                                caderno=caderno)
-            acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+            return redirect(url_for('notas_prova', prova=prova, turma=turma))
         if 'ranking' in request.form:
             id_class = request.form['ranking']
             return redirect(url_for('ranking', class_id=id_class))
@@ -384,6 +368,22 @@ def professor():
             return redirect(url_for('upload_arquivo'))
     return render_template('professor.html', prova=prova, class_id=id_class,
                            logged_in=current_user.is_authenticated)
+
+
+@app.route('/prova/<prova>/<turma>', methods=['GET', 'POST'])
+@login_required
+def notas_prova(prova, turma):
+    indice_prova = prova
+    turma_selecionada = selecionar_turma(turma)
+    resultados = db.session.query(turma_selecionada.id, turma_selecionada.nome).order_by(turma_selecionada.nome)
+    if request.method == 'POST':
+        nota = request.form['nota']
+        pm = request.form['pm']
+        id_aluno = request.form['id']
+        beneficios = request.form['beneficios']
+        inserir_dados_prova(indice_prova, nota, id_aluno, turma, pm, beneficio=beneficios)
+        acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+    return render_template('prova.html', resultados=resultados)
 
 
 @app.route('/mural/<mural_turma>/<prova_mural>', methods=['GET', 'POST'])
