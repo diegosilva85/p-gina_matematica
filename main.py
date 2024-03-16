@@ -298,7 +298,7 @@ def lista_boss(class_id):
     turma_selecionada = selecionar_turma(class_id)
     lista_alunos = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
                                     turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
-                                    turma_selecionada.boss_vitoria, turma_selecionada.boss_total)
+                                    turma_selecionada.boss_vitoria, turma_selecionada.boss_total).order_by(turma_selecionada.nome)
     lista_turma = []
     for estudante in lista_alunos:
         coroas = sum(estudante[1:4])
@@ -320,7 +320,7 @@ def registro_boss(boss_turma):
     turma_selecionada = selecionar_turma(boss_turma)
     alunos_registro = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
                                        turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
-                                       turma_selecionada.boss_total, turma_selecionada.id)
+                                       turma_selecionada.boss_total, turma_selecionada.id).order_by(turma_selecionada.nome)
     lista_alunos = []
     for aluno in alunos_registro:
         coroas = sum(aluno[1:4]) - aluno[4]
