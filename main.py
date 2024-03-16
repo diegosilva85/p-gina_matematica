@@ -293,6 +293,52 @@ def boss(pm_boss, turma_boss, id_boss):
     db.session.commit()
 
 
+@app.route('/boss/<class_id>', methods=['GET', 'POST'])
+def lista_boss(class_id):
+    turma_selecionada = selecionar_turma(class_id)
+    lista_alunos = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
+                                    turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
+                                    turma_selecionada.boss_vitoria, turma_selecionada.boss_total)
+    lista_turma = []
+    for estudante in lista_alunos:
+        coroas = sum(estudante[1:4])
+        if coroas == 0:
+            pass
+        else:
+            nome = estudante[0]
+            boss_vitorias = estudante[4]
+            boss_total = estudante[5]
+            lista_estudante = [nome, coroas, boss_vitorias, boss_total]
+            lista_turma.append(lista_estudante)
+
+    return render_template("boss.html", estudantes=lista_turma)
+
+
+@app.route('/boss_registro/<boss_turma>', methods=['GET', 'POST'])
+@login_required
+def registro_boss(boss_turma):
+    turma_selecionada = selecionar_turma(boss_turma)
+    alunos_registro = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
+                                       turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
+                                       turma_selecionada.boss_total, turma_selecionada.id)
+    lista_alunos = []
+    for aluno in alunos_registro:
+        coroas = sum(aluno[1:4]) - aluno[4]
+        if coroas == 0:
+            pass
+        else:
+            nome = aluno[0]
+            dados = [nome, aluno[5]]
+            lista_alunos.append(dados)
+    if request.method == 'POST':
+        boss_pm = request.form['boss_pm']
+        boss_turma = boss_turma
+        boss_id = request.form['boss_id']
+        boss(boss_pm, boss_turma, boss_id)
+
+    return render_template('boss_registro.html', lista_alunos=lista_alunos)
+
+
 def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa, prova_coroa):
     turma_selecionada = selecionar_turma(turma_coroa)
     aluno_coroa = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome_coroa)).scalar()
@@ -360,10 +406,11 @@ def professor():
         if 'criar_turmas' in request.form:
             criar_turmas(request.form['criar_turmas'])
         if 'boss_turma' in request.form:
-            boss_pm = request.form['boss_pm']
+            # boss_pm = request.form['boss_pm']
             boss_turma = request.form['boss_turma']
-            boss_id = request.form['boss_id']
-            boss(boss_pm, boss_turma, boss_id)
+            # boss_id = request.form['boss_id']
+            # boss(boss_pm, boss_turma, boss_id)
+            return redirect(url_for('registro_boss', boss_turma=boss_turma))
         if 'arquivo' in request.form:
             return redirect(url_for('upload_arquivo'))
     return render_template('professor.html', prova=prova, class_id=id_class,
@@ -585,7 +632,7 @@ def exportar_csv(valor):
                                                                 'coroa5', 'coroa6', 'coroa7', 'coroa8', 'beneficios1',
                                                                 'beneficios2', 'beneficios3', 'beneficios4',
                                                                 'beneficios5', 'beneficios6', 'beneficios7',
-                                                                'beneficios8', 'BossV', 'BoosT', 'Ouro', 'Prata',
+                                                                'beneficios8', 'BossV', 'BossT', 'Ouro', 'Prata',
                                                                 'Bronze'])
     dataframe.to_csv(f'./static/Turma_{valor}.csv', index=False)
 

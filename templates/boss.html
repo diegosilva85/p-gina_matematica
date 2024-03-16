@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+    <title>Boss</title>
+</head>
+<body>
+<div class="menu">
+    <table>
+        <tr>
+            <th>ALUNO</th>
+            <th>VITÓRIAS</th>
+            <th>DERROTAS</th>
+            <th>TOTAL</th>
+            <th>PENDENTES</th>
+        </tr>
+        {% for estudante in estudantes %}
+        <tr>
+            <td>{{ estudante[0] }}</td>
+            <td>{{ estudante[2] }}</td>
+            <td>{{ estudante[3] - estudante[2] }}</td>
+            <td>{{ estudante[3] }}</td>
+            <td>{{ estudante[1] - estudante[3] }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+</body>
+</html>

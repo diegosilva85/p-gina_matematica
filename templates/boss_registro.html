@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+    <title>Registro de Boss</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        .tamanho {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        {% for aluno in lista_alunos %}
+            <form action="" method="post">
+            <table>
+                <tr>
+                    <td><input  class="tamanho" name="boss_id" value="{{ aluno[1] }}" readonly></td>
+                    <td style="width: 250px">{{ aluno[0] }}</td>
+                    <td><select id="pm" name="boss_pm" class="tamanho">
+                        <option value="5">5</option>
+                        <option value="15">15</option>
+                    </select></td>
+                    <td><button name="acrescentar" type="submit">Acrescentar</button></td>
+                </tr>
+            </table>
+            </form>
+        {%  endfor %}
+</div>
+</body>
+</html>

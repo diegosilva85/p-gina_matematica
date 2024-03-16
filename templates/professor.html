@@ -85,20 +85,20 @@
         <li>
             <a>Inserir Dados de Boss</a>
             <form action="" method="post">
-                <label for="boss_id">Id:</label>
-                <input type="text" class="low_width" id="boss_id" name="boss_id" required>
-                <label for="turmas_boss">Turma:</label>
+{#                <label for="boss_id">Id:</label>#}
+{#                <input type="text" class="low_width" id="boss_id" name="boss_id" required>#}
+{#                <label for="turmas_boss">Turma:</label>#}
                 <select id="turmas_boss" name="boss_turma" required>
                 <option value="a">3°A</option>
                 <option value="b">3°B</option>
                 <option value="c">3°C</option>
                 <option value="d">1°D</option>
                 </select>
-                <label for="pm_boss">PM:</label>
-                <select id="turmas_inserir" name="boss_pm" required>
-                <option value="5">5</option>
-                <option value="15">15</option>
-                </select>
+{#                <label for="pm_boss">PM:</label>#}
+{#                <select id="turmas_inserir" name="boss_pm" required>#}
+{#                <option value="5">5</option>#}
+{#                <option value="15">15</option>#}
+{#                </select>#}
                 <button name="boss" type="submit">Adicionar</button>
             </form>
         <li>
@@ -164,28 +164,8 @@
             <button name="start" type="submit">Começar</button>
             </form>
         </li>
-            {% if prova %}
-        <li>
-            <a>Acrescentar nota:</a>
-            <form action="" method="post">
-            <label for="nota_input">Nota:</label>
-            <input type="text" id="nota_input" class="low_width" name="nota" required>
-            <label for="pm_input">PM:</label>
-            <input type="text" id="pm_input" class="low_width" name="pm" required>
-            <label for="id_input">Id:</label>
-            <input type="text" id="id_input" class="low_width" name="id_aluno" required><br>
-            <label for="calc">Calculadora</label>
-            <input type="checkbox" id="calc" name="calc" value="1">
-            <label for="anular">Anular</label>
-            <input type="checkbox" id="anular" name="anular" value="1"><br>
-            <label for="formula">Fórmulas</label>
-            <input type="checkbox" id="formula" name="formula" value="1">
-            <label for="caderno">Caderno</label>
-            <input type="checkbox" id="caderno" name="caderno" value="1"><br>
-            <button name="update" type="submit">Acrescentar</button>
-            </form>
-        </li>
-            {% endif %}
+
+
     </ul>
         {% endif %}
 
