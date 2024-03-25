@@ -1,0 +1,19 @@
+version: 1.0
+runtime: python:3.11
+env.variables:
+  DB_URI: postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1
+  senha_email: odom tupg ypqn odqp
+  senha_professor: kie)15,7tgd
+build:
+  commands:
+    build:
+      - sudo apt-get update
+      - sudo apt-get install libpq-dev
+      - sudo yum update
+      - sudo yum install postgresql-devel
+      - pip3 install -r requirements.txt
+run:
+  command:
+    - gunicorn main:app
+  network:
+      port: 8000
