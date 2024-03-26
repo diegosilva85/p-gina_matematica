@@ -11,13 +11,13 @@ build:
       - pip3 install pipenv
       - pipenv install
       - pip3 install -r requirements.txt
-    env:
-      - name: DB_URI
-        value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
-      - name: senha_email
-        value: "odom tupg ypqn odqp"
-      - name: senha_professor
-        value: "kie)15,7tgd"
+  env:
+    - name: DB_URI
+      value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
+    - name: senha_email
+      value: "odom tupg ypqn odqp"
+    - name: senha_professor
+      value: "kie)15,7tgd"
 run:
   runtime-version: 3.11
   pre-run:
