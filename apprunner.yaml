@@ -1,5 +1,5 @@
 version: 1.0
-runtime: python:311
+runtime: python311
 build:
   commands:
     pre-build:
@@ -7,6 +7,8 @@ build:
       - sudo apt-get install libpq-dev
       - sudo yum update
       - sudo yum install postgresql-devel
+      - pip3 install pipenv
+      - pipenv install
     build:
       pip3 install -r requirements.txt
   env:
@@ -18,6 +20,11 @@ build:
       value: "kie)15,7tgd"
 
 run:
+  runtime-version: 3.11
+  pre-run:
+    - pip3 install pipenv
+    - pipenv install
+    - python3 copy-global-files.py
   command:
     - gunicorn main:app
   network:
