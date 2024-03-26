@@ -1,17 +1,22 @@
 version: 1.0
-runtime: python:3.11
-env.variables:
-  DB_URI: postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1
-  senha_email: odom tupg ypqn odqp
-  senha_professor: kie)15,7tgd
+runtime: python:311
 build:
   commands:
-    build:
+    pre-build:
       - sudo apt-get update
       - sudo apt-get install libpq-dev
       - sudo yum update
       - sudo yum install postgresql-devel
-      - pip3 install -r requirements.txt
+    build:
+      pip3 install -r requirements.txt
+  env:
+    - name: DB_URI
+      value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
+    - name: senha_email
+      value: "odom tupg ypqn odqp"
+    - name: senha_professor
+      value: "kie)15,7tgd"
+
 run:
   command:
     - gunicorn main:app
