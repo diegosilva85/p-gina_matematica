@@ -2,15 +2,13 @@ version: 1.0
 runtime: python311
 build:
   commands:
-    pre-build:
-      - sudo apt-get update
-      - sudo apt-get install libpq-dev
-      - sudo yum update
-      - sudo yum install postgresql-devel
-    build:
-      - pip3 install pipenv
-      - pipenv install
-      - pip3 install -r requirements.txt
+    - sudo apt-get update
+    - sudo apt-get install libpq-dev
+    - sudo yum update
+    - sudo yum install postgresql-devel
+    - pip3 install pipenv
+    - pipenv install
+    - pip3 install -r requirements.txt
   env:
     - name: DB_URI
       value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
