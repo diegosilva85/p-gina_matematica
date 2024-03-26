@@ -14,24 +14,13 @@ build:
   env:
     - name: DB_URI
       value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
-    - name: senha_email
-      value: "odom tupg ypqn odqp"
     - name: senha_professor
       value: "kie)15,7tgd"
+    - name: senha_email
+      value: "odom tupg ypqn odqp"
 run:
   runtime-version: 3.11
-  pre-run:
-    - pip3 install pipenv
-    - pipenv install
-    - python3 copy-global-files.py
   command:
     - pipenv run gunicorn main:app
   network:
       port: 8000
-  env:
-    - name: DB_URI
-      value: "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a/diegomatematicav1"
-    - name: senha_email
-      value: "odom tupg ypqn odqp"
-    - name: senha_professor
-      value: "kie)15,7tgd"
