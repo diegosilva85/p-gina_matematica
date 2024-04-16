@@ -298,7 +298,8 @@ def lista_boss(class_id):
     turma_selecionada = selecionar_turma(class_id)
     lista_alunos = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
                                     turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
-                                    turma_selecionada.boss_vitoria, turma_selecionada.boss_total).order_by(turma_selecionada.nome)
+                                    turma_selecionada.boss_vitoria, turma_selecionada.boss_total).order_by(
+        turma_selecionada.nome)
     lista_turma = []
     for estudante in lista_alunos:
         coroas = sum(estudante[1:4])
@@ -320,7 +321,8 @@ def registro_boss(boss_turma):
     turma_selecionada = selecionar_turma(boss_turma)
     alunos_registro = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
                                        turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
-                                       turma_selecionada.boss_total, turma_selecionada.id).order_by(turma_selecionada.nome)
+                                       turma_selecionada.boss_total, turma_selecionada.id).order_by(
+        turma_selecionada.nome)
     lista_alunos = []
     for aluno in alunos_registro:
         coroas = sum(aluno[1:4]) - aluno[4]
@@ -536,12 +538,11 @@ def mural(mural_turma, prova_mural):
 def class_page(class_name):
     turma_selecionada = selecionar_turma(class_name)
 
-    resultados_class_page = (db.session.query(turma_selecionada.id, turma_selecionada.nome, turma_selecionada.prova1,
+    resultados_class_page = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1,
                                               turma_selecionada.prova2, turma_selecionada.prova3,
                                               turma_selecionada.prova4, turma_selecionada.prova5,
                                               turma_selecionada.prova6,
-                                              turma_selecionada.prova7, turma_selecionada.prova8,
-                                              turma_selecionada.pm).order_by(turma_selecionada.id).all())
+                                              turma_selecionada.prova7, turma_selecionada.prova8).order_by(turma_selecionada.id).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -557,9 +558,34 @@ def class_page(class_name):
             lista_de_provas.append(lista_prova)
 
     tamanho = len(lista_de_provas)
-
+    medias = []
+    for resultado in resultados_class_page:
+        media_aluno = media_alunos(resultado)
+        medias.append(media_aluno)
     return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
-                           estatisticas=lista_de_provas, tamanho=tamanho)
+                           estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
+
+
+def media_alunos(lista: tuple) -> dict:
+    notas = {
+        lista[0]: [],
+        "media": 0
+    }
+    for nota in lista:
+        if isinstance(nota, str):
+            pass
+        elif nota is None:
+            nota = 0
+            notas[lista[0]].append(nota)
+        else:
+            notas[lista[0]].append(nota)
+
+    notas[lista[0]].sort()
+    notas[lista[0]].pop(0)
+    notas[lista[0]].pop(0)
+
+    notas["media"] = round(sum(notas[lista[0]]) / len(notas[lista[0]]), 2)
+    return notas
 
 
 @app.route('/ranking/<class_id>', methods=['GET', 'POST'])

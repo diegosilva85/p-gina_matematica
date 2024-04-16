@@ -41,7 +41,6 @@
 
     <table>
             <tr>
-                <th>Id</th>
                 <th>Aluno</th>
                 <th>1°</th>
                 <th>2°</th>
@@ -51,11 +50,10 @@
                 <th>6°</th>
                 <th>7°</th>
                 <th>8°</th>
-                <th>PM</th>
+                <th>Média</th>
             </tr>
             {% for row in data %}
                 <tr>
-                    <td>{{ row.id }}</td>
                     <td>{{ row.nome }}</td>
                     <td>{{ row.prova1 }}</td>
                     <td>{{ row.prova2 }}</td>
@@ -65,8 +63,9 @@
                     <td>{{ row.prova6 }}</td>
                     <td>{{ row.prova7 }}</td>
                     <td>{{ row.prova8 }}</td>
-                    <td>{{ row.pm }}</td>
+                    <td>{{ media_alunos[loop.index0]['media'] }}</td>
                 </tr>
+
             {% endfor %}
         </table>
 </div>
