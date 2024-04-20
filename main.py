@@ -56,6 +56,7 @@ class Base(DeclarativeBase):
     coroa_ouro: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     coroa_prata: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     coroa_bronze: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+    elite: Mapped[str] = mapped_column(nullable=True, server_default="-")
 
 
 class BaseProfessor(DeclarativeBase):
@@ -409,6 +410,9 @@ def professor():
             exportar_csv(exportar)
         if 'criar_turmas' in request.form:
             criar_turmas(request.form['criar_turmas'])
+        if 'alunos_elite' in request.form:
+            elite = request.form['alunos_elite']
+            alunos_elite(elite)
         if 'boss_turma' in request.form:
             # boss_pm = request.form['boss_pm']
             boss_turma = request.form['boss_turma']
@@ -497,7 +501,7 @@ def mural(mural_turma, prova_mural, imagem):
                     else:
                         lista_nao_ouro_2.append(nao_ouro)
                 lista_nao_ouro = lista_nao_ouro_2
-                if imagem == "Não":     # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
+                if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
                     for estudante_2 in lista_prata:
                         acrescentar_pm(6, aluno_nome=estudante_2, turma_pm=mural_turma)
                         atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
@@ -516,7 +520,7 @@ def mural(mural_turma, prova_mural, imagem):
                     for nao_prata in lista_nao_prata:
                         if int(nao_prata[2]) >= floor(k / 2 + 1):
                             lista_bronze.append(nao_prata[0])
-                    if imagem == "Não":     # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
+                    if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
                         for estudante_3 in lista_bronze:
                             acrescentar_pm(3, aluno_nome=estudante_3, turma_pm=mural_turma)
                             atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
@@ -571,6 +575,32 @@ def class_page(class_name):
         medias.append(media_aluno)
     return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
                            estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
+
+
+def alunos_elite(turma_elite):
+    turma_selecionada = selecionar_turma(turma_elite)
+    resultado_query = db.session.query(turma_selecionada.nome, turma_selecionada.prova1,
+                                       turma_selecionada.prova2, turma_selecionada.prova3,
+                                       turma_selecionada.prova4, turma_selecionada.prova5,
+                                       turma_selecionada.prova6,
+                                       turma_selecionada.prova7, turma_selecionada.prova8).order_by(
+        turma_selecionada.id).all()
+    medias = []
+    nome_elite = None
+    for resultado in resultado_query:
+        media_aluno = media_alunos(resultado)
+        medias.append(media_aluno)
+    for dado in medias:
+        for key, value in dado.items():
+            if key != "media":
+                nome_elite = db.session.execute(
+                    db.select(turma_selecionada).where(turma_selecionada.nome == key)).scalar()
+            else:
+                if value >= 7:
+                    setattr(nome_elite, "elite", "sim")
+                else:
+                    setattr(nome_elite, "elite", "não")
+    db.session.commit()
 
 
 def media_alunos(lista: tuple) -> dict:
