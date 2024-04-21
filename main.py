@@ -414,10 +414,7 @@ def professor():
             elite = request.form['alunos_elite']
             alunos_elite(elite)
         if 'boss_turma' in request.form:
-            # boss_pm = request.form['boss_pm']
             boss_turma = request.form['boss_turma']
-            # boss_id = request.form['boss_id']
-            # boss(boss_pm, boss_turma, boss_id)
             return redirect(url_for('registro_boss', boss_turma=boss_turma))
         if 'arquivo' in request.form:
             return redirect(url_for('upload_arquivo'))
@@ -632,6 +629,22 @@ def ranking(class_id):
         getattr(turma_selecionada, 'pm').desc()).all()
 
     return render_template('ranking.html', data=resultados_ranking, class_id=class_id)
+
+
+@app.route('/ranking_geral', methods=['GET', 'POST'])
+def ranking_geral():
+    turmas = [
+        (Terceiro_A, Terceiro_A.pm),
+        (Terceiro_B, Terceiro_B.pm),
+        (Terceiro_C, Terceiro_C.pm)
+    ]
+    ranking_final = []
+    for turma, atributo in turmas:
+        ranking_turma = db.session.query(turma.nome, atributo).order_by(atributo).all()
+        ranking_final.extend(ranking_turma)
+    ordenados = sorted(ranking_final, key=lambda x: x[1], reverse=True)
+
+    return render_template('ranking_geral.html', dados=ordenados)
 
 
 @app.route("/manual", methods=['GET', 'POST'])
