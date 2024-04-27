@@ -5,11 +5,14 @@ font_caminho = "./fonts/LiberationSans-Regular.ttf"
 
 class Mural:
     def __init__(self, turma: str, prova: str, media: float, moda: int, mediana: float, desvio: float, pm: float,
-                 ouro: list, prata: list, bronze: list):
+                 ouro: list, prata: list, bronze: list, elite="não"):
         self.mural = Image.open("./static/Mural.png")
         draw = ImageDraw.Draw(self.mural)
         font = ImageFont.truetype(font=font_caminho, size=24)
-        header = f'MURAL {turma.upper()}'
+        if elite == "sim":
+            header = f'MURAL ELITE {turma.upper()}'
+        else:
+            header = f'MURAL {turma.upper()}'
         # Escreve o Cabeçalho
         draw.text((400, 20), header, fill='black', font=font)
         draw.text((390, 50), text=f"{prova}º SEMANA", fill='black', font=font)

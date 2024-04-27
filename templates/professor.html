@@ -45,19 +45,19 @@
                                 <button name="delete" type="submit">Excluir</button>
                             </form>
                 </li>
-        <li>
-            <a>Gerar ranking de PM:</a>
-            <form action="" method="post">
-            <label for="turmas_ranking">Turma:</label>
-                <select id="turmas_ranking" name="ranking" required>
-                <option value="a">3°A</option>
-                <option value="b">3°B</option>
-                <option value="c">3°C</option>
-                <option value="d">1°D</option>
-                </select>
-            <button name="ranking" type="submit">Gerar</button>
-            </form>
-        </li>
+{#        <li>#}
+{#            <a>Gerar ranking de PM:</a>#}
+{#            <form action="" method="post">#}
+{#            <label for="turmas_ranking">Turma:</label>#}
+{#                <select id="turmas_ranking" name="ranking" required>#}
+{#                <option value="a">3°A</option>#}
+{#                <option value="b">3°B</option>#}
+{#                <option value="c">3°C</option>#}
+{#                <option value="d">1°D</option>#}
+{#                </select>#}
+{#            <button name="ranking" type="submit">Gerar</button>#}
+{#            </form>#}
+{#        </li>#}
         <li>
             <a>Gerar Mural:</a>
             <form action="" method="post">
@@ -79,12 +79,17 @@
                 <option value="c">3°C</option>
                 <option value="d">1°D</option>
                 </select>
-            <button name="mural" type="submit">Gerar</button>
                 <label for="imagem_mural">Só imagem?</label>
                 <select id="imagem_mural" name="imagem_mural" required>
                     <option value="Não">Não</option>
                     <option value="Sim">Sim</option>
                 </select>
+                <label for="elite_mural">ELITE?</label>
+                <select id="elite_mural" name="elite_mural" required>
+                    <option value="não">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+                <button name="mural" type="submit">Gerar</button>
             </form>
         </li>
         <li>
@@ -107,6 +112,11 @@
                 <option value="b">3°B</option>
                 <option value="c">3°C</option>
                 <option value="d">1°D</option>
+                </select>
+                <label for="boss_elite">ELITE?</label>
+                <select id="boss_elite" name="boss_elite" required>
+                    <option value="não">Não</option>
+                    <option value="sim">Sim</option>
                 </select>
                 <button name="boss" type="submit">Adicionar</button>
             </form>
@@ -154,21 +164,26 @@
             <form action="" method="post">
                 <label for="turmas_inserir">Turma:</label>
                 <select id="turmas_inserir" name="turma" required>
-                <option value="a">3°A</option>
-                <option value="b">3°B</option>
-                <option value="c">3°C</option>
-                <option value="d">1°D</option>
+                    <option value="a">3°A</option>
+                    <option value="b">3°B</option>
+                    <option value="c">3°C</option>
+                    <option value="d">1°D</option>
                 </select>
                 <label for="prova_inserir">Prova:</label>
                 <select id="prova_inserir" name="prova" required>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+                <label for="elite_inserir">ELITE?</label>
+                <select id="elite_inserir" name="elite" required>
+                    <option value="não">Não</option>
+                    <option value="sim">Sim</option>
                 </select>
             <button name="start" type="submit">Começar</button>
             </form>

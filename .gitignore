@@ -3,3 +3,5 @@ compose.yaml
 README.Docker.md
 .env
 .dockerignore
+__pycache__/mural.cpython-310.pyc
+__pycache__/sendcsv.cpython-310.pyc
