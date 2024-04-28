@@ -22,7 +22,7 @@
     padding: 10px;
     display: block;
     color: #333;
-    background-color: yellowgreen;
+    background-color: #87CEFA;
     text-align: center;
 }
 
@@ -64,17 +64,17 @@ table {
 }
 
 th, td {
-    border: 1px solid yellowgreen; /* Light Blue color code */
+    border: 1px solid #87CEFA;
     padding: 8px;
     text-align: center;
 }
 
 #semana {
-    background-color: darkseagreen;
+    background-color: #6495ED;
 }
 
 th {
-    background-color: yellowgreen; /* Light Blue color code */
+    background-color: #87CEFA;
     color: white;
 }
 

@@ -5,3 +5,4 @@ README.Docker.md
 .dockerignore
 __pycache__/mural.cpython-310.pyc
 __pycache__/sendcsv.cpython-310.pyc
+__pycache__/base.cpython-310.pyc

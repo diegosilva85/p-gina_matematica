@@ -12,61 +12,7 @@ from pathlib import Path
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyarrow
-
-
-class Base(DeclarativeBase):
-    __abstract__ = True
-    id: Mapped[int] = mapped_column(primary_key=True)
-    nome: Mapped[str] = mapped_column(unique=True)
-    prova1: Mapped[float] = mapped_column(nullable=True)
-    prova2: Mapped[float] = mapped_column(nullable=True)
-    prova3: Mapped[float] = mapped_column(nullable=True)
-    prova4: Mapped[float] = mapped_column(nullable=True)
-    prova5: Mapped[float] = mapped_column(nullable=True)
-    prova6: Mapped[float] = mapped_column(nullable=True)
-    prova7: Mapped[float] = mapped_column(nullable=True)
-    prova8: Mapped[float] = mapped_column(nullable=True)
-    pm1: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm2: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm3: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm4: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm5: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm6: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm7: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm8: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    pm: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    coroa1: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa2: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa3: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa4: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa5: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa6: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa7: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroa8: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios1: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios2: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios3: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios4: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios5: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios6: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios7: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    beneficios8: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    boss_vitoria: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    boss_total: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    coroa_ouro: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    coroa_prata: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    coroa_bronze: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    elite: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite1: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite2: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite3: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite4: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite5: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite6: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite7: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    elite8: Mapped[str] = mapped_column(nullable=True, server_default="-")
-    coroas_elite: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
-    boss_elite: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+from base import Base
 
 
 class BaseProfessor(DeclarativeBase):
@@ -109,7 +55,6 @@ class Professor(BaseProfessor, UserMixin):
 
 lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
 senha = os.environ.get("senha_professor").strip("")
-prova, nota, turma, pm, id_aluno, id_class = None, None, None, None, None, None
 
 with app.app_context():
     db.create_all()
@@ -173,12 +118,7 @@ def load_user(user_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    classes = {
-        '3ºA': '3ºA',
-        '3ºB': '3ºB',
-        '3ºC': '3ºC',
-        '1ºD': '1ºD'
-    }
+    classes = {'3ºA': '3ºA', '3ºB': '3ºB', '3ºC': '3ºC', '1ºD': '1ºD'}
     if request.method == 'POST':
         if "aluno_id_input" in request.form:
             aluno_nome = request.form['aluno_id_input']
@@ -356,10 +296,13 @@ def registro_boss(boss_turma, elite='não'):
                 lista_alunos.append(dados)
 
     if request.method == 'POST':
-        boss_pm = request.form['boss_pm']
-        boss_turma = boss_turma
-        boss_id = request.form['boss_id']
-        boss(boss_pm, boss_turma, boss_id)
+        if 'boss_pm' in request.form:
+            boss_pm = request.form['boss_pm']
+            boss_turma = boss_turma
+            boss_id = request.form['boss_id']
+            boss(boss_pm, boss_turma, boss_id)
+        if 'voltar' in request.form:
+            return redirect(url_for('professor'))
 
     return render_template('boss_registro.html', lista_alunos=lista_alunos)
 
@@ -407,7 +350,6 @@ def logout():
 @app.route('/professor', methods=['GET', 'POST'])
 @login_required
 def professor():
-    global prova, nota, turma, pm, id_aluno, id_class, senha
     if request.method == 'POST':
         if 'add' in request.form:
             aluno_adicionar = request.form['Id']
@@ -422,9 +364,6 @@ def professor():
             turma = request.form['turma']
             elite = request.form['elite']
             return redirect(url_for('notas_prova', prova=prova, turma=turma, elite=elite))
-        # if 'ranking' in request.form:
-        #     id_class = request.form['ranking']
-        #     return redirect(url_for('ranking', class_id=id_class))
         if 'turma_mural' in request.form:
             mural_turma = request.form['turma_mural']
             prova_mural = request.form['prova_mural']
@@ -446,8 +385,7 @@ def professor():
             return redirect(url_for('registro_boss', boss_turma=boss_turma, elite=boss_elite))
         if 'arquivo' in request.form:
             return redirect(url_for('upload_arquivo'))
-    return render_template('professor.html', prova=prova, class_id=id_class,
-                           logged_in=current_user.is_authenticated)
+    return render_template('professor.html', logged_in=current_user.is_authenticated)
 
 
 @app.route('/prova/<prova>/<turma>/<elite>', methods=['GET', 'POST'])
@@ -461,112 +399,67 @@ def notas_prova(prova, turma, elite):
     else:
         resultados = db.session.query(turma_selecionada.id, turma_selecionada.nome).order_by(turma_selecionada.nome)
     if request.method == 'POST':
-        nota = request.form['nota']
-        pm = request.form['pm']
-        id_aluno = request.form['id']
-        beneficios = request.form['beneficios']
-        elite_form = request.form['elite']
-        print(elite_form)
-        inserir_dados_prova(indice_prova, nota, id_aluno, turma, pm, beneficio=beneficios, elite=elite_form)
-        acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+        if "nota" in request.form:
+            nota = request.form['nota']
+            pm = request.form['pm']
+            id_aluno = request.form['id']
+            beneficios = request.form['beneficios']
+            elite_form = request.form['elite']
+            inserir_dados_prova(indice_prova, nota, id_aluno, turma, pm, beneficio=beneficios, elite=elite_form)
+            acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+        if "voltar" in request.form:
+            return redirect(url_for("professor"))
     return render_template('prova.html', resultados=resultados, elite=elite)
 
 
 @app.route('/mural/<mural_turma>/<prova_mural>/<imagem>/<elite>', methods=['GET', 'POST'])
 def mural(mural_turma, prova_mural, imagem, elite="não"):
-    prova_mural_banco = f'prova{prova_mural}'
     turma_selecionada = selecionar_turma(mural_turma)
-    atributo_prova = getattr(turma_selecionada, prova_mural_banco)
+    atributo_prova = getattr(turma_selecionada, f'prova{prova_mural}')
     atributo_pm = getattr(turma_selecionada, f'pm{prova_mural}')
     atributo_elite = getattr(turma_selecionada, f"elite{prova_mural}")
     resultados_mural = db.session.query(turma_selecionada.nome, atributo_prova, atributo_pm).filter(
         atributo_elite == elite).order_by(atributo_prova.desc()).all()
     if elite == "sim":
         fator = 1
-        pm_adicional_ouro = 9
-        pm_adicional_prata = 6
-        pm_adicional_bronze = 3
+        pm_adicional_ouro, pm_adicional_prata, pm_adicional_bronze = 9, 6, 3
     else:
         fator = 1 / 2
-        pm_adicional_ouro = 6
-        pm_adicional_prata = 4
-        pm_adicional_bronze = 2
+        pm_adicional_ouro, pm_adicional_prata, pm_adicional_bronze = 6, 4, 2
+
+    lista_ouro, lista_prata, lista_bronze = [], [], []
+    notas_mural = {'10': [], '9': [], '8': [], '7': [], '6': []}
+    for aluno in resultados_mural:
+        for chave in notas_mural.keys():
+            nota = aluno[1] if aluno[1] is not None else 0
+            if nota >= int(chave) and aluno[2] >= floor(fator * int(chave)) + 2 * fator:
+                notas_mural[chave].append(aluno.nome)
+                break
+
+    for chave in notas_mural.keys():
+        if notas_mural[chave] and not lista_ouro:
+            lista_ouro = notas_mural[chave]
+        elif notas_mural[chave] and not lista_prata:
+            lista_prata = notas_mural[chave]
+        elif notas_mural[chave] and not lista_bronze:
+            lista_bronze = notas_mural[chave]
+
+    if imagem == "Não":
+        for estudante in lista_ouro:
+            acrescentar_pm(pm_adicional_ouro, aluno_nome=estudante, turma_pm=mural_turma)
+            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0,
+                             prova_coroa=prova_mural, elite=elite)
+        for estudante in lista_prata:
+            acrescentar_pm(pm_adicional_prata, aluno_nome=estudante, turma_pm=mural_turma)
+            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=1,
+                             prova_coroa=prova_mural, elite=elite)
+        for estudante in lista_bronze:
+            acrescentar_pm(pm_adicional_bronze, aluno_nome=estudante, turma_pm=mural_turma)
+            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=2,
+                             prova_coroa=prova_mural, elite=elite)
 
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
-
-    nota_ouro, nota_prata = None, None
-    lista_ouro, lista_prata, lista_bronze = [], [], []
-    lista_nao_ouro, lista_nao_ouro_2 = [], []
-    lista_nao_prata, lista_nao_prata_2 = [], []
-    for i in range(10, 5, -1):
-        if lista_nao_ouro:
-            for nao_ouro in lista_nao_ouro:
-                if int(nao_ouro[2]) >= floor(i * fator + 1):
-                    lista_ouro.append(nao_ouro[0])
-                else:
-                    lista_nao_ouro_2.append(nao_ouro)
-            lista_nao_ouro = lista_nao_ouro_2
-        lista_ouro.extend([item[0] for item in resultados_mural if item[1] == i and item[2] >= floor(i * fator + 1)])
-        lista_nao_ouro.extend([item for item in resultados_mural if item[1] == i and item[2] < floor(i * fator + 1)])
-        if lista_ouro:
-            if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
-                for estudante in lista_ouro:
-                    acrescentar_pm(pm_adicional_ouro, aluno_nome=estudante, turma_pm=mural_turma)
-                    atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0,
-                                     prova_coroa=prova_mural, elite=elite)
-            nota_ouro = i
-            break
-    if nota_ouro is None:
-        pass
-    else:
-        lista_nao_ouro_2 = []
-        for j in range(nota_ouro - 1, 5, -1):
-            if lista_nao_prata:
-                for nao_prata in lista_nao_prata:
-                    if int(nao_prata[2]) >= floor(fator + 1):
-                        lista_prata.append(nao_prata[0])
-                        lista_nao_prata.remove(nao_prata)
-                    else:
-                        lista_nao_prata_2.append(nao_prata)
-                lista_nao_prata = lista_nao_prata_2
-            lista_prata.extend(
-                [item[0] for item in resultados_mural if item[1] == j and item[2] >= floor(j * fator + 1)])
-            lista_nao_prata.extend(
-                [item for item in resultados_mural if item[1] == j and item[2] < floor(j * fator + 1)])
-            if lista_prata:
-                for nao_ouro in lista_nao_ouro:
-                    if int(nao_ouro[2]) >= floor(fator + 1):
-                        lista_prata.append(nao_ouro[0])
-                    else:
-                        lista_nao_ouro_2.append(nao_ouro)
-                lista_nao_ouro = lista_nao_ouro_2
-                if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
-                    for estudante_2 in lista_prata:
-                        acrescentar_pm(pm_adicional_prata, aluno_nome=estudante_2, turma_pm=mural_turma)
-                        atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
-                                         prova_coroa=prova_mural, elite=elite)
-                nota_prata = j
-                break
-        if nota_prata is None:
-            pass
-        else:
-            for k in range(nota_prata - 1, 5, -1):
-                lista_bronze = [item[0] for item in resultados_mural if
-                                item[1] == k and item[2] >= floor(k * fator + 1)]
-                if lista_bronze:
-                    for nao_ouro in lista_nao_ouro:
-                        if int(nao_ouro[2]) >= floor(fator + 1):
-                            lista_bronze.append(nao_ouro[0])
-                    for nao_prata in lista_nao_prata:
-                        if int(nao_prata[2]) >= floor(fator + 1):
-                            lista_bronze.append(nao_prata[0])
-                    if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
-                        for estudante_3 in lista_bronze:
-                            acrescentar_pm(pm_adicional_bronze, aluno_nome=estudante_3, turma_pm=mural_turma)
-                            atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
-                                             prova_coroa=prova_mural, elite=elite)
-                    break
 
     pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
@@ -697,10 +590,13 @@ def manual():
     manual_ajuste = None
     resultado = None
     if request.method == 'POST':
-        manual_ajuste = request.form['manual']
-        if manual_ajuste:
-            turma_selecionada = selecionar_turma(manual_ajuste)
-            resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
+        if 'manual' in request.form:
+            manual_ajuste = request.form['manual']
+            if manual_ajuste:
+                turma_selecionada = selecionar_turma(manual_ajuste)
+                resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
+        if 'voltar' in request.form:
+            return redirect(url_for('professor'))
     return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
 
@@ -724,7 +620,8 @@ def aluno_alterar(nome, turma):
             dado_alterar = request.form['boss_aluno']
         if "coroas_aluno" in request.form and request.form['coroas_aluno'] != "":
             dado_alterar = request.form['coroas_aluno']
-
+        if 'voltar' in request.form:
+            return redirect(url_for('professor'))
         setattr(resultados, dado_alterar, request.form['valor'])
         db.session.commit()
         return render_template("aluno_alterar.html", nome=nome)
