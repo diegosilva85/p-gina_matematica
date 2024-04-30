@@ -1,24 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file
 from pandas import DataFrame
-from sendcsv import Email
 from mural import Mural
-import numpy as np
-from scipy.stats import mode
 import os
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from math import floor
 from pathlib import Path
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyarrow
-from base import Base
-
-
-class BaseProfessor(DeclarativeBase):
-    __abstract__ = True
-    id: Mapped[int] = mapped_column(primary_key=True)
-
+from base import Base, BaseProfessor
+from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acrescentar_pm, media_alunos, \
+    deletar_aluno, inserir_dados_prova, boss, estatisticas
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -183,76 +176,6 @@ def download_professor():
     return render_template('download_professor.html', files=files)
 
 
-def adicionar_aluno(turma_to_add, aluno_adicional):
-    turma_selecionada = selecionar_turma(turma_to_add)
-    novo_aluno = turma_selecionada(nome=aluno_adicional)
-    db.session.add(novo_aluno)
-    db.session.commit()
-
-
-def deletar_aluno(id_delete, turma_delete):
-    turma_selecionada = selecionar_turma(turma_delete)
-    aluno_delete = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_delete)).scalar()
-    db.session.delete(aluno_delete)
-    db.session.commit()
-
-
-def inserir_dados_prova(prova_update, nota_update, id_update, turma_update, pm_update, beneficio, elite="não"):
-    turma_selecionada = selecionar_turma(turma_update)
-    aluno_update = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_update)).scalar()
-    setattr(aluno_update, f"prova{prova_update}", nota_update)
-    setattr(aluno_update, f"pm{prova_update}", pm_update)
-    setattr(aluno_update, f"elite{prova_update}", elite)
-    if beneficio == "calc":
-        acrescentar_pm(-5, id_pm=id_update, turma_pm=turma_update)
-        setattr(aluno_update, f'beneficios{prova_update}', "Calculadora")
-    if beneficio == "anular":
-        acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
-        setattr(aluno_update, f'beneficios{prova_update}', "Anular")
-    if beneficio == "formula":
-        acrescentar_pm(-10, id_pm=id_update, turma_pm=turma_update)
-        setattr(aluno_update, f'beneficios{prova_update}', "Fórmulas")
-    if beneficio == "caderno":
-        acrescentar_pm(-15, id_pm=id_update, turma_pm=turma_update)
-        setattr(aluno_update, f'beneficios{prova_update}', "Caderno")
-    db.session.commit()
-
-
-def acrescentar_pm(pm_adicional, id_pm=None, turma_pm=None, aluno_nome=None):
-    aluno_pm = None
-    turma_selecionada = selecionar_turma(turma_pm)
-    if id_pm is not None:
-        aluno_pm = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_pm)).scalar()
-    elif aluno_nome is not None:
-        aluno_pm = db.session.execute(
-            db.select(turma_selecionada).where(turma_selecionada.nome == aluno_nome)).scalar()
-    pm_atualizado = int(pm_adicional) + int(aluno_pm.pm)
-    setattr(aluno_pm, "pm", pm_atualizado)
-    db.session.commit()
-
-
-def boss(pm_boss, turma_boss, id_boss):
-    turma_selecionada = selecionar_turma(turma_boss)
-    aluno_boss = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.id == id_boss)).scalar()
-    total_boss = int(aluno_boss.boss_total) + 1
-    if pm_boss == '15':
-        numero_vitorias = 1 + int(aluno_boss.boss_vitoria)
-        numero_elite = 1 + int(aluno_boss.boss_elite)
-        setattr(aluno_boss, "boss_vitoria", numero_vitorias)
-        setattr(aluno_boss, 'boss_elite', numero_elite)
-        acrescentar_pm(15, id_pm=id_boss, turma_pm=turma_boss)
-    elif pm_boss == '10':
-        numero_vitorias = 1 + int(aluno_boss.boss_vitoria)
-        setattr(aluno_boss, "boss_vitoria", numero_vitorias)
-        acrescentar_pm(10, id_pm=id_boss, turma_pm=turma_boss)
-    elif pm_boss == '5':
-        acrescentar_pm(5, id_pm=id_boss, turma_pm=turma_boss)
-        numero_elite = 1 + int(aluno_boss.boss_elite)
-        setattr(aluno_boss, 'boss_elite', numero_elite)
-    setattr(aluno_boss, "boss_total", total_boss)
-    db.session.commit()
-
-
 @app.route('/boss/<class_id>', methods=['GET', 'POST'])
 def lista_boss(class_id):
     turma_selecionada = selecionar_turma(class_id)
@@ -276,17 +199,17 @@ def lista_boss(class_id):
 @app.route('/boss_registro/<boss_turma>/<elite>', methods=['GET', 'POST'])
 @login_required
 def registro_boss(boss_turma, elite='não'):
-    turma_selecionada = selecionar_turma(boss_turma)
-    alunos_registro = db.session.query(turma_selecionada.nome, turma_selecionada.coroa_ouro,
-                                       turma_selecionada.coroa_prata, turma_selecionada.coroa_bronze,
-                                       turma_selecionada.boss_total, turma_selecionada.id, turma_selecionada.boss_elite,
-                                       turma_selecionada.coroas_elite)
+    turma_tabela = selecionar_turma(boss_turma)
+    alunos_registro = db.session.query(turma_tabela.nome, turma_tabela.coroa_ouro,
+                                       turma_tabela.coroa_prata, turma_tabela.coroa_bronze,
+                                       turma_tabela.boss_total, turma_tabela.id, turma_tabela.boss_elite,
+                                       turma_tabela.coroas_elite)
 
     lista_alunos = []
     for aluno in alunos_registro:
-        coroas = sum(aluno[1:4]) - aluno[4]
+        coroas = sum(aluno[1:4]) - aluno.boss_total
         if coroas != 0:
-            if elite == 'sim' and aluno[6] != aluno[7]:
+            if elite == 'sim' and aluno.boss_elite < aluno.coroas_elite:
                 nome = aluno[0]
                 dados = [nome, aluno[5]]
                 lista_alunos.append(dados)
@@ -298,34 +221,12 @@ def registro_boss(boss_turma, elite='não'):
     if request.method == 'POST':
         if 'boss_pm' in request.form:
             boss_pm = request.form['boss_pm']
-            boss_turma = boss_turma
             boss_id = request.form['boss_id']
-            boss(boss_pm, boss_turma, boss_id)
+            boss(pm=boss_pm, turma=turma_tabela, id_boss=boss_id, db=db)
         if 'voltar' in request.form:
             return redirect(url_for('professor'))
 
     return render_template('boss_registro.html', lista_alunos=lista_alunos)
-
-
-def atualizar_coroas(nome_coroa, turma_coroa, valor_coroa, prova_coroa, elite):
-    turma_selecionada = selecionar_turma(turma_coroa)
-    aluno_coroa = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome_coroa)).scalar()
-    if valor_coroa == 0:
-        total_selecionada = int(aluno_coroa.coroa_ouro) + 1
-        setattr(aluno_coroa, "coroa_ouro", total_selecionada)
-        setattr(aluno_coroa, f"coroa{prova_coroa}", "ouro")
-    elif valor_coroa == 1:
-        total_selecionada = int(aluno_coroa.coroa_prata) + 1
-        setattr(aluno_coroa, "coroa_prata", total_selecionada)
-        setattr(aluno_coroa, f"coroa{prova_coroa}", "prata")
-    elif valor_coroa == 2:
-        total_selecionada = int(aluno_coroa.coroa_bronze) + 1
-        setattr(aluno_coroa, "coroa_bronze", total_selecionada)
-        setattr(aluno_coroa, f"coroa{prova_coroa}", "bronze")
-    if elite == 'sim':
-        coroas = 1 + int(aluno_coroa.coroas_elite)
-        setattr(aluno_coroa, "coroas_elite", coroas)
-    db.session.commit()
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -354,11 +255,13 @@ def professor():
         if 'add' in request.form:
             aluno_adicionar = request.form['Id']
             turma_adicionar = request.form['class']
-            adicionar_aluno(turma_adicionar, aluno_adicionar)
+            turma_tabela = selecionar_turma(turma_adicionar)
+            adicionar_aluno(turma=turma_tabela, nome=aluno_adicionar, db=db)
         if 'delete' in request.form:
             id_delete = request.form['Id']
             turma_deletar = request.form['turma']
-            deletar_aluno(id_delete, turma_deletar)
+            turma_tabela = selecionar_turma(turma_deletar)
+            deletar_aluno(id_delete=id_delete, turma=turma_tabela, db=db)
         if 'start' in request.form:
             prova = request.form['prova']
             turma = request.form['turma']
@@ -378,7 +281,8 @@ def professor():
             criar_turmas(request.form['criar_turmas'])
         if 'alunos_elite' in request.form:
             elite = request.form['alunos_elite']
-            alunos_elite(elite)
+            turma_tabela = selecionar_turma(elite)
+            alunos_elite(turma=turma_tabela, db=db)
         if 'boss_turma' in request.form:
             boss_turma = request.form['boss_turma']
             boss_elite = request.form['boss_elite']
@@ -391,13 +295,12 @@ def professor():
 @app.route('/prova/<prova>/<turma>/<elite>', methods=['GET', 'POST'])
 @login_required
 def notas_prova(prova, turma, elite):
-    indice_prova = prova
-    turma_selecionada = selecionar_turma(turma)
+    turma_tabela = selecionar_turma(turma)
     if elite == "sim":
-        resultados = db.session.query(turma_selecionada.id, turma_selecionada.nome).filter(
-            turma_selecionada.elite == "sim").order_by(turma_selecionada.nome)
+        resultados = db.session.query(turma_tabela.id, turma_tabela.nome).filter(
+            turma_tabela.elite == "sim").order_by(turma_tabela.nome)
     else:
-        resultados = db.session.query(turma_selecionada.id, turma_selecionada.nome).order_by(turma_selecionada.nome)
+        resultados = db.session.query(turma_tabela.id, turma_tabela.nome).order_by(turma_tabela.nome)
     if request.method == 'POST':
         if "nota" in request.form:
             nota = request.form['nota']
@@ -405,8 +308,8 @@ def notas_prova(prova, turma, elite):
             id_aluno = request.form['id']
             beneficios = request.form['beneficios']
             elite_form = request.form['elite']
-            inserir_dados_prova(indice_prova, nota, id_aluno, turma, pm, beneficio=beneficios, elite=elite_form)
-            acrescentar_pm(pm, id_pm=id_aluno, turma_pm=turma)
+            inserir_dados_prova(prova, nota, id_aluno, turma=turma_tabela, pm=pm, beneficio=beneficios, elite=elite_form, db=db)
+            acrescentar_pm(pm, id_pm=id_aluno, turma=turma_tabela, db=db)
         if "voltar" in request.form:
             return redirect(url_for("professor"))
     return render_template('prova.html', resultados=resultados, elite=elite)
@@ -414,11 +317,11 @@ def notas_prova(prova, turma, elite):
 
 @app.route('/mural/<mural_turma>/<prova_mural>/<imagem>/<elite>', methods=['GET', 'POST'])
 def mural(mural_turma, prova_mural, imagem, elite="não"):
-    turma_selecionada = selecionar_turma(mural_turma)
-    atributo_prova = getattr(turma_selecionada, f'prova{prova_mural}')
-    atributo_pm = getattr(turma_selecionada, f'pm{prova_mural}')
-    atributo_elite = getattr(turma_selecionada, f"elite{prova_mural}")
-    resultados_mural = db.session.query(turma_selecionada.nome, atributo_prova, atributo_pm).filter(
+    turma_tabela = selecionar_turma(mural_turma)
+    atributo_prova = getattr(turma_tabela, f'prova{prova_mural}')
+    atributo_pm = getattr(turma_tabela, f'pm{prova_mural}')
+    atributo_elite = getattr(turma_tabela, f"elite{prova_mural}")
+    resultados_mural = db.session.query(turma_tabela.nome, atributo_prova, atributo_pm).filter(
         atributo_elite == elite).order_by(atributo_prova.desc()).all()
     if elite == "sim":
         fator = 1
@@ -446,61 +349,47 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
 
     if imagem == "Não":
         for estudante in lista_ouro:
-            acrescentar_pm(pm_adicional_ouro, aluno_nome=estudante, turma_pm=mural_turma)
-            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0,
-                             prova_coroa=prova_mural, elite=elite)
+            acrescentar_pm(pm_adicional_ouro, nome=estudante, turma=turma_tabela, db=db)
+            atualizar_coroas(nome=estudante, turma=turma_tabela, valor=0,
+                             prova=prova_mural, elite=elite, db=db)
         for estudante in lista_prata:
-            acrescentar_pm(pm_adicional_prata, aluno_nome=estudante, turma_pm=mural_turma)
-            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=1,
-                             prova_coroa=prova_mural, elite=elite)
+            acrescentar_pm(pm_adicional_prata, nome=estudante, turma=turma_tabela, db=db)
+            atualizar_coroas(nome=estudante, turma=turma_tabela, valor=1,
+                             prova=prova_mural, elite=elite, db=db)
         for estudante in lista_bronze:
-            acrescentar_pm(pm_adicional_bronze, aluno_nome=estudante, turma_pm=mural_turma)
-            atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=2,
-                             prova_coroa=prova_mural, elite=elite)
+            acrescentar_pm(pm_adicional_bronze, nome=estudante, turma=turma_tabela, db=db)
+            atualizar_coroas(nome=estudante, turma=turma_tabela, valor=2,
+                             prova=prova_mural, elite=elite, db=db)
 
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
 
-    pm_prova = db.session.query(getattr(turma_selecionada, 'pm')).all()
+    pm_prova = db.session.query(getattr(turma_tabela, 'pm')).all()
     pm_prova_lista = [valor[0] for valor in pm_prova if valor[0] is not None]
-    media = round(np.mean(notas), 2)
-    try:
-        moda = int(mode(notas)[0])
-    except ValueError:
-        moda = 0
-    mediana = np.median(notas)
-    desvio = round(np.std(notas), 2)
-    pm_medio = round(np.mean(pm_prova_lista), 2)
+    dados = estatisticas(notas, pm_prova_lista)
 
-    imagem_mural = Mural(mural_turma, prova_mural, media, moda, mediana, desvio,
-                         pm_medio, lista_ouro, lista_prata, lista_bronze, elite)
+    imagem_mural = Mural(mural_turma, prova_mural, dados[0], dados[2], dados[1], dados[3],
+                         dados[4], lista_ouro, lista_prata, lista_bronze, elite)
 
     return render_template('mural.html', imagem=imagem_mural.caminho_static)
 
 
 @app.route('/<class_name>', methods=['GET', 'POST'])
 def class_page(class_name):
-    turma_selecionada = selecionar_turma(class_name)
+    turma_tabela = selecionar_turma(class_name)
 
-    resultados_class_page = (db.session.query(turma_selecionada.nome, turma_selecionada.prova1,
-                                              turma_selecionada.prova2, turma_selecionada.prova3,
-                                              turma_selecionada.prova4, turma_selecionada.prova5,
-                                              turma_selecionada.prova6,
-                                              turma_selecionada.prova7, turma_selecionada.prova8).order_by(
-        turma_selecionada.id).all())
+    resultados_class_page = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
+                                              turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8).order_by(
+                                                turma_tabela.id).all())
     lista_de_provas = []
 
     for i in range(1, 9):
-        atributo = getattr(turma_selecionada, f"prova{i}")
+        atributo = getattr(turma_tabela, f"prova{i}")
         dados_turma = db.session.query(atributo).all()
         notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
         if notas_validas:
-            media = round(np.mean(notas_validas), 2)
-            mediana = np.median(notas_validas)
-            moda = int(mode(notas_validas)[0])
-            desvio = round(np.std(notas_validas), 2)
-            lista_prova = [media, mediana, moda, desvio]
-            lista_de_provas.append(lista_prova)
+            lista_de_provas.append(estatisticas(notas_validas))
 
     tamanho = len(lista_de_provas)
     medias = []
@@ -511,59 +400,11 @@ def class_page(class_name):
                            estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
 
 
-def alunos_elite(turma_elite):
-    turma_selecionada = selecionar_turma(turma_elite)
-    resultado_query = db.session.query(turma_selecionada.nome, turma_selecionada.prova1,
-                                       turma_selecionada.prova2, turma_selecionada.prova3,
-                                       turma_selecionada.prova4, turma_selecionada.prova5,
-                                       turma_selecionada.prova6,
-                                       turma_selecionada.prova7, turma_selecionada.prova8).order_by(
-        turma_selecionada.id).all()
-    medias = []
-    nome_elite = None
-    for resultado in resultado_query:
-        media_aluno = media_alunos(resultado)
-        medias.append(media_aluno)
-    for dado in medias:
-        for key, value in dado.items():
-            if key != "media":
-                nome_elite = db.session.execute(
-                    db.select(turma_selecionada).where(turma_selecionada.nome == key)).scalar()
-            else:
-                if value >= 7:
-                    setattr(nome_elite, "elite", "sim")
-                else:
-                    setattr(nome_elite, "elite", "não")
-    db.session.commit()
-
-
-def media_alunos(lista: tuple) -> dict:
-    notas = {
-        lista[0]: [],
-        "media": 0
-    }
-    for nota in lista:
-        if isinstance(nota, str):
-            pass
-        elif nota is None:
-            nota = 0
-            notas[lista[0]].append(nota)
-        else:
-            notas[lista[0]].append(nota)
-
-    notas[lista[0]].sort()
-    notas[lista[0]].pop(0)
-    notas[lista[0]].pop(0)
-
-    notas["media"] = round(sum(notas[lista[0]]) / len(notas[lista[0]]), 2)
-    return notas
-
-
 @app.route('/ranking/<class_id>', methods=['GET', 'POST'])
 def ranking(class_id):
-    turma_selecionada = selecionar_turma(class_id)
-    resultados_ranking = db.session.query(turma_selecionada.nome, getattr(turma_selecionada, 'pm')).order_by(
-        getattr(turma_selecionada, 'pm').desc()).all()
+    turma_tabela = selecionar_turma(class_id)
+    resultados_ranking = db.session.query(turma_tabela.nome, getattr(turma_tabela, 'pm')).order_by(
+        getattr(turma_tabela, 'pm').desc()).all()
 
     return render_template('ranking.html', data=resultados_ranking, class_id=class_id)
 

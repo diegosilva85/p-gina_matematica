@@ -22,9 +22,9 @@ def mural_antigo(resultados_mural, fator, imagem, mural_turma, elite, prova_mura
         if lista_ouro:
             if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
                 for estudante in lista_ouro:
-                    acrescentar_pm(pm_adicional_ouro, aluno_nome=estudante, turma_pm=mural_turma)
-                    atualizar_coroas(nome_coroa=estudante, turma_coroa=mural_turma, valor_coroa=0,
-                                     prova_coroa=prova_mural, elite=elite)
+                    acrescentar_pm(pm_adicional_ouro, nome=estudante, turma=mural_turma)
+                    atualizar_coroas(nome=estudante, turma=mural_turma, valor=0,
+                                     prova=prova_mural, elite=elite)
             nota_ouro = i
             break
     if nota_ouro is None:
@@ -53,9 +53,9 @@ def mural_antigo(resultados_mural, fator, imagem, mural_turma, elite, prova_mura
                 lista_nao_ouro = lista_nao_ouro_2
                 if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
                     for estudante_2 in lista_prata:
-                        acrescentar_pm(pm_adicional_prata, aluno_nome=estudante_2, turma_pm=mural_turma)
-                        atualizar_coroas(nome_coroa=estudante_2, turma_coroa=mural_turma, valor_coroa=1,
-                                         prova_coroa=prova_mural, elite=elite)
+                        acrescentar_pm(pm_adicional_prata, nome=estudante_2, turma=mural_turma)
+                        atualizar_coroas(nome=estudante_2, turma=mural_turma, valor=1,
+                                         prova=prova_mural, elite=elite)
                 nota_prata = j
                 break
         if nota_prata is None:
@@ -73,7 +73,7 @@ def mural_antigo(resultados_mural, fator, imagem, mural_turma, elite, prova_mura
                             lista_bronze.append(nao_prata[0])
                     if imagem == "Não":  # Se o professor optou por apenas gerar a imagem, ou para atribuir os pms.
                         for estudante_3 in lista_bronze:
-                            acrescentar_pm(pm_adicional_bronze, aluno_nome=estudante_3, turma_pm=mural_turma)
-                            atualizar_coroas(nome_coroa=estudante_3, turma_coroa=mural_turma, valor_coroa=2,
-                                             prova_coroa=prova_mural, elite=elite)
+                            acrescentar_pm(pm_adicional_bronze, nome=estudante_3, turma=mural_turma)
+                            atualizar_coroas(nome=estudante_3, turma=mural_turma, valor=2,
+                                             prova=prova_mural, elite=elite)
                     break

@@ -6,3 +6,5 @@ README.Docker.md
 __pycache__/mural.cpython-310.pyc
 __pycache__/sendcsv.cpython-310.pyc
 __pycache__/base.cpython-310.pyc
+__pycache__/acesso_database.cpython-310.pyc
+__pycache__/main.cpython-310.pyc

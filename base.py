@@ -54,3 +54,8 @@ class Base(DeclarativeBase):
     elite8: Mapped[str] = mapped_column(nullable=True, server_default="-")
     coroas_elite: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
     boss_elite: Mapped[int] = mapped_column(nullable=True, server_default=str(0))
+
+
+class BaseProfessor(DeclarativeBase):
+    __abstract__ = True
+    id: Mapped[int] = mapped_column(primary_key=True)
