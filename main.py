@@ -512,10 +512,18 @@ def controle_gastos_add():
     banco_gastos.adicionar(tabela=Gastos, gasto=dados)
 
 
-@app.route('/controle_gastos/get/<var>', methods=['GET', 'POST'])
+@app.route('/controle_gastos/linhas/<var>', methods=['GET', 'POST'])
 def controle_gastos_get(var):
-    if var == "total":
+    if var == "mes":
         pass
+    else:
+        pass
+
+
+@app.route('/controle_gastos/deletar', methods=['GET', 'POST'])
+def controle_gastos_delete():
+    dados = request.get_json()
+    banco_gastos.deletar(tabela=Gastos, id_gasto=int(dados['id_delete']))
 
 
 if __name__ == '__main__':
