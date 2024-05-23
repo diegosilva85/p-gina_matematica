@@ -12,6 +12,7 @@ import pyarrow
 from base import Base, BaseProfessor
 from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acrescentar_pm, media_alunos, \
     deletar_aluno, inserir_dados_prova, boss, estatisticas
+from base_gastos import BaseGastos, Banco_de_dados
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -22,6 +23,8 @@ db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+banco_gastos = Banco_de_dados()
 
 
 class Terceiro_A(db.Model):
@@ -44,6 +47,10 @@ class Professor(BaseProfessor, UserMixin):
     __tablename__ = 'professor'
     nome: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
+
+
+class Gastos(BaseGastos):
+    __tablename__ = 'gastos'
 
 
 lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
@@ -308,7 +315,8 @@ def notas_prova(prova, turma, elite):
             id_aluno = request.form['id']
             beneficios = request.form['beneficios']
             elite_form = request.form['elite']
-            inserir_dados_prova(prova, nota, id_aluno, turma=turma_tabela, pm=pm, beneficio=beneficios, elite=elite_form, db=db)
+            inserir_dados_prova(prova, nota, id_aluno, turma=turma_tabela, pm=pm, beneficio=beneficios,
+                                elite=elite_form, db=db)
             acrescentar_pm(pm, id_pm=id_aluno, turma=turma_tabela, db=db)
         if "voltar" in request.form:
             return redirect(url_for("professor"))
@@ -381,7 +389,7 @@ def class_page(class_name):
     resultados_class_page = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
                                               turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
                                               turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8).order_by(
-                                                turma_tabela.id).all())
+        turma_tabela.id).all())
     lista_de_provas = []
 
     for i in range(1, 9):
@@ -495,6 +503,18 @@ def exportar_csv(valor):
     dataframe.to_csv(f'./static/Turma_{valor}.csv', index=False)
 
     # email = Email(valor)
+
+
+# --------------------------------------- Servidor da aplicação Controle de gastos ----------------------------------- #
+@app.route('/controle_gastos/add/<var>', methods=['GET', 'POST'])
+def controle_gastos_add(var):
+    banco_gastos.adicionar(tabela=Gastos, gasto=var)
+
+
+@app.route('/controle_gastos/get/<var>', methods=['GET', 'POST'])
+def controle_gastos_get(var):
+    if var == "total":
+        pass
 
 
 if __name__ == '__main__':
