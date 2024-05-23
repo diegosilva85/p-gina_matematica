@@ -506,9 +506,10 @@ def exportar_csv(valor):
 
 
 # --------------------------------------- Servidor da aplicação Controle de gastos ----------------------------------- #
-@app.route('/controle_gastos/add/<var>', methods=['GET', 'POST'])
-def controle_gastos_add(var):
-    banco_gastos.adicionar(tabela=Gastos, gasto=var)
+@app.route('/controle_gastos/add', methods=['GET', 'POST'])
+def controle_gastos_add():
+    dados = request.get_json()
+    banco_gastos.adicionar(tabela=Gastos, gasto=dados)
 
 
 @app.route('/controle_gastos/get/<var>', methods=['GET', 'POST'])
