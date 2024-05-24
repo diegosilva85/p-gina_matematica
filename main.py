@@ -555,7 +555,7 @@ def controle_gastos_total_mes():
 @app.route('/controle_gastos/total_categoria', methods=['GET', 'POST'])
 def controle_gastos_total_categoria():
     dado = request.get_json()
-    response = banco_gastos.total_categoria(tabela=Gastos, parametro=dado['categoria'])
+    response = banco_gastos.total_categoria(tabela=Gastos, parametro=dado['parametro'])
     return jsonify(response)
 
 
