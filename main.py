@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from pandas import DataFrame
 from mural import Mural
 import os
@@ -512,12 +512,27 @@ def controle_gastos_add():
     banco_gastos.adicionar(tabela=Gastos, gasto=dados)
 
 
-@app.route('/controle_gastos/linhas/<var>', methods=['GET', 'POST'])
-def controle_gastos_get(var):
-    if var == "mes":
-        pass
-    else:
-        pass
+@app.route('/controle_gastos/categorias', methods=['GET', 'POST'])
+def controle_gastos_categorias():
+    linhas = []
+    dado = request.get_json()
+    response = banco_gastos.linhas_categoria(tabela=Gastos, parametro=dado['parametro'])
+    for item in response:
+        dados_gasto = {
+            'valor': item.valor,
+            'data': item.data,
+            'categoria': item.categoria,
+            'parcelas': 1,
+            'descricao': item.descricao,
+            'mes_ano': item.mes_ano,
+            'pagamento': item.pagamento
+        }
+        linhas.append(dados_gasto)
+    return jsonify(linhas)
+
+@app.route('/controle_gastos/total', methods=['GET', 'POST'])
+def controle_gastos_total():
+    pass
 
 
 @app.route('/controle_gastos/deletar', methods=['GET', 'POST'])
