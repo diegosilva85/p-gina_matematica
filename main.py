@@ -512,13 +512,11 @@ def controle_gastos_add():
     banco_gastos.adicionar(tabela=Gastos, gasto=dados)
 
 
-@app.route('/controle_gastos/categorias', methods=['GET', 'POST'])
-def controle_gastos_categorias():
+def gerar_lista_dicionarios(dados):
     linhas = []
-    dado = request.get_json()
-    response = banco_gastos.linhas_categoria(tabela=Gastos, parametro=dado['parametro'])
-    for item in response:
+    for item in dados:
         dados_gasto = {
+            'id': item.id,
             'valor': item.valor,
             'data': item.data,
             'categoria': item.categoria,
@@ -528,11 +526,36 @@ def controle_gastos_categorias():
             'pagamento': item.pagamento
         }
         linhas.append(dados_gasto)
+    return linhas
+
+
+@app.route('/controle_gastos/categorias', methods=['GET', 'POST'])
+def controle_gastos_categorias():
+    dado = request.get_json()
+    response = banco_gastos.linhas_categoria(tabela=Gastos, parametro=dado['parametro'])
+    linhas = gerar_lista_dicionarios(response)
     return jsonify(linhas)
 
-@app.route('/controle_gastos/total', methods=['GET', 'POST'])
-def controle_gastos_total():
-    pass
+
+@app.route('/controle_gastos/mes', methods=['GET', 'POST'])
+def controle_gastos_mes():
+    dado = request.get_json()
+    response = banco_gastos.linhas_mes(tabela=Gastos, mes_ano=dado['mes'])
+    linhas = gerar_lista_dicionarios(response)
+    return jsonify(linhas)
+
+
+@app.route('/controle_gastos/total_mes', methods=['GET', 'POST'])
+def controle_gastos_total_mes():
+    dado = request.get_json()
+    response = banco_gastos.total_mes(tabela=Gastos, mes_ano=dado['mes'])
+    return jsonify(response)
+
+@app.route('controle_gastos/total_categoria', methods=['GET', 'POST'])
+def controle_gastos_total_categoria():
+    dado = request.get_json()
+    response = banco_gastos.total_categoria(tabela=Gastos, parametro=dado['categoria'])
+    return jsonify(response)
 
 
 @app.route('/controle_gastos/deletar', methods=['GET', 'POST'])
