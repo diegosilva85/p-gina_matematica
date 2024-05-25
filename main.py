@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from pandas import DataFrame
+from sqlalchemy.exc import SQLAlchemyError
+
 from mural import Mural
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -514,6 +516,21 @@ def controle_gastos_add():
         return jsonify({'status': 'Adição de registro bem sucedida!'}), 200
     except Exception as e:
         return jsonify({'status': str(e)}), 500
+
+
+@app.route('/controle_gastos/add_multiplos', methods=['GET', 'POST'])
+def controle_gastos_add_multiplos():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({'status': 'Nenhum dado recebido'}), 400
+    for dado in dados:
+        try:
+            banco_gastos.adicionar(tabela=Gastos, gasto=dado)
+        except SQLAlchemyError as err:
+            return jsonify({'status': str(err)}), 500
+        except Exception as e:
+            return jsonify({'status': str(e)}), 500
+    return jsonify({'status': 'Sincronização com sucesso'}), 200
 
 
 def gerar_lista_dicionarios(dados):
