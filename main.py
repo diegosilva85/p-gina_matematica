@@ -568,11 +568,13 @@ def controle_gastos_delete():
     dados = request.get_json()
     banco_gastos.deletar(tabela=Gastos, id_gasto=int(dados['id_delete']))
 
+
 @app.route('/controle_gastos/todos', methods=['GET', 'POST'])
 def controle_gastos_todos():
     dados = request.get_json()
     todos_gastos = banco_gastos.todos_gastos(tabela=Gastos)
-    return jsonify(todos_gastos)
+    linhas = gerar_lista_dicionarios(todos_gastos)
+    return jsonify(linhas)
 
 
 if __name__ == '__main__':
