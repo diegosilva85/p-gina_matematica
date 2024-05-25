@@ -509,7 +509,11 @@ def exportar_csv(valor):
 @app.route('/controle_gastos/add', methods=['GET', 'POST'])
 def controle_gastos_add():
     dados = request.get_json()
-    banco_gastos.adicionar(tabela=Gastos, gasto=dados)
+    try:
+        banco_gastos.adicionar(tabela=Gastos, gasto=dados)
+        return jsonify({'status': 'Adição de registro bem sucedida!'}), 200
+    except Exception as e:
+        return jsonify({'status': str(e)}), 500
 
 
 def gerar_lista_dicionarios(dados):
@@ -563,6 +567,12 @@ def controle_gastos_total_categoria():
 def controle_gastos_delete():
     dados = request.get_json()
     banco_gastos.deletar(tabela=Gastos, id_gasto=int(dados['id_delete']))
+
+@app.route('controle_gastos/todos', methods=['GET', 'POST'])
+def controle_gastos_todos():
+    dados = request.get_json()
+    todos_gastos = banco_gastos.todos_gastos(tabela=Gastos)
+    return jsonify(todos_gastos)
 
 
 if __name__ == '__main__':

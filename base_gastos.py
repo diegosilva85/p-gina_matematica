@@ -65,7 +65,7 @@ class Banco_de_dados:
         self.db.commit()
         self.db.close()
 
-    def mostrar(self, tabela: object):
+    def todos_gastos(self, tabela: object):
         todos_gastos = self.db.query(tabela).all()
         return todos_gastos
 
