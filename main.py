@@ -508,6 +508,12 @@ def exportar_csv(valor):
 
 
 # --------------------------------------- Servidor da aplicação Controle de gastos ----------------------------------- #
+@app.route('/controle_gastos', methods=['GET', 'POST'])
+def controle_gastos():
+    dados = request.get_json()
+    return jsonify({"online": "ok"}), 200
+
+
 @app.route('/controle_gastos/add', methods=['GET', 'POST'])
 def controle_gastos_add():
     dados = request.get_json()
