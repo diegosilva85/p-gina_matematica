@@ -589,6 +589,7 @@ def controle_gastos_total_categoria():
 @app.route('/controle_gastos/deletar', methods=['GET', 'POST'])
 def controle_gastos_delete():
     dados = request.get_json()
+    print(dados)
     banco_gastos.deletar(tabela=Gastos, id_gasto=int(dados['id_delete']))
     return jsonify({'status': 'Item deletado com sucesso!'})
 
