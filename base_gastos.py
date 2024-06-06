@@ -66,8 +66,14 @@ class Banco_de_dados:
         self.db.close()
 
     def todos_gastos(self, tabela: object):
-        todos_gastos = self.db.query(tabela).all()
-        return todos_gastos
+        try:
+            todos_gastos = self.session.query(tabela).all()
+            return todos_gastos
+        except Exception as e:
+            self.db.rollback()
+            raise
+        finally:
+            self.db.close()
 
     def total_geral(self, tabela):
         todos_gastos = self.db.query(tabela.valor).all()
