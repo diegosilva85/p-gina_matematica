@@ -67,7 +67,7 @@ class Banco_de_dados:
 
     def todos_gastos(self, tabela: object):
         try:
-            todos_gastos = self.session.query(tabela).all()
+            todos_gastos = self.db.query(tabela).all()
             return todos_gastos
         except Exception as e:
             self.db.rollback()
