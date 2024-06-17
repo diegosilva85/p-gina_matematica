@@ -356,17 +356,26 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
             lista_prata = notas_mural[chave]
         elif notas_mural[chave] and not lista_bronze:
             lista_bronze = notas_mural[chave]
+    print(f'OURO: {lista_ouro}')
+    print(f'PRATA: {lista_prata}')
+    print(f'BRONZE: {lista_bronze}')
+    print(f'PM - OURO: {pm_adicional_ouro}')
+    print(f'PM - PRTA: {pm_adicional_prata}')
+    print(f'PM - BRONZE: {pm_adicional_bronze}')
 
     if imagem == "Não":
         for estudante in lista_ouro:
+            print(f"---- for loop ouro: {estudante}")
             acrescentar_pm(pm_adicional_ouro, nome=estudante, turma=turma_tabela, db=db)
             atualizar_coroas(nome=estudante, turma=turma_tabela, valor=0,
                              prova=prova_mural, elite=elite, db=db)
         for estudante in lista_prata:
+            print(f"---- for loop prata: {estudante}")
             acrescentar_pm(pm_adicional_prata, nome=estudante, turma=turma_tabela, db=db)
             atualizar_coroas(nome=estudante, turma=turma_tabela, valor=1,
                              prova=prova_mural, elite=elite, db=db)
         for estudante in lista_bronze:
+            print(f"---- for loop bronze: {estudante}")
             acrescentar_pm(pm_adicional_bronze, nome=estudante, turma=turma_tabela, db=db)
             atualizar_coroas(nome=estudante, turma=turma_tabela, valor=2,
                              prova=prova_mural, elite=elite, db=db)

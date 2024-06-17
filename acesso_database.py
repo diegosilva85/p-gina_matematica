@@ -41,9 +41,12 @@ def acrescentar_pm(pm_adicional, db, id_pm=None, turma=None, nome=None):
         aluno = db.session.execute(db.select(turma).where(turma.id == id_pm)).scalar()
     elif nome is not None:
         aluno = db.session.execute(db.select(turma).where(turma.nome == nome)).scalar()
+    print(f"ALUNO: {aluno.nome} PM: {aluno.pm}")
     pm_atualizado = int(pm_adicional) + int(aluno.pm)
+    print(f"PM_ATUALIZADO: {pm_atualizado}")
     setattr(aluno, "pm", pm_atualizado)
     db.session.commit()
+    db.session.close()
 
 
 def boss(pm, turma, id_boss, db):
@@ -64,6 +67,7 @@ def boss(pm, turma, id_boss, db):
 
 def atualizar_coroas(nome, turma, valor, prova, elite, db):
     aluno = db.session.execute(db.select(turma).where(turma.nome == nome)).scalar()
+    print(f"----- COROA ----- ALUNO: {aluno.nome}")
     if valor == 0:
         aluno.coroa_ouro += 1
         setattr(aluno, f"coroa{prova}", "ouro")
@@ -76,6 +80,7 @@ def atualizar_coroas(nome, turma, valor, prova, elite, db):
     if elite == 'sim':
         aluno.coroas_elite += 1
     db.session.commit()
+    db.session.close()
 
 
 def alunos_elite(turma, db):
