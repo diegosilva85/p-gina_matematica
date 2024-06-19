@@ -59,3 +59,16 @@ class Base(DeclarativeBase):
 class BaseProfessor(DeclarativeBase):
     __abstract__ = True
     id: Mapped[int] = mapped_column(primary_key=True)
+
+class BaseMurais(DeclarativeBase):
+    __abstract__ = True
+    turma: Mapped[str] = mapped_column(primary_key=True, nullable=True)
+    prova1: Mapped[str] = mapped_column(nullable=True)
+    prova2: Mapped[str] = mapped_column(nullable=True)
+    prova3: Mapped[str] = mapped_column(nullable=True)
+    prova4: Mapped[str] = mapped_column(nullable=True)
+    prova5: Mapped[str] = mapped_column(nullable=True)
+    prova6: Mapped[str] = mapped_column(nullable=True)
+    prova7: Mapped[str] = mapped_column(nullable=True)
+    prova8: Mapped[str] = mapped_column(nullable=True)
+

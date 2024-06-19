@@ -11,9 +11,9 @@ from pathlib import Path
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyarrow
-from base import Base, BaseProfessor
+from base import Base, BaseProfessor,BaseMurais
 from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acrescentar_pm, media_alunos, \
-    deletar_aluno, inserir_dados_prova, boss, estatisticas
+    deletar_aluno, inserir_dados_prova, boss, estatisticas, checar_mural, registrar_prova
 from base_gastos import BaseGastos, Banco_de_dados
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
@@ -50,6 +50,8 @@ class Professor(BaseProfessor, UserMixin):
     nome: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
 
+class Murais(BaseMurais):
+    __tablename__ = 'murais'
 
 class Gastos(BaseGastos):
     __tablename__ = 'gastos'
@@ -326,7 +328,7 @@ def notas_prova(prova, turma, elite):
 
 
 @app.route('/mural/<mural_turma>/<prova_mural>/<imagem>/<elite>', methods=['GET', 'POST'])
-def mural(mural_turma, prova_mural, imagem, elite="não"):
+def mural(mural_turma, prova_mural, imagem, elite="não"):    
     turma_tabela = selecionar_turma(mural_turma)
     atributo_prova = getattr(turma_tabela, f'prova{prova_mural}')
     atributo_pm = getattr(turma_tabela, f'pm{prova_mural}')
@@ -360,10 +362,11 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
     print(f'PRATA: {lista_prata}')
     print(f'BRONZE: {lista_bronze}')
     print(f'PM - OURO: {pm_adicional_ouro}')
-    print(f'PM - PRTA: {pm_adicional_prata}')
+    print(f'PM - PRATA: {pm_adicional_prata}')
     print(f'PM - BRONZE: {pm_adicional_bronze}')
 
-    if imagem == "Não":
+    if imagem == "Não" and checar_mural(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db):
+        print("ATRIBUIR PMs E COROAS")
         for estudante in lista_ouro:
             print(f"---- for loop ouro: {estudante}")
             acrescentar_pm(pm_adicional_ouro, nome=estudante, turma=turma_tabela, db=db)
@@ -379,6 +382,7 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
             acrescentar_pm(pm_adicional_bronze, nome=estudante, turma=turma_tabela, db=db)
             atualizar_coroas(nome=estudante, turma=turma_tabela, valor=2,
                              prova=prova_mural, elite=elite, db=db)
+        registrar_prova(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db)  
 
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
