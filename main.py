@@ -460,7 +460,7 @@ def manual():
                 turma_selecionada = selecionar_turma(manual_ajuste)
                 resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
         if 'voltar' in request.form:
-            return redirect(url_for('professor'))
+            return redirect(url_for('professor'))        
     return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
 
@@ -486,6 +486,8 @@ def aluno_alterar(nome, turma):
             dado_alterar = request.form['coroas_aluno']
         if 'voltar' in request.form:
             return redirect(url_for('professor'))
+        if 'retornar' in request.form:
+            return redirect(url_for('manual'))
         setattr(resultados, dado_alterar, request.form['valor'])
         db.session.commit()
         return render_template("aluno_alterar.html", nome=nome)
