@@ -73,7 +73,7 @@ def acrescentar_pm(pm_adicional, db, id_pm=None, turma=None, nome=None):
     print(f"PM_ATUALIZADO: {pm_atualizado}")
     setattr(aluno, "pm", pm_atualizado)
     db.session.commit()
-    db.session.close()
+    # db.session.close()
 
 
 def boss(pm, turma, id_boss, db):
