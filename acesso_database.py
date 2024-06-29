@@ -21,8 +21,10 @@ def checar_mural(tabela, turma, prova, db):
             return False
     return True
 
-def registrar_prova(tabela, turma, prova, db):
+def registrar_prova(tabela, turma, prova, db, elite):
     turma_tabela= {'a': 'Terceiro_A', 'b': 'Terceiro_B', 'c': 'Terceiro_C', 'd': 'Primeiro_D'}
+    if elite == 'sim':
+        turma_tabela= {'a': 'A_elite', 'b': 'B_elite', 'c': 'C_elite'}
     turma_mural = getattr(tabela, 'turma')    
     mural = db.session.query(tabela).filter(turma_mural == turma_tabela[turma]).scalar()
     setattr(mural, f'prova{prova}', 'x')

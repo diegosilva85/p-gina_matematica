@@ -160,6 +160,19 @@
                  </form>
         </li>
         <li>
+            <a href="#" onclick="mostrarFormulario('medias_a')">Exportar Medias</a>
+                 <form action="" id="form_medias_a" method="post" style="display: none;">
+                       <label for="turmas_medias">Turma:</label>
+                            <select id="turmas_medias" name="exportar_media" required>
+                            <option value="a">3°A</option>
+                            <option value="b">3°B</option>
+                            <option value="c">3°C</option>
+                            <option value="d">1°D</option>
+                            </select>
+                       <button name="medias" type="submit">Enviar</button>
+                 </form>
+        </li>
+        <li>
             <a>Inserir dados de prova</a>
             <form action="" method="post">
                 <label for="turmas_inserir">Turma:</label>

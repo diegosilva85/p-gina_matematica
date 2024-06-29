@@ -288,6 +288,9 @@ def professor():
         if 'exportar_turma' in request.form:
             exportar = request.form['exportar_turma']
             exportar_csv(exportar)
+        if 'exportar_media' in request.form:
+            exportar = request.form['exportar_media']
+            exportar_medias(exportar)
         if 'criar_turmas' in request.form:
             criar_turmas(request.form['criar_turmas'])
         if 'alunos_elite' in request.form:
@@ -382,7 +385,7 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
             acrescentar_pm(pm_adicional_bronze, nome=estudante, turma=turma_tabela, db=db)
             atualizar_coroas(nome=estudante, turma=turma_tabela, valor=2,
                              prova=prova_mural, elite=elite, db=db)
-        registrar_prova(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db)  
+        registrar_prova(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db, elite=elite)  
 
     notas = [resultado[1] for resultado in resultados_mural if resultado[1] is not None]
     notas.sort(reverse=True)
@@ -463,6 +466,20 @@ def manual():
             return redirect(url_for('professor'))        
     return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
+def exportar_medias(turma):
+    turma_tabela = selecionar_turma(turma)
+    resultado = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2, turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8).order_by(turma_tabela.id).all())
+    lista_alunos_medias = []
+    for aluno in resultado:
+         media = media_alunos(aluno)
+         hash = {'nome': aluno.nome, 'media': media['media']}
+         lista_alunos_medias.append(hash)
+    print(lista_alunos_medias)
+    dataframe = DataFrame(lista_alunos_medias)
+    dataframe.to_csv(f'./static/Medias_{turma}.csv', index=False)
+
+    
 
 @app.route("/aluno_alterar/<nome>/<turma>", methods=['GET', 'POST'])
 @login_required
@@ -520,7 +537,7 @@ def exportar_csv(valor):
     dataframe.to_csv(f'./static/Turma_{valor}.csv', index=False)
 
     # email = Email(valor)
-
+ 
 
 # --------------------------------------- Servidor da aplicação Controle de gastos ----------------------------------- #
 @app.route('/controle_gastos', methods=['GET', 'POST'])
