@@ -1,5 +1,5 @@
 from typing import Union
-
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, MetaData, Column, Integer, Float, String
 from sqlalchemy.orm import sessionmaker
@@ -27,5 +27,10 @@ class BancoDadosSiepe:
         BaseSiepe.metadata.create_all(self.engine)
     
     def consulta_username(self, username, tabela: Union[type, object]):
-        consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
-        return consulta.autorizacao
+        try:
+            consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
+            self.db.commit()  # Confirma a transação se bem-sucedida
+            return consulta.autorizacao
+        except SQLAlchemyError as e:
+            self.db.rollback()  # Aborta a transação em caso de erro
+            raise e
