@@ -15,7 +15,7 @@ from base import Base, BaseProfessor,BaseMurais
 from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acrescentar_pm, media_alunos, \
     deletar_aluno, inserir_dados_prova, boss, estatisticas, checar_mural, registrar_prova
 from base_gastos import BaseGastos, Banco_de_dados
-from base_siepe import BancoDadosSiepe, Siepe
+from base_siepe import BancoDadosSiepe, BaseSiepe
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -58,6 +58,8 @@ class Murais(BaseMurais):
 class Gastos(BaseGastos):
     __tablename__ = 'gastos'
 
+class Siepe(BaseSiepe):
+    __tablename__ = 'siepe'
 
 lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
 senha = os.environ.get("senha_professor").strip("")
@@ -545,7 +547,7 @@ def exportar_csv(valor):
 @app.route('/siepe', methods=['GET', 'POST'])
 def siepe():
     dados = request.get_json()
-    resposta = banco_siepe.consulta_username(username=dados['username'])
+    resposta = banco_siepe.consulta_username(username=dados['username'], tabela=Siepe)
     return jsonify({'autorizacao': resposta}), 200
 
 # --------------------------------------- Servidor da aplicação Controle de gastos ----------------------------------- #

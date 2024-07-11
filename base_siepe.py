@@ -8,7 +8,7 @@ import os
 base = declarative_base()
 url = "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a.oregon-postgres.render.com/diegomatematicav1"
 
-class Siepe:
+class BaseSiepe:
     __tablename__ = 'siepe'
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False)
@@ -26,6 +26,6 @@ class BancoDadosSiepe:
     def create_tables(self):
         Siepe.metadata.create_all(self.engine)
     
-    def consulta_username(self, username):
-        consulta = self.db.query(Siepe).filter(Siepe.username == username).scalar()
+    def consulta_username(self, username, tabela: Union[type, object]):
+        consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
         return consulta.autorizacao
