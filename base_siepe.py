@@ -27,5 +27,5 @@ class BancoDadosSiepe:
         Siepe.metadata.create_all(self.engine)
     
     def consulta_username(self, username):
-        consulta = self.db.query(Siepe).filter(username == Siepe.username).scalar()
+        consulta = self.db.query(Siepe).filter(Siepe.username == username).scalar()
         return consulta.autorizacao
