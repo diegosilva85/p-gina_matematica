@@ -30,7 +30,10 @@ class BancoDadosSiepe:
         try:
             consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
             self.db.commit()  # Confirma a transação se bem-sucedida
-            return consulta.autorizacao
+            if consulta is None:
+                return 'não'
+            else:
+                return consulta.autorizacao
         except SQLAlchemyError as e:
             self.db.rollback()  # Aborta a transação em caso de erro
             raise e
