@@ -21,10 +21,10 @@ class BancoDadosSiepe:
         session = sessionmaker(bind=self.engine)
         self.db = session()
         self.metadata = MetaData()
-        self.base = Siepe
+        self.base = BaseSiepe
     
     def create_tables(self):
-        Siepe.metadata.create_all(self.engine)
+        BaseSiepe.metadata.create_all(self.engine)
     
     def consulta_username(self, username, tabela: Union[type, object]):
         consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
