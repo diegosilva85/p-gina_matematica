@@ -1,7 +1,7 @@
 from typing import Union
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, MetaData, Column, Integer, Float, String
+from sqlalchemy import create_engine, MetaData, Column, Integer, Float, String, Boolean
 from sqlalchemy.orm import sessionmaker
 import os
 
@@ -12,7 +12,7 @@ class BaseSiepe(base):
     __tablename__ = 'siepe'
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False)
-    autorizacao = Column(String, nullable=False)
+    autorizacao = Column(Boolean, nullable=False)
 
 class BancoDadosSiepe:
     def __init__(self):
@@ -31,7 +31,7 @@ class BancoDadosSiepe:
             consulta = self.db.query(tabela).filter(tabela.username == username).scalar()
             self.db.commit()  # Confirma a transação se bem-sucedida
             if consulta is None:
-                return 'não'
+                return False
             else:
                 return consulta.autorizacao
         except SQLAlchemyError as e:
