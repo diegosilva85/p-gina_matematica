@@ -22,7 +22,7 @@
     padding: 10px;
     display: block;
     color: #333;
-    background-color: #87CEFA;
+    background-color: #FFBF78;
     text-align: center;
 }
 
@@ -64,17 +64,17 @@ table {
 }
 
 th, td {
-    border: 1px solid #87CEFA;
+    border: 1px solid #FFBF78;
     padding: 8px;
     text-align: center;
 }
 
 #semana {
-    background-color: #6495ED;
+    background-color: #FFA823;
 }
 
 th {
-    background-color: #87CEFA;
+    background-color: #FFBF78;
     color: white;
 }
 
