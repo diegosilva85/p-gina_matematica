@@ -20,7 +20,8 @@ from base_siepe import BancoDadosSiepe, BaseSiepe
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = senha_sessao_flask
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///database_2024.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///dados_servidor.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///database_2024.db")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
@@ -372,7 +373,7 @@ def mural(mural_turma, prova_mural, imagem, elite="não"):
     print(f'PM - PRATA: {pm_adicional_prata}')
     print(f'PM - BRONZE: {pm_adicional_bronze}')
 
-    if imagem == "Não" and checar_mural(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db):
+    if imagem == "Não" and checar_mural(tabela=Murais, turma=mural_turma, prova=prova_mural, db=db, elite=elite):
         print("ATRIBUIR PMs E COROAS")
         for estudante in lista_ouro:
             print(f"---- for loop ouro: {estudante}")
@@ -505,6 +506,8 @@ def aluno_alterar(nome, turma):
             dado_alterar = request.form['boss_aluno']
         if "coroas_aluno" in request.form and request.form['coroas_aluno'] != "":
             dado_alterar = request.form['coroas_aluno']
+        if 'elite' in request.form and request.form['elite'] != "":
+            dado_alterar = request.form['elite']
         if 'voltar' in request.form:
             return redirect(url_for('professor'))
         if 'retornar' in request.form:
@@ -528,7 +531,9 @@ def exportar_csv(valor):
                                       turma_sel.beneficios4, turma_sel.beneficios5, turma_sel.beneficios6,
                                       turma_sel.beneficios7, turma_sel.beneficios8, turma_sel.boss_vitoria,
                                       turma_sel.boss_total, turma_sel.coroa_ouro, turma_sel.coroa_prata,
-                                      turma_sel.coroa_bronze).order_by(turma_sel.id).all()
+                                      turma_sel.coroa_bronze, turma_sel.elite, turma_sel.elite1, turma_sel.elite2,
+                                      turma_sel.elite3,turma_sel.elite4,turma_sel.elite5,turma_sel.elite6,turma_sel.elite7,
+                                      turma_sel.elite8,turma_sel.coroas_elite, turma_sel.boss_elite).order_by(turma_sel.id).all()
 
     dataframe = DataFrame.from_records(resultados_csv, columns=['Id', 'Nome', '1°', '2°', '3°', '4°', '5°', '6°', '7°',
                                                                 '8°', 'pm1', 'pm2', 'pm3', 'pm4', 'pm5', 'pm6', 'pm7',
@@ -537,7 +542,8 @@ def exportar_csv(valor):
                                                                 'beneficios2', 'beneficios3', 'beneficios4',
                                                                 'beneficios5', 'beneficios6', 'beneficios7',
                                                                 'beneficios8', 'BossV', 'BossT', 'Ouro', 'Prata',
-                                                                'Bronze'])
+                                                                'Bronze', 'Elite', 'Elite1', 'Elite2', 'Elite3', 'Elite4'
+                                                                'Elite5', 'Elite6', 'Elite7', 'Elite8', 'Coroas_elite', 'Boss_elite'])
     dataframe.to_csv(f'./static/Turma_{valor}.csv', index=False)
 
     # email = Email(valor)

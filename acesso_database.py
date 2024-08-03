@@ -3,15 +3,20 @@ import numpy as np
 from scipy.stats import mode
 
 
-def checar_mural(tabela, turma, prova, db):
-    if turma == 'a':
-        turma = 'Terceiro_A'
-    elif turma == 'b':
-        turma = 'Terceiro_B'
-    elif turma == 'c':
-        turma = 'Terceiro_C'
-    elif turma == 'd':
-        turma = 'Primeiro_D'
+def checar_mural(tabela, turma, prova, db, elite):
+    hash_turma = {'a': 'Terceiro_A', 'b': 'Terceiro_B', 'c': 'Terceiro_C', 'd': 'Primeiro_D'}
+    hash_turma_elite = {'a': 'A_elite', 'b': 'B_elite', 'c': 'C_elite', 'd': 'Primeiro_D'}
+    if elite == 'sim':
+        hash_turma = hash_turma_elite
+    turma = hash_turma[turma]
+    # if turma == 'a':
+    #     turma = 'Terceiro_A'
+    # elif turma == 'b':
+    #     turma = 'Terceiro_B'
+    # elif turma == 'c':
+    #     turma = 'Terceiro_C'
+    # elif turma == 'd':
+    #     turma = 'Primeiro_D'
     turma_tabela = getattr(tabela, 'turma')
     resposta = db.session.query(tabela).filter(turma_tabela == turma).all()
     for item in resposta:
