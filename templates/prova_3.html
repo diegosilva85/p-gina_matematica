@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Prova</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-row {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-row div {
+            margin-bottom: 8px;
+        }
+        .id-nome, .notas, .acao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tamanho {
+            width: 60px;
+            padding: 6px;
+            font-size: 14px;
+        }
+        .nome {
+            flex-grow: 1;
+            padding-left: 10px;
+            font-size: 14px;
+        }
+        select {
+            width: 100px;
+            padding: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <form action="" method="post">
+        <button name="voltar" type="submit">Voltar</button>
+    </form>
+
+    {% for row in resultados %}
+        <form action="" method="post" class="form-row">
+            <!-- Primeira linha: Id e Aluno -->
+            <div class="id-nome">
+                <div>
+                    <label>Id:</label>
+                    <input class="tamanho" name="id" value="{{ row.id }}" readonly>
+                </div>
+                <div class="nome">
+                    <label>Aluno:</label>
+                    <span>{{ row.nome }}</span>
+                </div>
+            </div>
+            <!-- Segunda linha: Nota, PM, Benefícios, Elite -->
+            <div class="notas">
+                <div>
+                    <label>Nota:</label>
+                    <input type="text" name="nota" class="tamanho" placeholder="Nota">
+                </div>
+                <div>
+                    <label>PM:</label>
+                    <input type="text" name="pm" class="tamanho" placeholder="PM">
+                </div>
+                <div>
+                    <label>Benefícios:</label>
+                    <select id="beneficios" name="beneficios" class="tamanho">
+                        <option value="" selected></option>
+                        <option value="calc">Calculadora</option>
+                        <option value="anular">Anular</option>
+                        <option value="caderno">Caderno</option>
+                        <option value="formula">Fórmula</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Elite:</label>
+                    <input name="elite" class="tamanho" value="{{ elite }}" readonly>
+                </div>
+            </div>
+            <!-- Terceira linha: Botão Acrescentar -->
+            <div class="acao">
+                <button name="acrescentar" type="submit">Acrescentar</button>
+            </div>
+        </form>
+    {% endfor %}
+</body>
+</html>

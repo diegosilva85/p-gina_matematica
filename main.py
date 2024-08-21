@@ -20,8 +20,9 @@ from base_siepe import BancoDadosSiepe, BaseSiepe
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = senha_sessao_flask
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///dados_servidor.db"
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///database_2024.db")
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///dados_servidor.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///dados_servidor.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
@@ -332,7 +333,7 @@ def notas_prova(prova, turma, elite):
             acrescentar_pm(pm, id_pm=id_aluno, turma=turma_tabela, db=db)
         if "voltar" in request.form:
             return redirect(url_for("professor"))
-    return render_template('prova.html', resultados=resultados, elite=elite)
+    return render_template('prova_3.html', resultados=resultados, elite=elite)
 
 
 @app.route('/mural/<mural_turma>/<prova_mural>/<imagem>/<elite>', methods=['GET', 'POST'])
@@ -469,7 +470,7 @@ def manual():
                 resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
         if 'voltar' in request.form:
             return redirect(url_for('professor'))        
-    return render_template("manual.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
+    return render_template("manual_2.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
 def exportar_medias(turma):
     turma_tabela = selecionar_turma(turma)

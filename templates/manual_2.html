@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Ajuste manual</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        /* Estilo do botão */
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Estilo do formulário */
+        form {
+            margin: 10px 0;
+            padding: 0 10px;
+        }
+
+        /* Estilo do seletor */
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Tabela responsiva */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            display: block;
+            white-space: nowrap;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Estilo para celulares */
+        @media screen and (max-width: 600px) {
+            th, td {
+                font-size: 14px;
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form action="" method="post">
+        <button name="voltar" type="submit">Voltar</button>
+    </form>
+
+    <form action="" method="post">
+        <select id="manual" name="manual" required>
+            <option value="a">3°A</option>
+            <option value="b">3°B</option>
+            <option value="c">3°C</option>
+            <option value="d">1°D</option>
+        </select>
+        <button name="manual" type="submit">Acessar</button>
+    </form>
+
+    {% if manual %}
+        <table>
+            <tr>
+                <th>Id</th>
+                <th>Aluno</th>
+                <th>1°</th>
+                <th>2°</th>
+                <th>3°</th>
+                <th>4°</th>
+                <th>5°</th>
+                <th>6°</th>
+                <th>7°</th>
+                <th>8°</th>
+                <th>pm1</th>
+                <th>pm2</th>
+                <th>pm3</th>
+                <th>pm4</th>
+                <th>pm5</th>
+                <th>pm6</th>
+                <th>pm7</th>
+                <th>pm8</th>
+                <th>pm</th>
+                <th>coroa1</th>
+                <th>coroa2</th>
+                <th>coroa3</th>
+                <th>coroa4</th>
+                <th>coroa5</th>
+                <th>coroa6</th>
+                <th>coroa7</th>
+                <th>coroa8</th>
+                <th>beneficios1</th>
+                <th>beneficios2</th>
+                <th>beneficios3</th>
+                <th>beneficios4</th>
+                <th>beneficios5</th>
+                <th>beneficios6</th>
+                <th>beneficios7</th>
+                <th>beneficios8</th>
+                <th>boss_vitoria</th>
+                <th>boss_total</th>
+                <th>coroa_ouro</th>
+                <th>coroa_prata</th>
+                <th>coroa_bronze</th>
+                <th>coroas_elite</th>
+                <th>boss_elite</th>
+            </tr>
+            {% for row in resultados %}
+                <tr>
+                    <td>{{ row.id }}</td>
+                    <td><a href="{{ url_for('aluno_alterar', nome=row.nome, turma=manual) }}">{{ row.nome }}</a></td>
+                    <td>{{ row.prova1 }}</td>
+                    <td>{{ row.prova2 }}</td>
+                    <td>{{ row.prova3 }}</td>
+                    <td>{{ row.prova4 }}</td>
+                    <td>{{ row.prova5 }}</td>
+                    <td>{{ row.prova6 }}</td>
+                    <td>{{ row.prova7 }}</td>
+                    <td>{{ row.prova8 }}</td>
+                    <td>{{ row.pm1 }}</td>
+                    <td>{{ row.pm2 }}</td>
+                    <td>{{ row.pm3 }}</td>
+                    <td>{{ row.pm4 }}</td>
+                    <td>{{ row.pm5 }}</td>
+                    <td>{{ row.pm6 }}</td>
+                    <td>{{ row.pm7 }}</td>
+                    <td>{{ row.pm8 }}</td>
+                    <td>{{ row.pm }}</td>
+                    <td>{{ row.coroa1 }}</td>
+                    <td>{{ row.coroa2 }}</td>
+                    <td>{{ row.coroa3 }}</td>
+                    <td>{{ row.coroa4 }}</td>
+                    <td>{{ row.coroa5 }}</td>
+                    <td>{{ row.coroa6 }}</td>
+                    <td>{{ row.coroa7 }}</td>
+                    <td>{{ row.coroa8 }}</td>
+                    <td>{{ row.beneficios1 }}</td>
+                    <td>{{ row.beneficios2 }}</td>
+                    <td>{{ row.beneficios3 }}</td>
+                    <td>{{ row.beneficios4 }}</td>
+                    <td>{{ row.beneficios5 }}</td>
+                    <td>{{ row.beneficios6 }}</td>
+                    <td>{{ row.beneficios7 }}</td>
+                    <td>{{ row.beneficios8 }}</td>
+                    <td>{{ row.boss_vitoria }}</td>
+                    <td>{{ row.boss_total }}</td>
+                    <td>{{ row.coroa_ouro }}</td>
+                    <td>{{ row.coroa_prata }}</td>
+                    <td>{{ row.coroa_bronze }}</td>
+                    <td>{{ row.coroas_elite }}</td>
+                    <td>{{ row.boss_elite }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>

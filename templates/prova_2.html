@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Prova</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tamanho {
+            width: 100%;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <form action="" method="post">
+        <button name="voltar" type="submit">Voltar</button>
+    </form>
+
+    {% for row in resultados %}
+        <form action="" method="post">
+            <table>
+                <tr>
+                    <th>Id</th>
+                    <th>Aluno</th>
+                    <th>Nota</th>
+                    <th>PM</th>
+                    <th>Benefícios</th>
+                    <th>Elite</th>
+                    <th>Ação</th>
+                </tr>
+                <tr>
+                    <td><input class="tamanho" name="id" value="{{ row.id }}" readonly></td>
+                    <td>{{ row.nome }}</td>
+                    <td><input type="text" name="nota" class="tamanho" placeholder="Nota"></td>
+                    <td><input type="text" name="pm" class="tamanho" placeholder="PM"></td>
+                    <td>
+                        <select id="beneficios" name="beneficios" class="tamanho">
+                            <option value="" selected></option>
+                            <option value="calc">Calculadora</option>
+                            <option value="anular">Anular</option>
+                            <option value="caderno">Caderno</option>
+                            <option value="formula">Fórmula</option>
+                        </select>
+                    </td>
+                    <td><input name="elite" class="tamanho" value="{{ elite }}" readonly></td>
+                    <td><button name="acrescentar" type="submit">Acrescentar</button></td>
+                </tr>
+            </table>
+        </form>
+    {% endfor %}
+</body>
+</html>
