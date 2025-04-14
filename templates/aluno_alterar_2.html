@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Alteração de Dados do Aluno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Alteração de Dados do Aluno</h1>
+        <div class="button-group">
+            <form action="" method="post">
+                <button name="voltar" type="submit">Voltar para Área do Professor</button>
+            </form>
+            <form action="" method="post">
+                <button name="retornar" type="submit">Voltar para Turmas</button>
+            </form>
+        </div>
+        <p>{{ nome }}</p>
+        <form action="" method="post">
+            <div class="form-group">
+                <label for="prova_aluno">PROVA</label>
+                <select id="prova_aluno" name="prova_aluno">
+                    <option value="" selected></option>
+                    <option value="prova1">Prova 1</option>
+                    <option value="prova2">Prova 2</option>
+                    <option value="prova3">Prova 3</option>
+                    <option value="prova4">Prova 4</option>
+                    <option value="prova5">Prova 5</option>
+                    <option value="prova6">Prova 6</option>
+                    <option value="prova7">Prova 7</option>
+                    <option value="prova8">Prova 8</option>
+                    <option value="prova8">Prova 9</option>
+                    <option value="prova8">Prova 10</option>
+                    <option value="prova8">Prova 11</option>
+                    <option value="prova8">Prova 12</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="pm_aluno">PM</label>
+                <select id="pm_aluno" name="pm_aluno">
+                    <option value="" selected></option>
+                    <option value="pm1">PM 1</option>
+                    <option value="pm2">PM 2</option>
+                    <option value="pm3">PM 3</option>
+                    <option value="pm4">PM 4</option>
+                    <option value="pm5">PM 5</option>
+                    <option value="pm6">PM 6</option>
+                    <option value="pm7">PM 7</option>
+                    <option value="pm8">PM 8</option>
+                    <option value="pm8">PM 9</option>
+                    <option value="pm8">PM 10</option>
+                    <option value="pm8">PM 11</option>
+                    <option value="pm8">PM 12</option>
+                    <option value="pm">PM Total</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="coroa_aluno">Coroa</label>
+                <select id="coroa_aluno" name="coroa_aluno">
+                    <option value="" selected></option>
+                    <option value="coroa1">Coroa 1</option>
+                    <option value="coroa2">Coroa 2</option>
+                    <option value="coroa3">Coroa 3</option>
+                    <option value="coroa4">Coroa 4</option>
+                    <option value="coroa5">Coroa 5</option>
+                    <option value="coroa6">Coroa 6</option>
+                    <option value="coroa7">Coroa 7</option>
+                    <option value="coroa8">Coroa 8</option>
+                    <option value="coroa8">Coroa 9</option>
+                    <option value="coroa8">Coroa 10</option>
+                    <option value="coroa8">Coroa 11</option>
+                    <option value="coroa8">Coroa 12</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="beneficio_aluno">Benefícios</label>
+                <select id="beneficio_aluno" name="beneficio_aluno">
+                    <option value="" selected></option>
+                    <option value="beneficios1">Benefícios 1</option>
+                    <option value="beneficios2">Benefícios 2</option>
+                    <option value="beneficios3">Benefícios 3</option>
+                    <option value="beneficios4">Benefícios 4</option>
+                    <option value="beneficios5">Benefícios 5</option>
+                    <option value="beneficios6">Benefícios 6</option>
+                    <option value="beneficios7">Benefícios 7</option>
+                    <option value="beneficios8">Benefícios 8</option>
+                    <option value="beneficios8">Benefícios 9</option>
+                    <option value="beneficios8">Benefícios 10</option>
+                    <option value="beneficios8">Benefícios 11</option>
+                    <option value="beneficios8">Benefícios 12</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="boss_aluno">Boss</label>
+                <select id="boss_aluno" name="boss_aluno">
+                    <option value="" selected></option>
+                    <option value="boss_vitoria">Boss Vitória</option>
+                    <option value="boss_total">Boss Total</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="coroas_aluno">Coroas</label>
+                <select id="coroas_aluno" name="coroas_aluno">
+                    <option value="" selected></option>
+                    <option value="coroa_ouro">Coroa Ouro</option>
+                    <option value="coroa_prata">Coroa Prata</option>
+                    <option value="coroa_bronze">Coroa Bronze</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="elite">Elite</label>
+                <select id="elite" name="elite">
+                    <option value="" selected></option>
+                    <option value="boss_elite">Boss Elite</option>
+                    <option value="coroas_elite">Coroas Elite</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor</label>
+                <input type="text" id="valor" name="valor" required>
+            </div>
+            <button name="dado_alterar" type="submit">Alterar Dado</button>
+        </form>
+    </div>
+</body>
+</html>

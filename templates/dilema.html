@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogos</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+            .caixaRegras {
+                background-color: aliceblue;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid lightskyblue;
+                border-radius: 5px;
+            }
+            .botaoJogar {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: lightgreen;
+                border-radius: 5px;
+                width: 80px;
+                height: 50px;
+                border: 1px solid black;
+                font-size: 16px;
+                margin: 5px;
+            }
+            a {                
+                text-decoration: none;   
+                font-size: 16px;             
+            }
+            ul {
+                padding-left: 5%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a href="/jogos" style="font-size: 50px; position: absolute; left: 20px; top: 10px;">⬅</a>
+            <br>
+            <br>
+            <br>            
+            <h2>Dilema do Prisioneiro</h2>
+            <img src="../static/dilema_do_prisioneiro.jpg" alt="prisioneiros em celas" width="300">
+            <br>
+            <div class="caixaRegras">
+                <ul>
+                    <ul>
+                        <li>Os dois jogadores foram presos, e serão interrogados sobre o crime separadamente.</li>
+                        <li>Os dois jogadores fazem suas escolhas em segredo: cada um pode <strong>cooperar com outro</strong> ou <strong>trair</strong>.</li>
+                        <li>No jogo, se ambos <strong>cooperarem</strong>, cada um ganha <strong>3 pontos</strong>.</li>
+                        <li>Se um <strong>trair</strong> e o outro <strong>cooperar</strong>, o traidor ganha <strong>5 pontos</strong> e o que cooperou não ganha nada (<strong>0 pontos</strong>).</li>
+                        <li>Se ambos <strong>traírem</strong>, cada um recebe apenas <strong>1 ponto</strong>.</li>
+                      </ul>
+                  </ul>
+            </div>
+            <button class="botaoJogar">Jogar!</button>
+            
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogos</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+            .caixaRegras {
+                background-color: aliceblue;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid lightskyblue;
+                border-radius: 5px;
+            }
+            .botaoJogar {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: lightgreen;
+                border-radius: 5px;
+                width: 80px;
+                height: 50px;
+                border: 1px solid black;
+                font-size: 16px;
+                margin: 5px;
+            }
+            a {                
+                text-decoration: none;   
+                font-size: 16px;             
+            }
+            ul {
+                padding-left: 5%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a href="/jogos" style="font-size: 50px; position: absolute; left: 20px; top: 10px;">⬅</a>
+            <br>
+            <br>
+            <br>            
+            <h2>Batalha de Taboada</h2>
+            <img src="../static/taboada.gif" alt="Taboada" width="300">
+            <br>
+            <div class="caixaRegras">
+                <ul>
+                    <ul>
+                        <li>Quem consegue resolver multiplicações mais rápido?</li>
+                        <li>Os dois jogadores se enfrentarão em problemas de taboada. Cada rodada será apresentada uma multiplicação, com 4 respostas possíveis.</li>
+                        <li><strong>Aquele que responder correto primeiro ganha a rodada.</strong></li>
+                        <li>A cada rodada as multiplicações ficarão mais difíceis.</li>
+                        <li>Os jogadores podem escolher a quantidade de rodadas que a partida terá.</li>
+                      </ul>
+                  </ul>
+            </div>
+            <button class="botaoJogar">Jogar!</button>
+            
+        </div>
+    </body>
+
+</html>

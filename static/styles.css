@@ -22,7 +22,7 @@
     padding: 10px;
     display: block;
     color: #333;
-    background-color: #FFBF78;
+    background-color: #78ffb0;
     text-align: center;
 }
 
@@ -64,7 +64,7 @@ table {
 }
 
 th, td {
-    border: 1px solid #FFBF78;
+    border: 1px solid #ff7878;
     padding: 8px;
     text-align: center;
 }
@@ -74,7 +74,7 @@ th, td {
 }
 
 th {
-    background-color: #FFBF78;
+    background-color: #ff7878;
     color: white;
 }
 

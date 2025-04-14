@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogos</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                background-color: aliceblue;
+                border-radius: 5px;
+                border: 1px solid black;
+            }
+            .caixaPortas {
+                background-color: aliceblue;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid lightskyblue;
+                border-radius: 5px;
+            }
+            .botaoEscolher {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                align-content: center;
+                background-color: lightgreen;
+                border-radius: 5px;
+                width: 80px;
+                height: 50px;
+                border: 1px solid black;
+                font-size: 16px;
+                margin: 5px;
+            }
+            .caixa {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 10px;
+                border: 1px solid black;
+            }
+            a {                
+                text-decoration: none;   
+                font-size: 16px;             
+            }
+            ul {
+                padding-left: 7%;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/jogos" style="font-size: 50px;">⬅</a>
+        <div class="container">
+            <h2 style="padding-left: 4%;">Problema de Monty Hall</h2>
+            <ul>
+                <li>Em uma das portas há um carro, nas outras duas, cabras;</li>
+                <li>Escolha uma porta apertando nela e em seguida aperte o botão 'escolher' para confirmar;</li>
+                <li>Após ser apresentada uma das portas erradas, faça sua escolha entre <strong>manter a porta escolhida anteriormente ou trocar de porta</strong>;</li>
+                <li>Aperte no botão 'escolher' novamente.</li>
+            </ul>
+            <div class="caixaPortas">
+                <div id="1" class="caixa" onclick="selecionarCaixa(this)">
+                    <p style="font-size: 14px;">Porta n° 1</p>
+                    <img id="porta1" src="/static/porta_branca.jpeg" alt="Porta branca" width="80" height="80">
+                </div>
+                <div id="2" class="caixa" onclick="selecionarCaixa(this)">
+                    <p style="font-size: 14px;">Porta n° 2</p>
+                    <img id="porta2" src="/static/porta_branca.jpeg" alt="Porta branca" width="80" height="80">
+                </div>
+                <div id="3" class="caixa" onclick="selecionarCaixa(this)">
+                    <p style="font-size: 14px;">Porta n° 3</p>
+                    <img id="porta3" src="/static/porta_branca.jpeg" alt="Porta branca" width="80" height="80">
+                </div>               
+            </div>
+            <button  id="botao" class="botaoEscolher" onclick="escolha()">Escolher</button>
+            <p id="partida">Partida: 1</p>
+            <p id="acertos">Acertos: 0 (0%)</p>
+            <button id="reset" class="botaoEscolher" style="background-color: lightgoldenrodyellow; width: 90px;" onclick="resetarContadores()">Resetar contadores</button>
+            <p>Atualizar a página recomecará do zero.</p>
+        </div>
+        
+    </body>
+    <script>
+        let portaPremiada;
+        let portaEscolhida;
+        let portaEliminada;
+        let partida = 1;
+        let acertos = 0;
+        let botao = document.getElementById('botao');
+        let contadorPartidas = document.getElementById('partida');
+        let contadorAcertos = document.getElementById('acertos');
+
+        function selecaoPremio(){
+            portaPremiada = Math.floor(Math.random() * 3) + 1; 
+            console.log("Porta premiada:", portaPremiada); 
+        }
+
+        window.onload = function () {
+        selecaoPremio();
+        }
+
+        function resetarContadores() {
+            partida = 1;
+            acertos = 0;
+            contadorAcertos.innerText = `Acertos: ${acertos} (${((acertos / partida) * 100).toFixed(2)}%)`;
+            contadorPartidas.innerText = "Partida: " + partida;
+        }
+
+        function selecionarCaixa(elemento) {
+             
+            document.querySelectorAll('.caixa').forEach(caixa => {
+            caixa.style.backgroundColor = '';
+        });                   
+        if (elemento.id != portaEliminada){
+                elemento.style.backgroundColor = 'lightyellow';
+            }  
+            
+        }
+
+        function escolha() {             
+            const caixa = pegarCaixaSelecionada();            
+            if (caixa) {
+                portaEscolhida = parseInt(caixa.id);
+                if (portaEliminada) {
+                    console.log("RESULTADO");
+                    const portaPremio = document.getElementById(`${portaPremiada}`);
+                    const imagem = portaPremio.querySelector('img');
+                    imagem.src = "/static/carro.png";
+                    const portaSelecionada = document.getElementById(`${portaEscolhida}`);
+                    console.log(portaPremio);
+                    if (portaEscolhida === portaPremiada) {                        
+                        portaPremio.style.backgroundColor = "green";                        
+                        acertos ++;
+                        console.log(acertos);
+                        
+                    } else {
+                        portaSelecionada.style.backgroundColor = 'red';
+                    }
+                    for (let i = 1; i <= 3; i++) {
+                        if (i != portaPremiada && i!= portaEliminada) {
+                            const elemento = document.getElementById(`${i}`)
+                            const imagem = elemento.querySelector('img');                            
+                            imagem.src = '/static/cabra.png';
+                            break;
+                        }
+                    }
+                    contadorAcertos.innerText = `Acertos: ${acertos} (${((acertos / partida) * 100).toFixed(2)}%)`;
+                    console.log("Fim do jogo");
+                    botao.innerText = "Nova Partida";
+                    botao.onclick = resetarPartida;
+                } else {
+                    for (let i = 1; i <= 3; i++) {
+                    if (i != portaEscolhida && i != portaPremiada) {
+                        const elemento = document.getElementById(`${i}`)
+                        const imagem = elemento.querySelector('img');
+                        portaEliminada = document.getElementById(`${i}`).id;
+                        imagem.src = '/static/cabra.png';
+                        break;
+                    }
+                }
+                }                
+            } else {
+                alert("Por favor selecione uma porta!");
+            }
+                        
+        }
+
+        function pegarCaixaSelecionada() {
+            const caixas = document.querySelectorAll('.caixa');
+            for (let caixa of caixas) {
+                if (caixa.style.backgroundColor === 'lightyellow') {
+                    return caixa;
+                }
+            }
+            return null;
+        }
+
+        function resetarPartida() {
+            portaEliminada = null;
+            portaEscolhida = null;
+            selecaoPremio(); // nova porta premiada
+            partida ++;
+            contadorPartidas.innerText = "Partida: " + partida;
+            const caixas = document.querySelectorAll('.caixa');
+            caixas.forEach(caixa => {
+            caixa.style.backgroundColor = '';
+            const imagem = caixa.querySelector('img');
+            imagem.src = '/static/porta_branca.jpeg';
+            });
+
+            botao.innerText = "Escolher";
+            botao.onclick = escolha;
+        }
+
+    </script>
+
+</html>

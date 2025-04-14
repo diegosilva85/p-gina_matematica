@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATEMÁTICA - EREM JOAQUIM TÁVORA</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+   
+    <style>
+        .principal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            width: 100%;
+        }
+        .topo {
+            display: flex;
+            flex-direction: column;            
+            align-items: center;
+            width: 100%;
+        }
+        .menu {
+            display: flex;
+            flex-direction: row;            
+            padding: 5px;
+            background-color: rgb(47, 206, 255);
+            gap: 1rem;
+            border: 1px solid black;
+            width: 98%;
+        }
+        .busca {
+            display: flex;
+            padding: 10px;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .barraBusca {
+            border-radius: 5px;
+            height:30px;
+            font-size: large;
+        }
+        .botaoBuscar {
+            /* background-color: rgb(47, 179, 255); */
+            /* border: 1px solid black; */
+            /* border-radius: 5px; */
+            height: 40px;
+            font-size: medium;
+        }
+        a {
+            text-decoration: none;
+            color: black;
+        }
+        .corpo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            background-color: white;
+            border: 0.5px solid black;
+            border-radius: 3px;
+        }
+        .itensCorpo {
+            display: flex;
+            background-color: rgba(47, 255, 141, 0.822);
+            border-radius: 5px;
+            border: 1px solid black;
+            height: 30px;  
+            width: 300px;          
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+        }
+        .itensMenu {
+            flex-grow: 1;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="principal">
+        <div class="topo">
+            <h2>Matemática - Diego Silva</h2>
+            <div class="busca">
+                <form action="" method="post">
+                    <input class="barraBusca" type="text" placeholder="Pesquisar por aluno" id="aluno_id_input" name="aluno_id_input" required>
+                    <button type="submit" class="botaoBuscar">🔍</button>
+                </form>
+            </div>        
+            <div class="menu">
+                <a id="Notas" class="itensMenu" onclick="trocarLink(this, 'rgba(47, 255, 141, 0.822)')" >Notas</a>   
+                <a id="Estatisticas" class="itensMenu" onclick="trocarLink(this, 'orange')">Estatísticas</a>         
+                <a id="Ranking" class="itensMenu" onclick="trocarLink(this, 'yellow')" >Ranking</a>
+                <a id="Boss" class="itensMenu" onclick="trocarLink(this, 'Crimson')" >Boss</a>
+                <a class="itensMenu" href="{{ url_for('downloads') }}">Exercícios</a>
+            </div>
+        </div>
+        <div id="corpo" class="corpo">
+            <h2 id="paragrafo">📖 Notas 📖</h2>
+            <a id="3ºA" class="itensCorpo" href="{{ url_for('turma', class_name='a') }}">3ºA</a>
+            <a id="3ºB" class="itensCorpo" href="{{ url_for('turma', class_name='b') }}">3ºB</a>
+            <a id="3ºC" class="itensCorpo" href="{{ url_for('turma', class_name='c') }}">3ºC</a>
+        </div>
+    </div>
+</body>
+<script>
+    function trocarLink(elemento, cor) {
+        let rankingGeral = document.getElementById("rankingGeral");
+        if (elemento.id === "Notas") {
+            document.getElementById('paragrafo').innerText = "📖 Notas 📖";
+            if (rankingGeral) rankingGeral.remove();
+        }
+        if (elemento.id === "Estatisticas") {
+            document.getElementById('paragrafo').innerText = "📈 Estatísticas 📈"
+            if (rankingGeral) rankingGeral.remove()
+        }
+        if (elemento.id === "Boss") {
+            document.getElementById('paragrafo').innerText = "💀 Boss 💀";
+            if (rankingGeral) rankingGeral.remove();
+        }
+        let itens = document.querySelectorAll('.itensCorpo');
+        itens.forEach(function(item) {
+            let classe = item.id;
+            if (elemento.id === "Notas") {
+                let urlBase = "{{ url_for('turma', class_name='__CLASS_ID__') }}";
+                item.href = urlBase.replace('__CLASS_ID__', classe);
+            }
+            if (elemento.id === "Boss") {
+                let urlBase = "{{ url_for('lista_boss', class_id='__CLASS_ID__') }}";
+                item.href = urlBase.replace('__CLASS_ID__', classe);
+            }            
+            if (elemento.id === "Ranking") {
+                let urlBase = "{{ url_for('ranking', class_id='__CLASS_ID__') }}";
+                item.href = urlBase.replace('__CLASS_ID__', classe);
+            }
+            if (elemento.id === "Estatisticas") {
+                let urlBase = "{{ url_for('estatisticas_turma', class_id='__CLASS_ID__')}}";
+                item.href = urlBase.replace('__CLASS_ID__', classe);
+            }
+            if (item !== elemento) {
+                item.style.backgroundColor = cor;  // Restaura a cor original para outros itens
+            }
+        });
+        if (elemento.id === "Ranking") {
+            document.getElementById('paragrafo').innerText = "🏆 Ranking 🏆";
+            let rankingGeral = document.getElementById('rankingGeral');
+            if (!rankingGeral) {
+                let rankingGeral = document.createElement("a");
+                rankingGeral.href = "{{ url_for('ranking_geral') }}";
+                rankingGeral.id = "rankingGeral";
+                rankingGeral.innerText = "Ranking Geral";
+                rankingGeral.classList.add("itensCorpo");
+                rankingGeral.style.backgroundColor = cor;
+                document.getElementById("corpo").appendChild(rankingGeral);
+            }
+            
+        }        
+    }
+</script>
+</html>

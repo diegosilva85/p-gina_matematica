@@ -6,21 +6,58 @@
     <title>Resultado</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="data:,">
+    <style>
+        img {
+            width: 80px;
+        }
+        .jogo {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            gap: 1rem;
+        }
+        .status {
+            display: flex;
+            flex-direction: row;
+            width: calc(50% - 0.5rem); 
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 0.5px solid black;
+            gap: 0.5rem;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
 <div class="menu">
     {% for row in search_results %}
         <h2>{{ row.nome }}</h2>
-        <img src="/static/bowser.png" alt="Símbolo do Bowser" width="100">
+    <div class="jogo">
+        <div class="status">
+            <img src="/static/bowser.png" alt="Símbolo do Bowser" width="100">
         <p>{{ row.boss_vitoria }} / {{ row.boss_total }}</p>
-        <img src="/static/coroa_ouro.png" alt="Coroa de ouro" width="100">
+        </div>   
+        <div class="status">
+            <img src="/static/coroa_ouro.png" alt="Coroa de ouro" width="100">
         <p>{{ row.coroa_ouro }}</p>
-        <img src="/static/coroa_prata.png" alt="Coroa de prata" width="100">
+        </div>    
+        <div class="status">
+            <img src="/static/coroa_prata.png" alt="Coroa de prata" width="100">
         <p>{{ row.coroa_prata }}</p>
-        <img src="/static/coroa_bronze.png" alt="Coroa de bronze" width="100">
+        </div>        
+        <div class="status">
+            <img src="/static/coroa_bronze.png" alt="Coroa de bronze" width="100">
         <p>{{ row.coroa_bronze }}</p>
-        <img src="/static/PM.png" alt="PM" width="100">
+        </div>
+        <div class="status">
+            <img src="/static/PM.png" alt="PM" width="100">
         <p>{{ row.pm }}</p>
+        </div>      
+        
+    </div>
+    <br>
         <table>
             <tr>
             <th>PROVA</th>
@@ -84,6 +121,34 @@
                 <td>{{ row.pm8 }}</td>
                 <td> {{ row.beneficios8 }} </td>
                 <td> {{ row.coroa8 }} </td>
+                </tr>
+                <tr>
+                <td>PROVA 9</td>
+                <td>{{ row.prova9 }}</td>
+                <td>{{ row.pm9 }}</td>
+                <td> {{ row.beneficios9 }} </td>
+                <td> {{ row.coroa9 }} </td>
+                </tr>
+                <tr>
+                <td>PROVA 10</td>
+                <td>{{ row.prova10 }}</td>
+                <td>{{ row.pm10 }}</td>
+                <td> {{ row.beneficios10 }} </td>
+                <td> {{ row.coroa10 }} </td>
+                </tr>
+                <tr>
+                <td>PROVA 11</td>
+                <td>{{ row.prova11 }}</td>
+                <td>{{ row.pm11 }}</td>
+                <td> {{ row.beneficios11 }} </td>
+                <td> {{ row.coroa11 }} </td>
+                </tr>
+                <tr>
+                <td>PROVA 12</td>
+                <td>{{ row.prova12 }}</td>
+                <td>{{ row.pm12 }}</td>
+                <td> {{ row.beneficios12 }} </td>
+                <td> {{ row.coroa12 }} </td>
                 </tr>
 
             {% endfor %}

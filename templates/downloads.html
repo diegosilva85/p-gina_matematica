@@ -6,12 +6,28 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="data:,">
     <title>Arquivos para download</title>
+    <style>
+        .caixa {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .voltar {
+            font-size: 80px;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <ul>
-    {% for file in files %}
-            <li><a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
-        {% endfor %}
-    </ul>
+    <div class="caixa">
+        <a class="voltar" href="/">⬅</a>
+        <h3>Listas de exercícios</h3>
+        <ul>
+        {% for file in files %}
+                <li><a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
 </body>
 </html>

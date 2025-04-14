@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogos</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+            .caixaRegras {
+                background-color: aliceblue;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid lightskyblue;
+                border-radius: 5px;
+            }
+            .botaoJogar {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: lightgreen;
+                border-radius: 5px;
+                width: 80px;
+                height: 50px;
+                border: 1px solid black;
+                font-size: 16px;
+                margin: 5px;
+            }
+            a {                
+                text-decoration: none;   
+                font-size: 16px;  
+                color: black;           
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a href="/jogos" style="font-size: 50px; position: absolute; left: 20px; top: 10px;">⬅</a>
+            <br>
+            <br>
+            <br>
+            <h2>Jogo das portas de Marilyn Vos Savant</h2>
+            <img src="../static/porta_branca.jpeg" alt="Porta branca" width="300">
+            <div class="caixaRegras">
+                <ul>
+                    <li>Existem <strong>três portas</strong>: atrás de <strong>uma delas</strong> está o prêmio, que é um carro; atrás das outras duas, cabras.</li>
+                    <li>Você escolhe <strong>uma porta</strong>.</li>
+                    <li>O apresentador, que <strong>sabe onde está o prêmio</strong>, abre <strong>uma das outras duas portas</strong> e mostra que <strong>há uma cabra</strong> atrás dela.</li>
+                    <li>Dando a você o conhecimento sobre uma das portas erradas, restando apenas uma correta e outra errada.</li>
+                    <li>Agora você tem a chance de <strong>manter sua escolha</strong> ou <strong>mudar para a outra porta restante</strong>.</li>
+                    <li>Por fim, revelamos se você ganhou ou não!</li>
+                    <li>Jogue e teste se há uma estratégia com maiores chances de vitória!</li>
+                  </ul>
+            </div>
+            <a href="/jogos/portas/partida" class="botaoJogar">Jogar!</a>
+            
+        </div>
+    </body>
+
+</html>

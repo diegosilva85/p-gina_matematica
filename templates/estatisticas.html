@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_name }} Page</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+    max-width: 100%;
+    overflow-x: hidden; /* Para evitar a barra de rolagem horizontal em dispositivos móveis */
+    }
+   
+    table {
+        width: 100%;
+    }
+    th {
+        font-size: larger;
+        
+    }
+    td {
+        font-size: larger;
+    }
+    a {
+        font-size: 80px;
+        text-decoration: none;
+    }
+    
+    </style>
+</head>
+<body>
+<div class="menu">
+    <a href="/">⬅</a>
+    <table id="desempenho">
+        <tr>
+            <th>DESEMPENHO DA TURMA - {{ class_name }}</th>
+        </tr>
+        {% for i in range(tamanho) %}
+        <tr>
+            <td id="semana" >SEMANA {{ i + 1 }}</td>
+        </tr>
+        <tr>
+            <td>MÉDIA: {{ estatisticas[i][0] }}</td>
+        </tr>
+        <tr>
+            <td>MEDIANA: {{ estatisticas[i][1] }}</td>
+        </tr>
+        <tr>
+            <td>MODA: {{ estatisticas[i][2] }}</td>
+        </tr>
+        <tr>
+            <td>DESVIO-PADRÃO: {{ estatisticas[i][3] }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>      
+</div>
+</body>
+</html>

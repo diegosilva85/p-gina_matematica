@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from pandas import DataFrame
 from sqlalchemy.exc import SQLAlchemyError
 
+from natsort import natsorted
 from mural import Mural
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -45,8 +46,8 @@ class Terceiro_C(db.Model):
     __tablename__ = 'Terceiro_C'
 
 
-class Primeiro_D(db.Model):
-    __tablename__ = 'Primeiro_D'
+# class Primeiro_D(db.Model):
+#     __tablename__ = 'Primeiro_D'
 
 
 class Professor(BaseProfessor, UserMixin):
@@ -63,7 +64,7 @@ class Gastos(BaseGastos):
 class Siepe(BaseSiepe):
     __tablename__ = 'siepe'
 
-lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C, Primeiro_D]
+lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C]
 senha = os.environ.get("senha_professor").strip("")
 
 with app.app_context():
@@ -75,14 +76,14 @@ with app.app_context():
     # db.session.commit()
 
 # Dados das turmas
-with open('nomes_1D.txt', 'r', encoding='ISO-8859-1') as arquivo:
-    primeiro_d = arquivo.readlines()
+# with open('nomes_1D.txt', 'r', encoding='ISO-8859-1') as arquivo:
+#     primeiro_d = arquivo.readlines()
 with open('nomes_3A.txt', 'r', encoding='ISO-8859-1') as arquivo:
-    terceiro_a = arquivo.readlines()
+    terceiro_a = [nome.strip() for nome in arquivo.readlines() if nome.strip()]
 with open('nomes_3B.txt', 'r', encoding='ISO-8859-1') as arquivo:
-    terceiro_b = arquivo.readlines()
+    terceiro_b = [nome.strip() for nome in arquivo.readlines() if nome.strip()]
 with open('nomes_3C.txt', 'r', encoding='ISO-8859-1') as arquivo:
-    terceiro_c = arquivo.readlines()
+    terceiro_c = [nome.strip() for nome in arquivo.readlines() if nome.strip()]
 
 
 def selecionar_turma(valor):
@@ -92,33 +93,39 @@ def selecionar_turma(valor):
         return lista_turmas_db[1]
     elif valor == 'c' or valor == '3ºC':
         return lista_turmas_db[2]
-    elif valor == 'd' or valor == '1ºD':
-        return lista_turmas_db[3]
+    # elif valor == 'd' or valor == '1ºD':
+    #     return lista_turmas_db[3]
 
 
 def criar_turmas(letra_turma):
-    global lista_turmas_db, terceiro_a, terceiro_b, terceiro_c, primeiro_d
-
+    global lista_turmas_db, terceiro_a, terceiro_b, terceiro_c
+    idee = 1
     if letra_turma == 'a':
         for aluno_a in terceiro_a:
-            novo_aluno = Terceiro_A(nome=aluno_a)
-            db.session.add(novo_aluno)
-            db.session.commit()
-    elif letra_turma == 'b':
+            novo_aluno = Terceiro_A(id=idee, nome=aluno_a)
+            db.session.add(novo_aluno)  
+            idee += 1          
+    elif letra_turma == 'b':        
         for aluno_b in terceiro_b:
-            novo_aluno = Terceiro_B(nome=aluno_b)
-            db.session.add(novo_aluno)
-            db.session.commit()
-    elif letra_turma == 'c':
+            novo_aluno = Terceiro_B(id=idee, nome=aluno_b)
+            db.session.add(novo_aluno)   
+            idee += 1         
+    elif letra_turma == 'c':        
         for aluno_c in terceiro_c:
-            novo_aluno = Terceiro_C(nome=aluno_c)
-            db.session.add(novo_aluno)
-            db.session.commit()
-    else:
-        for aluno_d in primeiro_d:
-            novo_aluno = Primeiro_D(nome=aluno_d)
-            db.session.add(novo_aluno)
-            db.session.commit()
+            novo_aluno = Terceiro_C(id=idee, nome=aluno_c)
+            db.session.add(novo_aluno) 
+            idee += 1           
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao salvar no banco de dados: {str(e)}")
+
+    # else:
+    #     for aluno_d in primeiro_d:
+    #         novo_aluno = Primeiro_D(nome=aluno_d)
+    #         db.session.add(novo_aluno)
+    #         db.session.commit()
 
 
 @login_manager.user_loader
@@ -126,15 +133,50 @@ def load_user(user_id):
     return db.get_or_404(Professor, user_id)
 
 
-@app.route('/', methods=['GET', 'POST'])
+# @app.route('/', methods=['GET', 'POST'])
+# def home():
+#     classes = {'3ºA': '3ºA', '3ºB': '3ºB', '3ºC': '3ºC'}
+#     if request.method == 'POST':
+#         if "aluno_id_input" in request.form:
+#             aluno_nome = request.form['aluno_id_input']
+#             return redirect(url_for('busca', aluno_id=aluno_nome))
+#     return render_template('home.html', classes=classes)
+
+@app.route("/", methods=["GET", "POST"])
 def home():
-    classes = {'3ºA': '3ºA', '3ºB': '3ºB', '3ºC': '3ºC', '1ºD': '1ºD'}
     if request.method == 'POST':
         if "aluno_id_input" in request.form:
             aluno_nome = request.form['aluno_id_input']
             return redirect(url_for('busca', aluno_id=aluno_nome))
-    return render_template('home.html', classes=classes)
+    return render_template('homeFlex.html')
 
+@app.route("/turma/<class_name>", methods=["GET", "POST"])
+def turma(class_name):
+    turma_tabela = selecionar_turma(class_name)
+
+    resultados_class_page = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
+                                              turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8,
+                                              turma_tabela.prova9, turma_tabela.prova10, turma_tabela.prova11,
+                                              turma_tabela.prova12).order_by(
+        turma_tabela.id).all())
+    lista_de_provas = []
+
+    for i in range(1, 9):
+        atributo = getattr(turma_tabela, f"prova{i}")
+        dados_turma = db.session.query(atributo).all()
+        notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
+        if notas_validas:
+            lista_de_provas.append(estatisticas(notas_validas))
+
+    tamanho = len(lista_de_provas)
+    medias = []
+    for resultado in resultados_class_page:
+        media_aluno = media_alunos(resultado)
+        medias.append(media_aluno)
+    return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
+                           estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
+    return render_template()
 
 @app.route('/aluno/<turma_aluno>/<aluno_nome>', methods=['GET', 'POST'])
 def aluno(aluno_nome, turma_aluno):
@@ -147,7 +189,7 @@ def aluno(aluno_nome, turma_aluno):
 @app.route('/busca/<aluno_id>', methods=['GET', 'POST'])
 def busca(aluno_id):
     search_term = aluno_id.upper()
-    aluno_turma = {'3ºA': [], '3ºB': [], '3ºC': [], '1ºD': []}
+    aluno_turma = {'3ºA': [], '3ºB': [], '3ºC': []}
     for chave in aluno_turma.keys():
         turma_busca = selecionar_turma(chave)
         resultados_busca = db.session.query(turma_busca.nome).filter(turma_busca.nome.like(f'%{search_term}%')).all()
@@ -159,7 +201,7 @@ def busca(aluno_id):
 
 @app.route('/downloads', methods=['GET', 'POST'])
 def downloads():
-    files = os.listdir(app.config['UPLOAD_FOLDER'])
+    files = natsorted(os.listdir(app.config['UPLOAD_FOLDER']))
     return render_template('downloads.html', files=files)
 
 
@@ -316,11 +358,16 @@ def professor():
 @login_required
 def notas_prova(prova, turma, elite):
     turma_tabela = selecionar_turma(turma)
+    prova_db = getattr(turma_tabela, f'prova{prova}')    
     if elite == "sim":
         resultados = db.session.query(turma_tabela.id, turma_tabela.nome).filter(
-            turma_tabela.elite == "sim").order_by(turma_tabela.nome)
+            turma_tabela.elite == elite, 
+            prova_db.is_(None)
+            ).order_by(turma_tabela.nome)
     else:
-        resultados = db.session.query(turma_tabela.id, turma_tabela.nome).order_by(turma_tabela.nome)
+        resultados = db.session.query(turma_tabela.id, turma_tabela.nome).filter(
+            prova_db.is_(None)
+            ).order_by(turma_tabela.nome)
     if request.method == 'POST':
         if "nota" in request.form:
             nota = request.form['nota']
@@ -412,11 +459,12 @@ def class_page(class_name):
 
     resultados_class_page = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
                                               turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
-                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8).order_by(
-        turma_tabela.id).all())
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8,
+                                              turma_tabela.prova9, turma_tabela.prova10, turma_tabela.prova11,
+                                              turma_tabela.prova12).order_by(turma_tabela.id).all())
     lista_de_provas = []
 
-    for i in range(1, 9):
+    for i in range(1, 13):
         atributo = getattr(turma_tabela, f"prova{i}")
         dados_turma = db.session.query(atributo).all()
         notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
@@ -425,12 +473,37 @@ def class_page(class_name):
 
     tamanho = len(lista_de_provas)
     medias = []
-    for resultado in resultados_class_page:
+    for resultado in resultados_class_page:        
         media_aluno = media_alunos(resultado)
         medias.append(media_aluno)
     return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
                            estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
 
+@app.route('/estatisticas/<class_id>', methods=['GET', 'POST'])
+def estatisticas_turma(class_id):
+    turma_tabela = selecionar_turma(class_id)
+    resultados_estatisticas = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
+                                              turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8,
+                                              turma_tabela.prova9, turma_tabela.prova10, turma_tabela.prova11,
+                                              turma_tabela.prova12).order_by(
+        turma_tabela.id).all())
+    lista_de_provas = []
+
+    for i in range(1, 13):
+        atributo = getattr(turma_tabela, f"prova{i}")
+        dados_turma = db.session.query(atributo).all()
+        notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
+        if notas_validas:
+            lista_de_provas.append(estatisticas(notas_validas))
+
+    tamanho = len(lista_de_provas)
+    medias = []
+    for resultado in resultados_estatisticas:
+        media_aluno = media_alunos(resultado)
+        medias.append(media_aluno)
+    return render_template('estatisticas.html', class_name=class_id, data=resultados_estatisticas,
+                           estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
 
 @app.route('/ranking/<class_id>', methods=['GET', 'POST'])
 def ranking(class_id):
@@ -515,8 +588,8 @@ def aluno_alterar(nome, turma):
             return redirect(url_for('manual'))
         setattr(resultados, dado_alterar, request.form['valor'])
         db.session.commit()
-        return render_template("aluno_alterar.html", nome=nome)
-    return render_template("aluno_alterar.html", nome=nome)
+        return render_template("aluno_alterar_2.html", nome=nome)
+    return render_template("aluno_alterar_2.html", nome=nome)
 
 
 def exportar_csv(valor):
@@ -548,7 +621,26 @@ def exportar_csv(valor):
     dataframe.to_csv(f'./static/Turma_{valor}.csv', index=False)
 
     # email = Email(valor)
- 
+
+@app.route('/jogos', methods=['GET', 'POST'])
+def jogos():
+    return render_template("jogos.html")
+
+@app.route('/jogos/portas', methods=['GET', 'POST'])
+def portas():
+    return render_template('portas.html')
+
+@app.route('/jogos/portas/partida', methods=['GET', 'POST'])
+def portas_partida():
+    return render_template('portasPartida.html')
+
+@app.route('/jogos/dilema', methods=['GET', 'POST'])
+def dilema():
+    return render_template('dilema.html')
+
+@app.route('/jogos/taboada', methods=['GET', 'POST'])
+def taboada():
+    return render_template('taboada.html')
 
 # --------------------------------------- Servidor da aplicação Siepe ------------------------------------------------ #
 @app.route('/siepe', methods=['GET', 'POST'])
@@ -653,4 +745,4 @@ def controle_gastos_todos():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=2000)

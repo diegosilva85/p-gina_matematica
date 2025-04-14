@@ -7,7 +7,7 @@ import os
 
 base = declarative_base()
 url = "postgresql://diegomatematicav1_user:OdLdU8jhROFMHVohKBpDaBCMBKZ7vypc@dpg-cmt9748l6cac73ask9vg-a.oregon-postgres.render.com/diegomatematicav1"
-
+url = "postgresql://diego:rush1985@192.168.0.17:5432/matematica_local"
 class BaseSiepe(base):
     __tablename__ = 'siepe'
     id = Column(Integer, primary_key=True, autoincrement=True)

@@ -10,12 +10,46 @@
         body {
     max-width: 100%;
     overflow-x: hidden; /* Para evitar a barra de rolagem horizontal em dispositivos móveis */
-}
+    }
+    .NotasAlunos {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .Aluno {
+        display: flex;
+        flex-direction: column;
+        border-radius: 5px;
+        border: 1px solid black;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        background-color: aliceblue;
+    }
+    .tabelaNotas {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+    }
+    table {
+        width: 100%;
+    }
+    th {
+        font-size: small;
+        background-color: darkgray;
+    }
+    td {
+        font-size: smaller;
+    }
     </style>
 </head>
 <body>
 <div class="menu">
-    <table id="desempenho">
+    <!-- <table id="desempenho">
         <tr>
             <th>DESEMPENHO DA TURMA - {{ class_name }}</th>
         </tr>
@@ -37,9 +71,58 @@
         </tr>
         {% endfor %}
 
-    </table>
-
-    <table>
+    </table> -->
+    
+    <div class="NotasAlunos">
+        {% for row in data %}
+        <div class="Aluno">
+            <p>{{ row.nome }}</p>
+            <div class="tabelaNotas">
+                <table>
+                    <tr>
+                        <th>1°</th>
+                        <th>2°</th>
+                        <th>3°</th>
+                        <th>4°</th>
+                        <th>5°</th>
+                        <th>6°</th>
+                    </tr>                
+                    <tr>
+                        <td>{{ row.prova1 }}</td>
+                        <td>{{ row.prova2 }}</td>
+                        <td>{{ row.prova3 }}</td>
+                        <td>{{ row.prova4 }}</td>
+                        <td>{{ row.prova5 }}</td>
+                        <td>{{ row.prova6 }}</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th>7°</th>
+                        <th>8°</th>
+                        <th>9°</th>
+                        <th>10°</th>
+                        <th>11°</th>
+                        <th>12°</th>
+                        <th>Média</th>
+                    </tr>                
+                    <tr>
+                        <td>{{ row.prova7 }}</td>
+                        <td>{{ row.prova8 }}</td>
+                        <td>{{ row.prova8 }}</td>
+                        <td>{{ row.prova8 }}</td>
+                        <td>{{ row.prova8 }}</td>
+                        <td>{{ row.prova8 }}</td>
+                        <td>{{ media_alunos[loop.index0]['media'] }}</td>
+                        
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- <table>
             <tr>
                 <th>Aluno</th>
                 <th>1°</th>
@@ -67,7 +150,7 @@
                 </tr>
 
             {% endfor %}
-        </table>
+        </table> -->
 </div>
 <!-- Content for the specific class page -->
 
