@@ -17,6 +17,10 @@ from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acr
     deletar_aluno, inserir_dados_prova, boss, estatisticas, checar_mural, registrar_prova
 from base_gastos import BaseGastos, Banco_de_dados
 from base_siepe import BancoDadosSiepe, BaseSiepe
+import uuid
+from random import randint, shuffle, random
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_cors import CORS
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -25,6 +29,8 @@ app.config['SECRET_KEY'] = senha_sessao_flask
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///dados_servidor.db")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
+CORS(app, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 login_manager = LoginManager()
@@ -622,6 +628,8 @@ def exportar_csv(valor):
 
     # email = Email(valor)
 
+# Rotas do servidor de jogos da página ------------------------------------------------------------------------------- #
+
 @app.route('/jogos', methods=['GET', 'POST'])
 def jogos():
     return render_template("jogos.html")
@@ -638,9 +646,302 @@ def portas_partida():
 def dilema():
     return render_template('dilema.html')
 
-@app.route('/jogos/taboada', methods=['GET', 'POST'])
-def taboada():
+@app.route('/jogos/tabuada', methods=['GET', 'POST'])
+def tabuada():
     return render_template('taboada.html')
+
+@app.route('/jogos/tabuada/um', methods = ['GET', 'POST'])
+def tabuada_um():
+    return render_template('taboadapartida.html')
+
+salas = {}
+
+@app.route('/salas')
+def listar_salas():
+    lista = []
+    for id_sala, dados in salas.items():
+        lista.append({
+            "id": id_sala,
+            "dono": dados["dono"],
+            "sala": dados['sala'],
+            "link": f"/jogos/sala/{id_sala}"
+        })
+    return jsonify(lista)
+
+@app.route('/jogos/tabuadaLobby', methods=['GET', 'POST'])
+def tabuada_lobby():
+    return render_template('tabuadaLobby.html', salas=salas)
+
+
+@app.route('/createTab')
+def create_tab():
+    nome = request.args.get('nome')
+    senha = request.args.get('senha')
+    sala = request.args.get('sala')
+    if not nome:
+        return "Nome e senha são obrigatórios", 400
+
+    # Gerar um ID único para a sala
+    id_sala = str(uuid.uuid4())[:8]
+
+    # Criar sala
+    salas[id_sala] = {
+        'sala': sala,
+        'dono': nome,
+        'senha': senha,
+        'jogadores': [nome],
+        'pontos': {}
+    }
+    print(f"Jogador que criou: {nome}")
+    # Redirecionar para a sala
+    return redirect(url_for('sala', id_sala=id_sala, nome=nome))
+
+@app.route('/sala/<id_sala>')
+def sala(id_sala):
+    sala = salas.get(id_sala)
+    jogador = request.args.get('nome')
+    if not sala:
+        return "Sala não encontrada", 404
+    if jogador and jogador not in sala['jogadores']:
+        sala['jogadores'].append(jogador)
+
+    return render_template('sala.html', sala=sala, id_sala=id_sala, jogador=jogador)
+
+@app.route('/entrar_sala', methods=['POST'])
+def entrar_sala():
+    data = request.json
+    id_sala = data.get('id_sala')
+    nome = data.get('nome')
+    senha = data.get('senha', '')
+
+    sala = salas.get(id_sala)
+
+    if not sala:
+        return jsonify({'erro': 'Sala não encontrada'}), 404
+
+    if len(sala['jogadores']) >= 2:
+        return jsonify({'erro': 'Sala cheia'}), 403
+
+    if sala['senha'] and sala['senha'] != senha:
+        print(f"SENHA DA SALA: {sala['senha']}")
+        print(f"SENHA DIGITADA: {senha}")
+        return jsonify({'erro': 'Senha incorreta'}), 401
+
+    if nome in sala['jogadores']:
+        return jsonify({'erro': 'Esse nome já está sendo usado, por favor escolha outro nome.'}), 200
+
+    sala['jogadores'].append(nome)
+    print(f"Jogador {nome} entrou na sala {id_sala}")
+    return jsonify({'mensagem': 'Entrou com sucesso', 'redirect': url_for('sala', id_sala=id_sala, nome=nome)})
+
+
+@app.route('/sair_da_sala', methods=['POST'])
+def sair_da_sala():
+    data = request.get_json()
+    jogador = data.get("jogador")
+    sala_id = data.get("sala")
+    print(f"JOGADOR: {jogador} saiu da sala {sala_id}")
+    if sala_id in salas and jogador in salas[sala_id]["jogadores"]:
+        salas[sala_id]["jogadores"].remove(jogador)
+    print(f"ESTADO ATUAL DA SALA: {salas[sala_id]['jogadores']}")
+    return jsonify({"ok": True})
+
+
+def gerar_fatores(nivel, sala_id) -> list:
+    numero1 = 1
+    numero2 = 1
+    if 'pares' not in salas[sala_id]:
+        salas[sala_id]['pares'] = []
+    
+    while True:
+        if int(nivel) < 15:
+            numero1 = randint(1, 10)
+            numero2 = randint(1, 10)
+        else:
+            numero1 = randint(int(nivel) - 10, int(nivel))
+            numero2 = randint(int(nivel) - 10, int(nivel))
+
+        if numero1 in [1, 10] or numero2 in [1, 10]:
+            continue
+
+        par = [min(numero1, numero2), max(numero1, numero2)]
+
+        if par not in salas[sala_id]['pares']:
+            salas[sala_id]['pares'].append(par)
+            return par
+
+def gerar_alternativas(par, nivel) -> list:
+    numero1 = int(par[0])
+    numero2 = int(par[1])
+    resposta_correta = numero1 * numero2
+    print(f"Resposta correta: {resposta_correta}")
+    
+    alternativas = {resposta_correta}
+    
+    if 20 < int(nivel) < 30:
+        aleatorio = -10 if random() < 0.5 else 10
+        alternativa_errada1 = (numero1 - 1) * numero2
+        alternativa_errada2 = resposta_correta + aleatorio
+        
+        if numero1 == numero2:
+            alternativa_errada3 = numero1 * (numero2 + 1)
+        else:
+            alternativa_errada3 = (numero2 - 1) * numero1
+
+        alternativas.update([alternativa_errada1, alternativa_errada2, alternativa_errada3])
+    
+    if int(nivel) <= 20:
+        while len(alternativas) < 4:
+            erro_aleatorio = randint(-2, 2)
+            alternativa = resposta_correta + erro_aleatorio
+
+            if alternativa > 0 and alternativa != resposta_correta:
+                alternativas.add(alternativa)
+    
+    lista_alternativas = list(alternativas)
+    shuffle(lista_alternativas)
+    return [lista_alternativas, resposta_correta]
+
+@socketio.on('iniciar')
+def iniciar_partida(dados):    
+    jogador = dados['jogador']
+    print(f"JOGADOR: {jogador} iniciou")
+    sala_id = dados['sala']
+    partidas = int(dados['partidas'])
+    if 'partidas' not in salas[sala_id]:
+        salas[sala_id]['partidas'] = partidas
+    if 'iniciar' not in salas[sala_id]:
+        print(f"iniciar nao esta em {sala_id}")
+        salas[sala_id]['iniciar'] = 0
+    salas[sala_id]['iniciar'] += 1
+    if 'sid' not in salas[sala_id]:
+        salas[sala_id]['sid'] = []
+    if request.sid not in salas[sala_id]['sid']:
+        salas[sala_id]['sid'].append(request.sid)
+    print(f"contador de inicio: {salas[sala_id]['iniciar']}")
+    print(f"SIDs: {salas[sala_id]['sid']}")
+    # Quando os dois jogadores estiverem prontos
+    if salas[sala_id]['iniciar'] == 2:
+        for sid in salas[sala_id]['sid']:
+            emit('iniciar', {'iniciar': True}, to=sid)
+        salas[sala_id]['iniciar'] = 0
+
+@socketio.on('parametros')
+def parametros(dados):
+    nivel = dados['nivel']
+    sala_id = dados['sala']
+    salas[sala_id]['iniciar'] += 1    
+    if 'iniciar' not in salas[sala_id]:
+        salas[sala_id]['iniciar'] = 0
+    if 'sid' not in salas[sala_id]:
+        salas[sala_id]['sid'] = []
+
+    if 'nivel' not in salas[sala_id]:
+        salas[sala_id]['nivel'] = {}
+    if nivel not in salas[sala_id]['nivel']:
+        fatores = gerar_fatores(nivel=nivel, sala_id=sala_id)
+        alternativas = gerar_alternativas(par=fatores, nivel=nivel)
+        print(alternativas)
+        salas[sala_id]['nivel'][nivel] = {
+            'r1': alternativas[0][0],
+            'r2': alternativas[0][1],
+            'r3': alternativas[0][2],
+            'r4': alternativas[0][3],
+            'fator1': fatores[0],
+            'fator2': fatores[1],
+            'correta': alternativas[1]
+        }
+    if request.sid not in salas[sala_id]['sid']:
+        salas[sala_id]['sid'].append(request.sid)
+    if salas[sala_id]['iniciar'] == 2:
+        for sid in salas[sala_id]['sid']:
+            emit('parametros', {
+                'parametros': True,
+                'r1': salas[sala_id]['nivel'][nivel]['r1'],
+                'r2': salas[sala_id]['nivel'][nivel]['r2'],
+                'r3': salas[sala_id]['nivel'][nivel]['r3'],
+                'r4': salas[sala_id]['nivel'][nivel]['r4'],
+                'fator1': salas[sala_id]['nivel'][nivel]['fator1'],
+                'fator2': salas[sala_id]['nivel'][nivel]['fator2']
+            }, to=sid)
+
+        salas[sala_id]['iniciar'] = 0 
+
+@socketio.on('responder')
+def responder(dados):
+    fim_de_jogo = False
+    jogador = dados['jogador']
+    nivel = dados['nivel']
+    sala_id = dados['sala']
+    tempo = dados['tempo']
+    resposta = int(dados['resposta'])
+    
+    print(f"Resposta de {jogador}: {resposta}; Tempo: {tempo}")    
+    
+    fase = salas[sala_id]['nivel'][nivel]
+
+    # Garante a estrutura para armazenar as jogadas
+    if 'jogador' not in fase:
+        fase['jogador'] = {}
+
+    # Salva a resposta do jogador
+    fase['jogador'][jogador] = {
+        'correta': resposta == int(fase['correta']),
+        'tempo': float(tempo)
+    }
+    if jogador not in salas[sala_id]['pontos']:
+        salas[sala_id]['pontos'][jogador] = 0
+    print(f"resposta correta: {fase['correta']}")
+    if resposta == fase['correta']:
+        print(f'{jogador} acertou!')
+
+    # Verifica se os dois jogadores já responderam
+    if len(fase['jogador']) == 2:
+        jogadores = list(fase['jogador'].keys())
+        j1, j2 = jogadores[0], jogadores[1]
+        r1 = fase['jogador'][j1]
+        r2 = fase['jogador'][j2]
+
+        vencedor = None
+
+        print(f'j1: {j1}, tempo: {r1["tempo"]}, correta: {r1["correta"]}')
+        print(f'j2: {j2}, tempo: {r2["tempo"]}, correta: {r2["correta"]}')
+
+        if r1['correta'] and not r2['correta']:
+            vencedor = j1
+        elif not r1['correta'] and r2['correta']:
+            vencedor = j2
+        elif r1['correta'] and r2['correta']:
+            vencedor = j1 if r1['tempo'] > r2['tempo'] else j2
+        else:
+            vencedor = 'empate'
+        print(f"VENCEDOR: {vencedor}")
+        if vencedor != "empate":
+            salas[sala_id]['pontos'][vencedor] += 1
+        
+        if nivel == salas[sala_id]['partidas']:
+            fim_de_jogo = True
+            print(salas[sala_id])
+            for sid in salas[sala_id]['sid']:
+                emit('fim_de_jogo', salas[sala_id], room=sala_id, to=sid)
+        else:
+            # Emite o resultado para todos os jogadores da sala
+            for sid in salas[sala_id]['sid']:
+                emit('resultado', {
+                    'correta': fase['correta'],
+                    'vencedor': vencedor,
+                    'respostas': {
+                        j1: r1,
+                        j2: r2
+                    },
+                    'pontuacao': {
+                        j1: salas[sala_id]['pontos'][j1],
+                        j2: salas[sala_id]['pontos'][j2]                          
+                    },
+                    'fim': fim_de_jogo
+
+                }, to=sid)
+
 
 # --------------------------------------- Servidor da aplicação Siepe ------------------------------------------------ #
 @app.route('/siepe', methods=['GET', 'POST'])
@@ -745,4 +1046,4 @@ def controle_gastos_todos():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=2000)
+    socketio.run(app, debug=True, port=2000)

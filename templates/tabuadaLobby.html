@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tabuada - Lobby</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                font-family: sans-serif;
+            }
+        
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                min-height: 100vh;
+                background-color: #f0f0f0;
+                overflow: hidden;
+                overflow-y: auto;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;
+                border: 1px solid black;
+                border-radius: 10px;
+                align-items: center;
+                justify-content: center;
+                width: 95%;
+                height: auto;
+                box-sizing: border-box;
+                background-color: rgb(46, 217, 223);
+                padding: 20px;
+            }
+            .botaoBasico {
+                width: 180px;
+                margin: 5px;
+                background-color: lightgreen;
+                padding: 10px;
+                border-radius: 5px;
+                border: none;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            #popupCriarSala {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 60%;
+                background-color: rgba(0,0,0,0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 999;
+            }
+            .conteudoPopup {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                min-width: 300px;
+            }
+            #salas {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            #atualizarLista {
+                width: 150px;
+                margin: 5px;
+                background-color: lightsalmon;
+                padding: 10px;
+                border-radius: 5px;
+                border: none;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            .botaoSala {
+                display: block;
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px;
+                margin: 5px 0;
+                text-decoration: none;
+                border-radius: 5px;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .botaoSala:hover {
+                background-color: #45a049;
+            }
+            ul {
+                padding-left: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h3>Tabuada - 2 Jogadores</h3>
+            <div id="botoesSala" >
+                <button class="botaoBasico" onclick="criarSala()">Criar Sala</button>
+                <!-- <button class="botaoBasico" onclick="entrarSala()">Entrar em Sala</button> -->
+            </div>
+            <div id="salas">
+                <h4>Salas disponíveis:</h4>
+                <button id="atualizarLista" onclick="atualizarLista()">Atualizar Lista</button>
+                <ul id="listaSalas" style="list-style-type: none;">
+                    {% for id_sala, dados in salas.items() %}
+                        <button class="botaoSala" onclick="entrarSala('{{ id_sala }}')">Sala: {{ dados['sala'] }} - Criador: {{ dados['dono'] }}</button>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div id="popupCriarSala" style="display: none;">
+            <div class="conteudoPopup" id="popupConteudo">
+                <h3>Criar Sala</h3>
+                <input type="text" id="nomeSala" placeholder="Nome da sala"><br><br>
+                <input type="text" id="nomeJogador" placeholder="Nome do jogador"><br><br>
+                <input type="password" id="senhaSala" placeholder="Senha da sala"><br><br>
+                <button class="botaoBasico" onclick="confirmarCriacao()">Criar</button>
+                <button class="botaoBasico" onclick="fecharPopup()">Cancelar</button>
+            </div>
+        </div>
+        <div id="popupEntrarSala" style="display: none;">
+            
+            
+        </div>
+    </body>
+    <script>
+
+        function criarSala() {
+            document.getElementById("popupCriarSala").style.display = "flex";
+        }
+
+        function fecharPopup() {
+            document.getElementById("popupCriarSala").style.display = "none";
+        }       
+
+
+        function confirmarCriacao() {
+            const sala = document.getElementById('nomeSala').value;
+            const nome = document.getElementById("nomeJogador").value.trim();
+            const senha = document.getElementById("senhaSala").value;
+
+            if (!nome ) {
+                alert("Por favor, preencha o campo nome.");
+            return;
+            }
+
+            // Aqui você pode mandar os dados pro servidor ou redirecionar pra nova sala
+            console.log("Criando sala com:", nome, senha, sala);
+
+            // Exemplo: redirecionar pra rota que cria sala
+            window.location.href = `/createTab?nome=${encodeURIComponent(nome)}&senha=${encodeURIComponent(senha)}&sala=${encodeURIComponent(sala)}`;
+        }
+
+        function atualizarLista() {
+            fetch('/salas')
+                .then(response => response.json())
+                .then(salas => {
+                    const lista = document.getElementById("listaSalas");
+                    lista.innerHTML = "";
+
+                    salas.forEach(sala => {
+                        const botao = document.createElement("button");
+                        botao.textContent = `Sala: ${sala.sala} (Criador: ${sala.dono})`;
+                        botao.className = "botaoSala";
+                        botao.onclick = () => entrarSala(sala.id);  // Aqui chama a função com o ID da sala
+                        lista.appendChild(botao);
+                    });
+                })
+                .catch(error => {
+                    console.error("Erro ao atualizar a lista de salas:", error);
+                });
+        }
+
+        function entrarSala(sala) {
+            const popup = document.getElementById('popupEntrarSala');
+            popup.innerHTML = `
+                <div class="conteudoPopup">
+                    <h3>Entrar na Sala</h3>
+                    <input type="text" id="nomeJogador2" placeholder="Nome do jogador"><br><br>
+                    <input type="password" id="senhaLogin" placeholder="Senha da sala"><br><br>
+                    <button onclick="tentarEntrarSala('${sala}')" class="botaoSala">Entrar</button><br><br>
+                    <button class="botaoBasico" onclick="fecharPopup()">Cancelar</button>
+                </div>
+            `;
+            popup.style.display = 'flex';
+        }   
+
+        function fecharPopup() {
+            document.getElementById('popupEntrarSala').style.display = 'none';
+        }
+        function validarNomeForm() {
+            const nome = document.getElementById('nomeJogador2').value.trim();
+            if (!nome) {
+                alert("Por favor, preencha o nome do jogador.");
+                return false;
+            }
+            return true;
+        }
+
+        function tentarEntrarSala(idSala) {
+            const nome = document.getElementById('nomeJogador2').value;
+            const senha = document.getElementById('senhaLogin').value;
+            console.log(`nome do jogador: ${nome} e senha: ${senha}`);
+            if (!nome) {
+                alert("Digite seu nome!");
+                return;
+            }
+
+            fetch('/entrar_sala', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_sala: idSala,
+                    nome: nome,
+                    senha: senha
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    alert(data.erro);
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            });
+        }
+
+
+
+    </script>
+</html>

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import String, Integer
 
 class Base(DeclarativeBase):
     __abstract__ = True
@@ -92,3 +93,18 @@ class BaseMurais(DeclarativeBase):
     prova7: Mapped[str] = mapped_column(nullable=True)
     prova8: Mapped[str] = mapped_column(nullable=True)
 
+class Salas(DeclarativeBase):
+    __tablename__ = 'salas'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    codigo: Mapped[str] = mapped_column(String, unique=True)  # tipo 'fcc0881a'
+    sala: Mapped[str] = mapped_column(String)
+    dono: Mapped[str] = mapped_column(String)
+    senha: Mapped[str] = mapped_column(String)
+    jogadores: Mapped[JSONB] = mapped_column(JSONB)  # lista de nomes
+    pontos: Mapped[JSONB] = mapped_column(JSONB)     # dicionário de pontos
+    partidas: Mapped[int] = mapped_column(Integer)
+    iniciar: Mapped[int] = mapped_column(Integer)
+    sid: Mapped[JSONB] = mapped_column(JSONB)        # lista de socket IDs
+    nivel: Mapped[JSONB] = mapped_column(JSONB)      # dicionário de níveis com perguntas
+    pares: Mapped[JSONB] = mapped_column(JSONB) 

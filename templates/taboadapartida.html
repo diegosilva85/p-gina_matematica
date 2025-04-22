@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogos</title>
+        <link rel="stylesheet" href="/static/styles.css">
+        <link rel="icon" href="data:,">
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                font-family: sans-serif;
+            }
+        
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                min-height: 100vh;
+                background-color: #f0f0f0;
+                overflow: hidden;
+                overflow-y: auto;
+            }
+        
+            .container {
+                width: 95%;
+                max-width: 1000px;
+                height: auto;
+                padding: 20px;
+                box-sizing: border-box;
+                margin: 20px auto;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background-color: rgb(46, 217, 223);
+                border: 1px solid black;
+                border-radius: 10px;
+            }
+        
+            .caixa1 {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: aquamarine;
+                border: 1px solid black;
+                width: 100%;
+                max-width: 200px;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+        
+            .alternativas {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                max-width: 300px;
+                margin-bottom: 10px;
+            }
+        
+            .resposta {
+                padding: 10px;
+                border: 1px solid black;
+                margin: 10px;
+                background-color: aqua;
+                width: 80px;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        
+            .fator {
+                padding: 10px;
+                font-size: 24px;
+            }
+        
+            a {
+                text-decoration: none;
+                font-size: 30px;
+                position: absolute;
+                top: 10px;
+                left: 10px;
+            }
+        
+            .tempos {
+                display: flex;
+                flex-direction: column;
+                background-color: antiquewhite;
+                justify-content: start;
+                align-items: center;
+                border: 1px solid black;
+                border-radius: 5px;
+                width: 100%;
+                max-width: 300px;
+                padding: 10px;
+                margin-top: 10px;
+            }
+        
+            #listaTempos {
+                padding-left: 0px;
+                width: 100%;
+            }
+        
+            .set1, .set2 {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                width: 100%;
+            }
+        
+            .modo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+        
+            .botaoModo {
+                width: 120px;
+                margin: 5px;
+                background-color: lightgreen;
+                padding: 10px;
+                border-radius: 5px;
+                border: none;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
+        
+    </head>
+    <body>
+        <a href="/jogos" style="font-size: 50px;">⬅</a>
+        <div id="container" class="container">
+            <h2>Tabuada</h2>
+            <div class="modo">
+                <button id="treino" class="botaoModo" onclick="mudarModo(this)">Treino</button>
+                <button id="desafio" class="botaoModo" style="background-color: orange;" onclick="mudarModo(this)">Desafio</button>
+            </div>
+            <p id="nivel">Nível: 1</p>
+            <div id="Pergunta" class="caixa1">
+                <p id="fator1" class="fator"> 0 </p>
+                <p class="fator"> x </p>
+                <p id="fator2" class="fator"> 0</p>
+            </div>
+            <div id="alternativas" class="alternativas">
+                <div class="set1">
+                    <button id="r1" class="resposta" onclick="responder(this)">0</button>
+                    <button id='r2' class="resposta" onclick="responder(this)">0</button>
+                </div>
+                <div class="set2">
+                    <button id="r3" class="resposta" onclick="responder(this)">0</button>
+                    <button id="r4" class="resposta" onclick="responder(this)">0</button>
+                </div>
+                
+            </div>
+            <button id="comecar" class="resposta" style="background-color: lightgreen; width: 150px;" onclick="iniciar()">Começar!</button> 
+            
+            <p id="contadorGeral">Tempo: <span id="contador">0</span> segundos</p>
+            <div class="tempos">
+                <h3>Tempos registrados:</h3>
+                <ul id="listaTempos" style="list-style-type: none;"></ul>
+            </div>
+            
+        </div>
+        
+    </body>
+    <script>
+        let respostaCorreta;
+        let nivel = 1;
+        let botaoComecar = document.getElementById("comecar");
+        let tempo;
+        let intervalo;
+        let num1, num2;
+        let modo = true;
+
+        const r1 = document.getElementById('r1');
+        const r2 = document.getElementById('r2');
+        const r3 = document.getElementById('r3');
+        const r4 = document.getElementById('r4');
+
+        const paresUsados = [];
+        const contadorTempo = [];
+
+        function iniciarContador(modo) {
+            clearInterval(intervalo); // limpa se já tiver um contador rodando
+
+            // Se modo for true, inicia progressivo a partir de 0
+            // Se modo for false, inicia regressivo a partir de 10 (ou o valor que quiser)
+            tempo = modo ? 0 : 5;
+
+            intervalo = setInterval(() => {
+            if (modo) {
+                tempo += 0.1;
+            } else {
+                tempo -= 0.1;
+                if (tempo <= 0) {
+                    tempo = 0;
+                    clearInterval(intervalo); // Para o contador quando chega em 0
+                    document.getElementById('contadorGeral').style.color = 'red';
+                    r1.disabled = true;
+                    r2.disabled = true;
+                    r3.disabled = true;
+                    r4.disabled = true;
+                    fimJogo()
+                }
+            }
+
+            document.getElementById("contador").innerText = tempo.toFixed(1) + " s";
+            }, 100); // atualiza a cada 100ms (0.1 segundo)
+        }       
+
+        function pararContador() {
+            clearInterval(intervalo);
+            contadorTempo.push(tempo);
+
+            // Atualiza a lista na tela
+            const lista = document.getElementById("listaTempos");
+            const item = document.createElement("li");
+            if (modo) {
+                item.innerText = `NÍVEL ${nivel} (${num1} * ${num2}) : ${tempo.toFixed(1)} seg`;
+            } else {
+                item.innerText = `NÍVEL ${nivel} (${num1} * ${num2}) : ${(5 - parseFloat(tempo.toFixed(1))).toFixed(1)} seg`;
+            }
+            
+            lista.appendChild(item);
+        }
+
+        function mudarModo(botao) {
+            if (botao.id === 'desafio') {
+                modo = false;
+                document.getElementById('container').style.backgroundColor = '#FFD580';
+            }
+            if (botao.id === 'treino') {
+                modo = true
+                document.getElementById('container').style.backgroundColor = "rgb(46, 217, 223)";
+            }
+            fimJogo()
+        }
+
+        function reiniciar() {
+            document.getElementById("listaTempos").innerHTML = '';
+            document.getElementById('nivel').innerText = "Nível: " + nivel;
+            
+            iniciar()
+        }
+
+        function iniciar() {
+            botaoComecar.disabled = true;
+            botaoComecar.style.backgroundColor = "gray";         
+            document.getElementById('contadorGeral').style.color = 'black';     
+            iniciarContador(modo)          
+            const arrayFatores = geradorFatores(nivel);
+            const fator1 = document.getElementById('fator1');
+            const fator2 = document.getElementById('fator2');
+            fator1.innerText = arrayFatores[0];
+            fator2.innerText = arrayFatores[1];
+
+            const alterantivas = alternativas(arrayFatores, nivel);            
+            r1.disabled = false;
+            r2.disabled = false;
+            r3.disabled = false;
+            r4.disabled = false;
+            r1.innerText = alterantivas[0];
+            r2.innerText = alterantivas[1];
+            r3.innerText = alterantivas[2];
+            r4.innerText = alterantivas[3];
+            r1.style.backgroundColor = 'aqua';
+            r2.style.backgroundColor = 'aqua';
+            r3.style.backgroundColor = 'aqua';
+            r4.style.backgroundColor = 'aqua';
+            r1.style.color = 'black';
+            r2.style.color = 'black';
+            r3.style.color = 'black';
+            r4.style.color = 'black';
+        }      
+
+        function geradorFatores(nivel) {
+            
+            let par;
+
+            do {
+            if (nivel < 15) {
+                do {
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                } while (num1 === 1 || num1 === 10);
+
+                do {
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                } while (num2 === 1 || num2 === 10);
+            } else {
+                do {
+                    num1 = Math.floor(Math.random() * 10) + nivel - 10;
+                } while (num1 === 1 || num1 === 10);
+
+                do {
+                    num2 = Math.floor(Math.random() * 10) + nivel - 10;
+                } while (num2 === 1 || num1 === 10);
+            }
+
+            // Padroniza a ordem para não repetir pares como (3,4) e (4,3)
+            par = [Math.min(num1, num2), Math.max(num1, num2)];
+
+            } while (paresUsados.some(p => p[0] === par[0] && p[1] === par[1]));
+
+            paresUsados.push(par);
+            return [num1, num2];
+        }
+
+
+        function alternativas([numero1, numero2], nivel) {
+            respostaCorreta = numero1 * numero2;
+            console.log(respostaCorreta);
+            const alternativas = new Set();
+            alternativas.add(respostaCorreta);
+
+            if (nivel > 20 && nivel < 30) {
+                const aleatorio = Math.random() < 0.5 ? -10 : 10;
+                let alternativaErrada1 = (numero1 - 1) * numero2;
+                let alternativaErrada2 = respostaCorreta + aleatorio;
+                let alternativaErrada3;
+                if (numero1 === numero2) {
+                    alternativaErrada3 = numero1 * (numero2 + 1)
+                } else {
+                    alternativaErrada3 = (numero2 - 1) * numero1;
+                }                
+                alternativas.add(alternativaErrada1);
+                alternativas.add(alternativaErrada2);
+                alternativas.add(alternativaErrada3);
+
+            }
+            
+            if (nivel <= 20) {
+                while (alternativas.size < 4) {
+                
+                const erroAleatorio = Math.floor(Math.random() * 5) -2;
+                const alternativa = respostaCorreta + erroAleatorio;
+
+                if (alternativa > 0 && alternativa != respostaCorreta) {
+                    alternativas.add(alternativa);
+                }
+            }
+            }
+            
+
+            const arrayAlternativas = Array.from(alternativas);
+            for (let i = arrayAlternativas.length - 1; i >0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arrayAlternativas[i], arrayAlternativas[j]] = [arrayAlternativas[j], arrayAlternativas[i]];
+            }
+
+            return arrayAlternativas;
+        }
+
+        async function esperar() {
+            document.getElementById("contador").innerText = 0;
+            pararContador()
+            await new Promise(r => setTimeout(r, 1500));
+            iniciar()
+            nivel ++;
+            document.getElementById('nivel').innerText = "Nível: " + nivel;
+        }
+
+        function responder(alternativa) {
+            const valor = parseInt(alternativa.innerText)
+            r1.disabled = true;
+            r2.disabled = true;
+            r3.disabled = true;
+            r4.disabled = true;
+            if (valor === respostaCorreta) {
+                alternativa.style.backgroundColor = "green";
+                alternativa.style.color = 'white';
+                
+            } else {
+                alternativa.style.backgroundColor = "red";
+                alternativa.style.color = 'white';
+                fimJogo()
+                return
+            }
+            contadorTempo.push(tempo);
+            
+            esperar()
+        }
+
+        function fimJogo() {
+            botaoComecar.disabled = false;
+            botaoComecar.style.backgroundColor = "lightgreen";
+            pararContador()
+            document.getElementById("contador").innerText = 0;
+            nivel = 1;
+            botaoComecar.onclick = reiniciar;
+            
+        }
+    </script>
+
+</html>

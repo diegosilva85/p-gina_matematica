@@ -29,18 +29,23 @@
                 align-items: center;
                 background-color: lightgreen;
                 border-radius: 5px;
-                width: 80px;
+                width: 110px;
                 height: 50px;
                 border: 1px solid black;
                 font-size: 16px;
-                margin: 5px;
+                margin: 20px;
             }
             a {                
                 text-decoration: none;   
-                font-size: 16px;             
+                font-size: 16px;    
+                color: black;         
             }
             ul {
                 padding-left: 5%;
+            }
+            .botoesJogo {
+                display: flex;
+                padding: 10px;
             }
         </style>
     </head>
@@ -50,21 +55,28 @@
             <br>
             <br>
             <br>            
-            <h2>Batalha de Taboada</h2>
+            <h2>Batalha de Tabuada</h2>
             <img src="../static/taboada.gif" alt="Taboada" width="300">
             <br>
             <div class="caixaRegras">
                 <ul>
                     <ul>
-                        <li>Quem consegue resolver multiplicações mais rápido?</li>
-                        <li>Os dois jogadores se enfrentarão em problemas de taboada. Cada rodada será apresentada uma multiplicação, com 4 respostas possíveis.</li>
-                        <li><strong>Aquele que responder correto primeiro ganha a rodada.</strong></li>
+                        <li>Teste ou treine seus conhecimentos de tabuada. Esse jogo pode ser jogado individualmente, ou competitivamente para duas pessoas.</li>
+                        <li>Cada rodada será apresentada uma multiplicação, com 4 respostas possíveis.</li>
+                        <li>Jogando individualmente, o jogador pode optar pelo modo treino ou desafio.</li>
+                        <li>No modo treino, o tempo para responder é <strong>livre</strong>;</li>
+                        <li>No modo desafio, o tempo para responder é <strong>limitado</strong>;</li>  
+                        <li>No jogo competitivo, <strong>aquele que responder correto primeiro ganha a rodada.</strong></li>
+                        
                         <li>A cada rodada as multiplicações ficarão mais difíceis.</li>
                         <li>Os jogadores podem escolher a quantidade de rodadas que a partida terá.</li>
                       </ul>
                   </ul>
             </div>
-            <button class="botaoJogar">Jogar!</button>
+            <div class="botoesJogo">
+                <a href="/jogos/tabuada/um" class="botaoJogar">1 Jogador</a>
+                <a href="/jogos/tabuadaLobby" class="botaoJogar">2 Jogadores</a>
+            </div>
             
         </div>
     </body>
