@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from pandas import DataFrame
 from sqlalchemy.exc import SQLAlchemyError
@@ -5,10 +7,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from natsort import natsorted
 from mural import Mural
 import os
+from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
 from math import floor
 from pathlib import Path
+from sqlalchemy.orm.attributes import flag_modified
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyarrow
@@ -17,10 +21,14 @@ from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acr
     deletar_aluno, inserir_dados_prova, boss, estatisticas, checar_mural, registrar_prova
 from base_gastos import BaseGastos, Banco_de_dados
 from base_siepe import BancoDadosSiepe, BaseSiepe
+from base_salas import Salas
 import uuid
 from random import randint, shuffle, random
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
+# from base_salas import BancoDadosSalas
+import redis
+import json
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -29,8 +37,13 @@ app.config['SECRET_KEY'] = senha_sessao_flask
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///dados_servidor.db")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI")
 app.config['UPLOAD_FOLDER'] = 'static/upload'
+# Configuração do Redis como variável global
+load_dotenv()
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6380")
+redis_client = redis.Redis.from_url(redis_url)
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0) # Ajuste se o seu Redis estiver em outro local
 CORS(app, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', message_queue='redis://localhost:6379/0')
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 login_manager = LoginManager()
@@ -38,7 +51,7 @@ login_manager.init_app(app)
 
 banco_siepe = BancoDadosSiepe()
 banco_gastos = Banco_de_dados()
-
+# banco_salas = BancoDadosSalas()
 
 class Terceiro_A(db.Model):
     __tablename__ = 'Terceiro_A'
@@ -654,58 +667,281 @@ def tabuada():
 def tabuada_um():
     return render_template('taboadapartida.html')
 
+@app.route('/jogos/naval/lobby', methods=['GET', 'POST'])
+def naval_lobby():    
+    return render_template('naval.html', salas=salas)
+
 salas = {}
 
-@app.route('/salas')
+# @app.route('/salas')
+# def listar_salas():
+#     try:
+#         salas_query = banco_salas.db.query(Salas).all()
+        
+#         lista = []
+#         for sala in salas_query:
+#             lista.append({
+#                 "id": sala.codigo,
+#                 "dono": sala.dono,
+#                 "sala": sala.sala,
+#                 "link": f"/jogos/sala/{sala.id}"
+#             })
+#         return jsonify(lista)
+#     except Exception as e:
+#         return jsonify({"erro": str(e)}), 500
+
+@app.route('/salas', methods=['POST'])
 def listar_salas():
-    lista = []
-    for id_sala, dados in salas.items():
-        lista.append({
-            "id": id_sala,
-            "dono": dados["dono"],
-            "sala": dados['sala'],
-            "link": f"/jogos/sala/{id_sala}"
-        })
-    return jsonify(lista)
+    data = request.get_json()
+    jogo = data.get('jogo')  
+
+    try:
+        salas_data = redis_client.hgetall("salas_ativas")
+        lista = []
+        for sala_id_bytes, details_json_bytes in salas_data.items():
+            sala_id = sala_id_bytes.decode('utf-8')
+            details = json.loads(details_json_bytes.decode('utf-8'))
+            if details.get('jogo') == jogo:  # FILTRA pelo jogo enviado
+                details['id'] = sala_id
+                lista.append(details)
+
+        return jsonify(lista)
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
 
 @app.route('/jogos/tabuadaLobby', methods=['GET', 'POST'])
 def tabuada_lobby():
     return render_template('tabuadaLobby.html', salas=salas)
 
+# @app.route('/createTab')
+# def create_tab():
+#     nome = request.args.get('nome')
+#     senha = request.args.get('senha')
+#     sala = request.args.get('sala')
+    
+#     if not nome or not sala:
+#         return "Nome, e sala são obrigatórios", 400
+
+#     # Gerar ID único
+#     id_sala = str(uuid.uuid4())[:8]
+
+#     try:
+#         nova_sala = Salas(
+#             id=None,  # Será autoincrementado
+#             codigo=id_sala,
+#             sala=sala,
+#             dono=nome,
+#             senha=senha,
+#             jogadores=[nome],  # lista com o dono
+#             pontos={},         # dicionário vazio
+#             partidas=0,
+#             iniciar=0,
+#             sid=[],
+#             nivel={}
+#         )
+#         banco_salas.db.add(nova_sala)
+#         banco_salas.db.commit()
+
+#         print(f"Jogador que criou: {nome}")
+#         return redirect(url_for('sala', id_sala=nova_sala.codigo, nome=nome))
+    
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         return f"Erro ao criar sala: {str(e)}", 500
+
+@app.route('/createNav')
+def create_nav():
+    nome = request.args.get('nomeJogador')
+    senha = request.args.get('senha')
+    sala_nome = request.args.get('nomeSala')
+    modo = request.args.get('modo')
+    jogadores = request.args.get('jogadores')
+    campo = request.args.get('campo')
+    print(f"PARAMETROS DA SALA: {nome}, {senha}, {sala_nome}, {modo}, {jogadores}, {campo}")
+    if not nome or not sala_nome:
+        return "Nome e sala são obrigatórios", 400
+    
+    sala_id = str(uuid.uuid4())[:8]
+
+    sala_data = {
+        "jogo": "Naval",
+        'dono': nome,
+        "sala": sala_nome,
+        "senha": senha,
+        "modo": modo,
+        "campo": campo,
+        "quantidade_jogadores": jogadores,
+        "jogadores": [],
+        "iniciar": {},
+        "sid": {},
+        "barcos": {},
+        "mapa": {}
+    }
+
+    try:
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+        print(f"Jogador que criou: {nome}, Sala ID: {sala_id}")
+        return redirect(url_for('sala_nav', id_sala=sala_id, nome=nome))
+
+    except Exception as e:
+        return f"Erro ao criar sala no Redis: {str(e)}", 500
 
 @app.route('/createTab')
 def create_tab():
     nome = request.args.get('nome')
     senha = request.args.get('senha')
-    sala = request.args.get('sala')
-    if not nome:
-        return "Nome e senha são obrigatórios", 400
+    sala_nome = request.args.get('sala') 
 
-    # Gerar um ID único para a sala
-    id_sala = str(uuid.uuid4())[:8]
+    if not nome or not sala_nome:
+        return "Nome e sala são obrigatórios", 400
 
-    # Criar sala
-    salas[id_sala] = {
-        'sala': sala,
-        'dono': nome,
-        'senha': senha,
-        'jogadores': [nome],
-        'pontos': {}
+    # Gerar ID único para a sala
+    sala_id = str(uuid.uuid4())[:8]
+
+    sala_data = {
+        'jogo': "Tabuada",
+        "dono": nome,
+        "sala": sala_nome,
+        "senha": senha,
+        "jogadores": [nome],
+        "pontos": {},
+        "partidas": 0,
+        "iniciar": {},
+        "sid": {},
+        "nivel": {},
+        "pares": {}
     }
-    print(f"Jogador que criou: {nome}")
-    # Redirecionar para a sala
-    return redirect(url_for('sala', id_sala=id_sala, nome=nome))
 
+    try:
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+        print(f"Jogador que criou: {nome}, Sala ID: {sala_id}")
+        return redirect(url_for('sala', id_sala=sala_id, nome=nome))
+
+    except Exception as e:
+        return f"Erro ao criar sala no Redis: {str(e)}", 500
+
+# @app.route('/sala/<id_sala>')
+# def sala(id_sala):
+#     jogador = request.args.get('nome')
+
+#     try:
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=id_sala).first()
+        
+#         if not sala_obj:
+#             return "Sala não encontrada", 404
+
+#         jogadores = sala_obj.jogadores or []
+
+#         if jogador and jogador not in jogadores:
+#             jogadores.append(jogador)
+#             sala_obj.jogadores = jogadores
+#             banco_salas.db.commit()
+
+#         # Passa os dados como dicionário para o template
+#         return render_template('sala.html', sala={
+#             "dono": sala_obj.dono,
+#             "sala": sala_obj.sala,
+#             "senha": sala_obj.senha,
+#             "jogadores": jogadores,
+#             "pontos": sala_obj.pontos,
+#             "partidas": sala_obj.partidas,
+#             "iniciar": sala_obj.iniciar,
+#             "sid": sala_obj.sid,
+#             "nivel": sala_obj.nivel
+#         }, id_sala=id_sala, jogador=jogador)
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         return f"Erro ao acessar a sala: {str(e)}", 500
+    
 @app.route('/sala/<id_sala>')
 def sala(id_sala):
-    sala = salas.get(id_sala)
     jogador = request.args.get('nome')
-    if not sala:
-        return "Sala não encontrada", 404
-    if jogador and jogador not in sala['jogadores']:
-        sala['jogadores'].append(jogador)
 
-    return render_template('sala.html', sala=sala, id_sala=id_sala, jogador=jogador)
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", id_sala)
+
+        if not sala_data_json:
+            return "Sala não encontrada", 404
+
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+        jogadores = sala_data.get("jogadores", [])
+
+        if jogador and jogador not in jogadores:
+            jogadores.append(jogador)
+            sala_data["jogadores"] = jogadores
+            redis_client.hset("salas_ativas", id_sala, json.dumps(sala_data))
+
+        # Passa os dados do Redis para o template
+        return render_template('sala.html', sala=sala_data, id_sala=id_sala, jogador=jogador)
+
+    except Exception as e:
+        return f"Erro ao acessar a sala no Redis: {str(e)}", 500
+
+@app.route('/sala/naval/<id_sala>')
+def sala_nav(id_sala):
+    jogador = request.args.get('nome')
+
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", id_sala)
+
+        if not sala_data_json:
+            return "Sala não encontrada", 404
+
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+        jogadores = sala_data.get("jogadores", [])
+
+        if jogador and jogador not in jogadores:
+            jogadores.append(jogador)
+            sala_data["jogadores"] = jogadores
+            redis_client.hset("salas_ativas", id_sala, json.dumps(sala_data))
+
+        # Passa os dados do Redis para o template
+        return render_template('sala_nav.html', sala=sala_data, id_sala=id_sala, jogador=jogador)
+
+    except Exception as e:
+        return f"Erro ao acessar a sala no Redis: {str(e)}", 500
+# @app.route('/entrar_sala', methods=['POST'])
+# def entrar_sala():
+#     data = request.json
+#     id_sala = data.get('id_sala')
+#     nome = data.get('nome')
+#     senha = data.get('senha', '')
+
+#     try:
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=id_sala).first()
+
+#         if not sala_obj:
+#             return jsonify({'erro': 'Sala não encontrada'}), 404
+
+#         # Verifica se a sala está cheia
+#         if len(sala_obj.jogadores) >= 2:
+#             return jsonify({'erro': 'Sala cheia'}), 403
+
+#         # Verifica a senha da sala
+#         if sala_obj.senha and sala_obj.senha != senha:
+#             return jsonify({'erro': 'Senha incorreta'}), 401
+
+#         # Verifica se o nome já está em uso
+#         if nome in sala_obj.jogadores:
+#             return jsonify({'erro': 'Esse nome já está sendo usado, por favor escolha outro nome.'}), 200
+
+#         # Adiciona o jogador à lista de jogadores
+#         print(f"============================= Adicionando jogador ao banco: {nome} ===================================")
+#         sala_obj.jogadores.append(nome)
+#         flag_modified(sala_obj, "jogadores")        
+#         banco_salas.db.commit()
+
+#         print(f"Jogador {nome} entrou na sala {id_sala}")
+
+#         return jsonify({
+#             'mensagem': 'Entrou com sucesso',
+#             'redirect': url_for('sala', id_sala=id_sala, nome=nome)
+#         })
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         return jsonify({'erro': f"Erro ao acessar a sala: {str(e)}"}), 500
 
 @app.route('/entrar_sala', methods=['POST'])
 def entrar_sala():
@@ -714,67 +950,220 @@ def entrar_sala():
     nome = data.get('nome')
     senha = data.get('senha', '')
 
-    sala = salas.get(id_sala)
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", id_sala)
 
-    if not sala:
-        return jsonify({'erro': 'Sala não encontrada'}), 404
+        if not sala_data_json:
+            return jsonify({'erro': 'Sala não encontrada'}), 404
 
-    if len(sala['jogadores']) >= 2:
-        return jsonify({'erro': 'Sala cheia'}), 403
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+        jogadores = sala_data.get("jogadores", [])
+        sala_senha = sala_data.get("senha", "")
 
-    if sala['senha'] and sala['senha'] != senha:
-        print(f"SENHA DA SALA: {sala['senha']}")
-        print(f"SENHA DIGITADA: {senha}")
-        return jsonify({'erro': 'Senha incorreta'}), 401
+        # Verifica se a sala está cheia
+        if len(jogadores) >= 2:
+            return jsonify({'erro': 'Sala cheia'}), 403
 
-    if nome in sala['jogadores']:
-        return jsonify({'erro': 'Esse nome já está sendo usado, por favor escolha outro nome.'}), 200
+        # Verifica a senha da sala
+        if sala_senha and sala_senha != senha:
+            return jsonify({'erro': 'Senha incorreta'}), 401
 
-    sala['jogadores'].append(nome)
-    print(f"Jogador {nome} entrou na sala {id_sala}")
-    return jsonify({'mensagem': 'Entrou com sucesso', 'redirect': url_for('sala', id_sala=id_sala, nome=nome)})
+        # Verifica se o nome já está em uso
+        if nome in jogadores:
+            return jsonify({'erro': 'Esse nome já está sendo usado, por favor escolha outro nome.'}), 200
 
+        # Adiciona o jogador à lista de jogadores
+        print(f"============================= Adicionando jogador ao Redis: {nome} na sala {id_sala} ===================================")
+        jogadores.append(nome)
+        sala_data["jogadores"] = jogadores
+        redis_client.hset("salas_ativas", id_sala, json.dumps(sala_data))
 
+        print(f"Jogador {nome} entrou na sala {id_sala}")
+
+        if sala_data['jogo'] == "Tabuada":
+            return jsonify({
+                'mensagem': 'Entrou com sucesso',
+                'redirect': url_for('sala', id_sala=id_sala, nome=nome)
+        })
+        if sala_data['jogo'] == "Naval":
+            return jsonify({
+                'mensagem': 'Entrou com sucesso',
+                'redirect': url_for('sala_nav', id_sala=id_sala, nome=nome)
+        })
+
+    except Exception as e:
+        return jsonify({'erro': f"Erro ao acessar/atualizar a sala no Redis: {str(e)}"}), 500
+
+@socketio.on('conectar_cliente')
+def conectar_cliente(data):
+    jogador = data.get('jogador')
+    sala_id = data.get('sala')
+    sid = request.sid  # Obtém o ID da sessão do cliente
+
+    print(f"Cliente conectado: SID={sid}, Jogador={jogador}, Sala={sala_id}")
+
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
+        if sala_data_json:
+            sala_data = json.loads(sala_data_json.decode('utf-8'))
+            sala_data.setdefault('sid', [])
+            if jogador not in sala_data['sid']:
+                sala_data['sid'][jogador] = sid
+                redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+                print(f"SID {sid} registrado na sala {sala_id}")
+        else:
+            print(f"Aviso: Sala {sala_id} não encontrada ao conectar o cliente.")
+
+    except Exception as e:
+        print(f"Erro ao registrar SID na conexão: {str(e)}")
+
+# @app.route('/sair_da_sala', methods=['POST'])
+# def sair_da_sala():
+#     data = request.get_json()
+#     jogador = data.get("jogador")
+#     sala_id = data.get("sala")
+    
+#     try:
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+
+#         if not sala_obj:
+#             return jsonify({'erro': 'Sala não encontrada'}), 404
+
+#         if jogador not in sala_obj.jogadores:
+#             return jsonify({'erro': 'Jogador não encontrado na sala'}), 404
+
+#         # Remover o jogador da lista de jogadores
+#         sala_obj.jogadores.remove(jogador)
+#         flag_modified(sala_obj, 'jogadores')
+#         banco_salas.db.commit()
+
+#         print(f"======================= JOGADOR: {jogador} saiu da sala {sala_id} =============================")
+#         print(f"======================= ESTADO ATUAL DA SALA: {sala_obj.jogadores} =================================")
+
+#         if not sala_obj.jogadores:
+#             print("============================ NÃO HÁ MAIS JOGADORES - DELETAR SALA ===================================")
+#             deletar_sala_vazia(sala_id)
+
+#         return jsonify({"ok": True})
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         return jsonify({'erro': f"Erro ao remover o jogador da sala: {str(e)}"}), 500
+
+# def gerar_fatores(nivel, sala_id) -> list:
+#     numero1 = 1
+#     numero2 = 1
+
+#     try:
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+#         if not sala_obj:
+#             return jsonify({'erro': 'Sala não encontrada'}), 404
+
+#         pares_usados = sala_obj.pares or []
+
+#         while True:
+#             if int(nivel) < 15:
+#                 numero1 = randint(1, 10)
+#                 numero2 = randint(1, 10)
+#             else:
+#                 numero1 = randint(int(nivel) - 10, int(nivel))
+#                 numero2 = randint(int(nivel) - 10, int(nivel))
+
+#             if numero1 in [1, 10] or numero2 in [1, 10]:
+#                 continue
+
+#             par = [min(numero1, numero2), max(numero1, numero2)]
+
+#             if par not in pares_usados:
+#                 pares_usados.append(par)
+#                 sala_obj.pares = pares_usados
+#                 flag_modified(sala_obj, 'pares')
+#                 banco_salas.db.commit()
+#                 return par
+    
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         return jsonify({'erro': f"Erro ao tentar registrar par: {str(e)}"}), 500
+
+def gerar_fatores(nivel, sala_id) -> list:
+    numero1 = 1
+    numero2 = 1
+
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+
+        # Garante que a chave 'pares' exista e seja um dicionário
+        sala_data.setdefault('pares', {})
+        pares_usados_nivel = sala_data['pares'].get(nivel, [])
+
+        while True:
+            if int(nivel) < 15:
+                numero1 = randint(1, 10)
+                numero2 = randint(1, 10)
+            else:
+                numero1 = randint(int(nivel) - 10, int(nivel))
+                numero2 = randint(int(nivel) - 10, int(nivel))
+
+            if numero1 in [1, 10] or numero2 in [1, 10]:
+                continue
+
+            par = sorted([numero1, numero2])  # Garante a ordem para comparação
+            print(f"Par criado para o nível {nivel}: {par}")
+            print(f"PARES JA USADOS NO NIVEL {nivel}: {pares_usados_nivel}")
+
+            if par not in pares_usados_nivel:
+                sala_data['pares'][nivel] = par  # Armazena o par usando o nível como chave
+                redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+                print(f"PARES ATUALIZADOS NO NIVEL {nivel}: {sala_data['pares'].get(nivel)}")
+                return par
+    except Exception as e:
+        print(f"Erro ao gerar fatores: {e}")
+        return [1, 1] # Retorna um valor padrão em caso de erro
+    
+    
+    
 @app.route('/sair_da_sala', methods=['POST'])
 def sair_da_sala():
     data = request.get_json()
     jogador = data.get("jogador")
     sala_id = data.get("sala")
-    print(f"JOGADOR: {jogador} saiu da sala {sala_id}")
-    if sala_id in salas and jogador in salas[sala_id]["jogadores"]:
-        salas[sala_id]["jogadores"].remove(jogador)
-    print(f"ESTADO ATUAL DA SALA: {salas[sala_id]['jogadores']}")
-    return jsonify({"ok": True})
 
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
 
-def gerar_fatores(nivel, sala_id) -> list:
-    numero1 = 1
-    numero2 = 1
-    if 'pares' not in salas[sala_id]:
-        salas[sala_id]['pares'] = []
-    
-    while True:
-        if int(nivel) < 15:
-            numero1 = randint(1, 10)
-            numero2 = randint(1, 10)
-        else:
-            numero1 = randint(int(nivel) - 10, int(nivel))
-            numero2 = randint(int(nivel) - 10, int(nivel))
+        if not sala_data_json:
+            return jsonify({'erro': 'Sala não encontrada'}), 404
 
-        if numero1 in [1, 10] or numero2 in [1, 10]:
-            continue
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+        jogadores = sala_data.get("jogadores", [])
 
-        par = [min(numero1, numero2), max(numero1, numero2)]
+        if jogador not in jogadores:
+            return jsonify({'erro': 'Jogador não encontrado na sala'}), 404
 
-        if par not in salas[sala_id]['pares']:
-            salas[sala_id]['pares'].append(par)
-            return par
+        # Remover o jogador da lista de jogadores
+        jogadores.remove(jogador)
+        sala_data["jogadores"] = jogadores
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+        print(f"======================= JOGADOR: {jogador} saiu da sala {sala_id} =============================")
+        print(f"======================= ESTADO ATUAL DA SALA: {jogadores} =================================")
+
+        if not jogadores:
+            print("============================ NÃO HÁ MAIS JOGADORES - DELETAR SALA DO REDIS ===================================")
+            redis_client.hdel("salas_ativas", sala_id)
+
+        return jsonify({"ok": True})
+
+    except Exception as e:
+        return jsonify({'erro': f"Erro ao remover o jogador da sala no Redis: {str(e)}"}), 500
+
 
 def gerar_alternativas(par, nivel) -> list:
     numero1 = int(par[0])
     numero2 = int(par[1])
     resposta_correta = numero1 * numero2
-    print(f"Resposta correta: {resposta_correta}")
+    print(f"==================================== Resposta correta: {resposta_correta} ===============================================")
     
     alternativas = {resposta_correta}
     
@@ -800,148 +1189,509 @@ def gerar_alternativas(par, nivel) -> list:
     
     lista_alternativas = list(alternativas)
     shuffle(lista_alternativas)
+    print(f"=========== ALTERNATIVAS GERADAS: {lista_alternativas} ===============")
     return [lista_alternativas, resposta_correta]
 
+# @socketio.on('iniciar')
+# def iniciar_partida(dados):
+#     jogador = dados['jogador']
+#     print(f"======================================= JOGADOR: {jogador} iniciou ===========================================")
+#     sala_id = dados['sala']
+#     partidas = int(dados['partidas'])
+
+#     try:
+#         # Buscar a sala no banco de dados
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+
+#         if not sala_obj:
+#             print(f"Sala {sala_id} não encontrada.")
+#             return
+
+#         # Se não tiver o número de partidas, definimos
+#         if sala_obj.partidas == 0:
+#             sala_obj.partidas = partidas
+        
+#         # Se não tiver o contador de iniciar, definimos
+#         if sala_obj.iniciar == 0:
+#             print(f"iniciar não está em {sala_id}")
+#             sala_obj.iniciar = 0
+        
+#         sala_obj.iniciar += 1
+#         flag_modified(sala_obj, 'iniciar')
+
+#         # Se não tiver a lista de SIDs, definimos
+#         if not sala_obj.sid:
+#             sala_obj.sid = []
+        
+#         # Adicionar o request.sid à lista de SIDs se não estiver lá
+#         if request.sid not in sala_obj.sid:
+#             sala_obj.sid.append(request.sid)
+#             flag_modified(sala_obj, 'sid')
+
+#         print(f"==================================== contador de inicio: {sala_obj.iniciar} ===========================================")
+#         print(f"==================================== SIDs: {sala_obj.sid} =========================================")
+
+#         # Quando ambos os jogadores estiverem prontos
+#         if sala_obj.iniciar == 2:
+#             for sid in sala_obj.sid:
+#                 emit('iniciar', {'iniciar': True}, to=sid)
+
+#             # Resetar o contador para permitir nova rodada
+#             sala_obj.iniciar = 0
+
+#         # Commit das mudanças no banco de dados
+#         banco_salas.db.commit()
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         print(f"Erro ao iniciar partida: {str(e)}")
+
 @socketio.on('iniciar')
-def iniciar_partida(dados):    
+def iniciar_partida(dados):
     jogador = dados['jogador']
-    print(f"JOGADOR: {jogador} iniciou")
     sala_id = dados['sala']
-    partidas = int(dados['partidas'])
-    if 'partidas' not in salas[sala_id]:
-        salas[sala_id]['partidas'] = partidas
-    if 'iniciar' not in salas[sala_id]:
-        print(f"iniciar nao esta em {sala_id}")
-        salas[sala_id]['iniciar'] = 0
-    salas[sala_id]['iniciar'] += 1
-    if 'sid' not in salas[sala_id]:
-        salas[sala_id]['sid'] = []
-    if request.sid not in salas[sala_id]['sid']:
-        salas[sala_id]['sid'].append(request.sid)
-    print(f"contador de inicio: {salas[sala_id]['iniciar']}")
-    print(f"SIDs: {salas[sala_id]['sid']}")
-    # Quando os dois jogadores estiverem prontos
-    if salas[sala_id]['iniciar'] == 2:
-        for sid in salas[sala_id]['sid']:
-            emit('iniciar', {'iniciar': True}, to=sid)
-        salas[sala_id]['iniciar'] = 0
+    partidas = int(dados.get('partidas', 0)) # Apenas o dono envia a quantidade
+
+    print(f"====================== JOGADOR: {jogador} iniciou (preparação) na sala {sala_id} ================================")
+
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
+
+        if not sala_data_json:
+            print(f"Sala {sala_id} não encontrada no Redis.")
+            return
+
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+
+        # Verificar se o jogador é o dono da sala para preparar o jogo
+        if jogador == sala_data.get('dono'):
+            # Define o número de partidas se ainda não estiver definido
+            if sala_data.get('partidas') is None or sala_data.get('partidas') == 0:
+                sala_data['partidas'] = partidas
+
+            # Gera os níveis se ainda não foram gerados
+            if not sala_data.get('nivel'):
+                sala_data['nivel'] = {}
+                for i in range(1, partidas + 1):
+                    fatores = gerar_fatores(nivel=str(i), sala_id=sala_id)
+                    alternativas = gerar_alternativas(par=fatores, nivel=str(i))
+                    sala_data['nivel'][str(i)] = {
+                        'r1': alternativas[0][0],
+                        'r2': alternativas[0][1],
+                        'r3': alternativas[0][2],
+                        'r4': alternativas[0][3],
+                        'fator1': fatores[0],
+                        'fator2': fatores[1],
+                        'correta': alternativas[1]
+                    }
+                    redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+                # Envia um sinal para o outro jogador habilitar o botão "Iniciar"
+                sids_jogadores = sala_data.get('sid', {})
+                for j, sid in sids_jogadores.items():
+                    if j != sala_data['dono']:
+                        print(f"Enviando para o SID: {sid}")
+                        emit('habilitar_iniciar', {'habilitar': True, 'dono': sala_data['dono']}, room=sid) # Envia para o SID do remetente (dono) para alcançar a sala
+
+                print(f"===================== Jogo preparado na sala {sala_id}. Sinal enviado para outros jogadores. ======================")
+
+            # O dono também marca sua prontidão (opcional, dependendo do fluxo)
+        sala_data.setdefault('iniciar', {})
+        sala_data['iniciar'][jogador] = True
+        
+
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+        print(f"================ Estado de 'iniciar' na sala {sala_id}: {sala_data.get('iniciar')} ======================")
+        print(f"=============== SIDs na sala {sala_id}: {sala_data.get('sid')} =======================")
+
+        # Quando ambos os jogadores estiverem prontos (após o 'habilitar_iniciar')
+        # jogadores = sala_data.get('jogadores', [])
+        # jogadores_prontos = all(sala_data.get('iniciar', {}).get(p, False) for p in jogadores)
+        contador = 0
+        for valor in sala_data['iniciar'].values():
+            if valor:
+                print("JOGADOR PRONTO")
+                contador += 1
+        if contador == 2:
+            print('enviando aos jogadores ok')
+            for sid in sala_data['sid'].values():
+                emit('iniciar', {'iniciar': True}, to=sid) # Sinaliza o início real do jogo para ambos
+
+        # if len(jogadores) == 2 and jogadores_prontos:
+            # Limpa o estado de 'iniciar' e os SIDs para a próxima rodada
+            sala_data['iniciar'] = {}            
+            redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+    except Exception as e:
+        print(f"Erro ao iniciar partida no Redis: {str(e)}")
+
+# @socketio.on('parametros')
+# def parametros(dados):
+#     nivel = str(dados['nivel'])
+#     sala_id = dados['sala']
+
+#     try:
+#         # Buscar a sala no banco de dados
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+
+#         if not sala_obj:
+#             print(f"======================== Sala {sala_id} não encontrada. =========================")
+#             return
+
+#         # Se 'iniciar' não existe, inicialize
+#         if 'iniciar' not in sala_obj.__dict__:
+#             sala_obj.iniciar = 0
+        
+#         sala_obj.iniciar += 1
+#         print(f"============================== INICIAR: {sala_obj.iniciar} ========================================")
+
+#         # Verificando a presença do campo 'sid' e inicializando se necessário
+#         if not sala_obj.sid:
+#             sala_obj.sid = []
+
+#         # Verificar a presença do nível e gerar alternativas/fatores
+#         if 'nivel' not in sala_obj.__dict__:
+#             sala_obj.nivel = {}
+        
+#         if nivel not in sala_obj.nivel:
+#             fatores = gerar_fatores(nivel=nivel, sala_id=sala_id)
+#             alternativas = gerar_alternativas(par=fatores, nivel=nivel)
+#             print(alternativas)
+
+#             sala_obj.nivel[nivel] = {
+#                 'r1': alternativas[0][0],
+#                 'r2': alternativas[0][1],
+#                 'r3': alternativas[0][2],
+#                 'r4': alternativas[0][3],
+#                 'fator1': fatores[0],
+#                 'fator2': fatores[1],
+#                 'correta': alternativas[1]
+#             }
+#             flag_modified(sala_obj,'nivel')
+
+#         # Adiciona o request.sid se não estiver presente
+#         if request.sid not in sala_obj.sid:
+#             sala_obj.sid.append(request.sid)
+
+#         # Se ambos os jogadores estiverem prontos, envia as alternativas
+#         if sala_obj.iniciar == 2:
+#             for sid in sala_obj.sid:
+#                 emit('parametros', {
+#                     'parametros': True,
+#                     'r1': sala_obj.nivel[nivel]['r1'],
+#                     'r2': sala_obj.nivel[nivel]['r2'],
+#                     'r3': sala_obj.nivel[nivel]['r3'],
+#                     'r4': sala_obj.nivel[nivel]['r4'],
+#                     'fator1': sala_obj.nivel[nivel]['fator1'],
+#                     'fator2': sala_obj.nivel[nivel]['fator2']
+#                 }, to=sid)
+
+#             # Resetando o contador de inicio para permitir nova rodada
+#             sala_obj.iniciar = 0
+
+#         # Commit das alterações no banco de dados
+#         banco_salas.db.commit()
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         print(f"Erro ao processar parâmetros: {str(e)}")
 
 @socketio.on('parametros')
 def parametros(dados):
-    nivel = dados['nivel']
+    nivel = str(dados['nivel'])
     sala_id = dados['sala']
-    salas[sala_id]['iniciar'] += 1    
-    if 'iniciar' not in salas[sala_id]:
-        salas[sala_id]['iniciar'] = 0
-    if 'sid' not in salas[sala_id]:
-        salas[sala_id]['sid'] = []
+    jogador = dados['jogador']
 
-    if 'nivel' not in salas[sala_id]:
-        salas[sala_id]['nivel'] = {}
-    if nivel not in salas[sala_id]['nivel']:
-        fatores = gerar_fatores(nivel=nivel, sala_id=sala_id)
-        alternativas = gerar_alternativas(par=fatores, nivel=nivel)
-        print(alternativas)
-        salas[sala_id]['nivel'][nivel] = {
-            'r1': alternativas[0][0],
-            'r2': alternativas[0][1],
-            'r3': alternativas[0][2],
-            'r4': alternativas[0][3],
-            'fator1': fatores[0],
-            'fator2': fatores[1],
-            'correta': alternativas[1]
-        }
-    if request.sid not in salas[sala_id]['sid']:
-        salas[sala_id]['sid'].append(request.sid)
-    if salas[sala_id]['iniciar'] == 2:
-        for sid in salas[sala_id]['sid']:
-            emit('parametros', {
-                'parametros': True,
-                'r1': salas[sala_id]['nivel'][nivel]['r1'],
-                'r2': salas[sala_id]['nivel'][nivel]['r2'],
-                'r3': salas[sala_id]['nivel'][nivel]['r3'],
-                'r4': salas[sala_id]['nivel'][nivel]['r4'],
-                'fator1': salas[sala_id]['nivel'][nivel]['fator1'],
-                'fator2': salas[sala_id]['nivel'][nivel]['fator2']
-            }, to=sid)
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
 
-        salas[sala_id]['iniciar'] = 0 
+        if not sala_data_json:
+            print(f"======================== Sala {sala_id} não encontrada no Redis. =========================")
+            return
+
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+
+        # Inicializa o dicionário 'iniciar' se não existir
+        sala_data.setdefault('iniciar', {})
+        sala_data['iniciar'][jogador] = True
+
+        print(f"============================== JOGADOR {jogador} pediu parametros em {sala_id} ========================================")
+
+        # Inicializa a lista de SIDs se não existir
+        # sala_data.setdefault('sid', [])
+
+        # Adiciona o request.sid à lista de SIDs se não estiver presente
+        # if request.sid not in sala_data['sid']:
+        #     sala_data['sid'].append(request.sid)
+
+        # Imprimir dados do nivel
+        if nivel in sala_data.get('nivel', {}):
+            print(sala_data['nivel'][nivel])
+        else:
+            print(f"AVISO: Nível {nivel} não encontrado nos dados da sala.")
+
+        # Se ambos os jogadores estiverem prontos, envia as alternativas
+        jogadores = sala_data.get('jogadores', [])
+        jogadores_prontos = all(sala_data.get('iniciar', {}).get(p, False) for p in jogadores)
+
+        if len(jogadores) == 2 and jogadores_prontos:
+            nivel_info = sala_data.get('nivel', {}).get(nivel)
+            if nivel_info:
+                for sid in sala_data['sid'].values():
+                    emit('parametros', {
+                        'parametros': True,
+                        'r1': nivel_info['r1'],
+                        'r2': nivel_info['r2'],
+                        'r3': nivel_info['r3'],
+                        'r4': nivel_info['r4'],
+                        'fator1': nivel_info['fator1'],
+                        'fator2': nivel_info['fator2']
+                    }, to=sid)
+
+                # Resetando o estado de 'iniciar' e a lista de SIDs para a próxima rodada
+                sala_data['iniciar'] = {}
+                
+                redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+            else:
+                print(f"ERRO: Dados do nível {nivel} não encontrados para enviar os parâmetros.")
+
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+    except Exception as e:
+        print(f"Erro ao processar parâmetros no Redis: {str(e)}")
+
+# @socketio.on('responder')
+# def responder(dados):
+#     fim_de_jogo = False
+#     jogador = dados['jogador']
+#     nivel = str(dados['nivel'])
+#     sala_id = dados['sala']
+#     tempo = dados['tempo']
+#     resposta = int(dados['resposta'])
+    
+#     print(f"Resposta de {jogador}: {resposta}; Tempo: {tempo}")    
+    
+#     try:
+#         # Buscar a sala no banco de dados
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+
+#         if not sala_obj:
+#             print(f"Sala {sala_id} não encontrada.")
+#             return
+
+#         # Garantir que a fase exista no banco de dados
+#         fase = sala_obj.nivel.get(nivel, {})
+
+#         if 'jogador' not in fase:
+#             fase['jogador'] = {}
+#         flag_modified(sala_obj, 'nivel')
+#         # Salvar a resposta do jogador
+#         fase['jogador'][jogador] = {
+#             'correta': resposta == int(fase['correta']),
+#             'tempo': float(tempo)
+#         }
+#         flag_modified(sala_obj, "nivel")
+
+#         if jogador not in sala_obj.pontos:
+#             sala_obj.pontos[jogador] = 0
+#         flag_modified(sala_obj, 'pontos')
+
+#         print(f"resposta correta: {fase['correta']}")
+#         if resposta == fase['correta']:
+#             print(f'============================= {jogador} acertou! ==================================')
+
+#         # Verifica se os dois jogadores já responderam
+#         if len(fase['jogador']) == 2:
+#             jogadores = list(fase['jogador'].keys())
+#             j1, j2 = jogadores[0], jogadores[1]
+#             r1 = fase['jogador'][j1]
+#             r2 = fase['jogador'][j2]
+
+#             vencedor = None
+
+#             print(f'================= j1: {j1}, tempo: {r1["tempo"]}, correta: {r1["correta"]} =======================')
+#             print(f'================= j2: {j2}, tempo: {r2["tempo"]}, correta: {r2["correta"]} =======================')
+
+#             if r1['correta'] and not r2['correta']:
+#                 vencedor = j1
+#             elif not r1['correta'] and r2['correta']:
+#                 vencedor = j2
+#             elif r1['correta'] and r2['correta']:
+#                 vencedor = j1 if r1['tempo'] > r2['tempo'] else j2
+#             else:
+#                 vencedor = 'empate'
+
+#             print(f"============================= VENCEDOR: {vencedor} ====================================")
+#             if vencedor != "empate":
+#                 sala_obj.pontos[vencedor] += 1
+#             flag_modified(sala_obj, 'pontos')
+
+#             if int(nivel) == int(sala_obj.partidas):
+#                 fim_de_jogo = True
+#                 print(sala_obj.dicionario())
+#                 for sid in sala_obj.sid:
+#                     emit('fim_de_jogo', sala_obj.dicionario(), room=sala_id, to=sid)
+#             else:
+#                 print("=========================== Enviando resultados para os jogadores. =============================")
+#                 # Emite o resultado para todos os jogadores da sala
+#                 for sid in sala_obj.sid:
+#                     emit('resultado', {
+#                         'correta': fase['correta'],
+#                         'vencedor': vencedor,
+#                         'respostas': {
+#                             j1: r1,
+#                             j2: r2
+#                         },
+#                         'pontuacao': {
+#                             j1: sala_obj.pontos[j1],
+#                             j2: sala_obj.pontos[j2]                          
+#                         },
+#                         'fim': fim_de_jogo
+#                     }, to=sid)
+
+#         # Commit das alterações no banco de dados
+#         banco_salas.db.commit()
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         print(f"Erro ao processar resposta: {str(e)}")
 
 @socketio.on('responder')
 def responder(dados):
     fim_de_jogo = False
     jogador = dados['jogador']
-    nivel = dados['nivel']
+    nivel = str(dados['nivel'])
     sala_id = dados['sala']
     tempo = dados['tempo']
-    resposta = int(dados['resposta'])
-    
-    print(f"Resposta de {jogador}: {resposta}; Tempo: {tempo}")    
-    
-    fase = salas[sala_id]['nivel'][nivel]
+    try:
+        resposta = int(dados['resposta'])
+        print(f"Resposta de {jogador}: {resposta}; Tempo: {tempo}")
+    except Exception as e:
+        print(str(e))   
 
-    # Garante a estrutura para armazenar as jogadas
-    if 'jogador' not in fase:
-        fase['jogador'] = {}
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
 
-    # Salva a resposta do jogador
-    fase['jogador'][jogador] = {
-        'correta': resposta == int(fase['correta']),
-        'tempo': float(tempo)
-    }
-    if jogador not in salas[sala_id]['pontos']:
-        salas[sala_id]['pontos'][jogador] = 0
-    print(f"resposta correta: {fase['correta']}")
-    if resposta == fase['correta']:
-        print(f'{jogador} acertou!')
+        nivel_data = sala_data.get('nivel', {}).get(nivel)
+        if not nivel_data:
+            print(f"ERRO: Dados do nível {nivel} não encontrados ao processar resposta.")
+            return
 
-    # Verifica se os dois jogadores já responderam
-    if len(fase['jogador']) == 2:
-        jogadores = list(fase['jogador'].keys())
-        j1, j2 = jogadores[0], jogadores[1]
-        r1 = fase['jogador'][j1]
-        r2 = fase['jogador'][j2]
+        correta = nivel_data.get('correta')
+        if correta is None:
+            print(f"ERRO: Resposta correta não encontrada para o nível {nivel}.")
+            return
 
-        vencedor = None
+        fase_jogadores = nivel_data.setdefault('jogador', {})
+        fase_jogadores[jogador] = {
+            'correta': resposta == correta,
+            'tempo': float(tempo)
+        }
 
-        print(f'j1: {j1}, tempo: {r1["tempo"]}, correta: {r1["correta"]}')
-        print(f'j2: {j2}, tempo: {r2["tempo"]}, correta: {r2["correta"]}')
+        sala_data.setdefault('pontos', {})
+        if jogador not in sala_data['pontos']:
+            sala_data['pontos'][jogador] = 0
 
-        if r1['correta'] and not r2['correta']:
-            vencedor = j1
-        elif not r1['correta'] and r2['correta']:
-            vencedor = j2
-        elif r1['correta'] and r2['correta']:
-            vencedor = j1 if r1['tempo'] > r2['tempo'] else j2
+        if len(fase_jogadores) == 2:
+            jogadores = list(fase_jogadores.keys())
+            j1, j2 = jogadores[0], jogadores[1]
+            r1 = fase_jogadores[j1]
+            r2 = fase_jogadores[j2]
+
+            vencedor = None
+
+            print(f'================= j1: {j1}, tempo: {r1["tempo"]}, correta: {r1["correta"]} =======================')
+            print(f'================= j2: {j2}, tempo: {r2["tempo"]}, correta: {r2["correta"]} =======================')
+
+            if r1['correta'] and not r2['correta']:
+                vencedor = j1
+            elif not r1['correta'] and r2['correta']:
+                vencedor = j2
+            elif r1['correta'] and r2['correta']:
+                vencedor = j1 if r1['tempo'] > r2['tempo'] else j2
+            else:
+                vencedor = 'empate'
+
+            print(f"============================= VENCEDOR: {vencedor} ====================================")
+            if vencedor != "empate":
+                sala_data.setdefault('pontos', {})
+                sala_data['pontos'][vencedor] = sala_data['pontos'].get(vencedor, 0) + 1
+
+            partidas = sala_data.get('partidas', 0)
+            if int(nivel) == partidas:
+                fim_de_jogo = True
+                for sid in sala_data.get('sid', {}).values():
+                    emit('fim_de_jogo', sala_data, to=sid)
+            else:
+                print('enviando resultados da partida.')
+                for sid in sala_data['sid'].values():
+                    emit('resultado', {
+                        'correta': correta,
+                        'vencedor': vencedor,
+                        'respostas': {
+                            j1: r1,
+                            j2: r2
+                        },
+                        'pontuacao': sala_data.get('pontos', {}),
+                        'fim': fim_de_jogo
+                    }, to=sid)
+
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+    except Exception as e:
+        print(f"Erro ao processar resposta: {str(e)}")
+
+# def deletar_sala_vazia(sala_id):
+#     try:
+#         # Buscar a sala no banco de dados
+#         sala_obj = banco_salas.db.query(Salas).filter_by(codigo=sala_id).first()
+
+#         if not sala_obj:
+#             print(f"Sala {sala_id} não encontrada no banco de dados.")
+#             return False
+
+#         # Verificar se a sala está vazia (nenhum jogador na sala)
+#         if len(sala_obj.jogadores) == 0:
+#             # Deletar a sala
+#             banco_salas.db.delete(sala_obj)
+#             banco_salas.db.commit()
+#             print(f"============================ Sala {sala_id} foi deletada, pois está vazia. ===================================")
+#             return True
+#         else:
+#             print(f"Sala {sala_id} não está vazia. Jogadores: {len(sala_obj.jogadores)}")
+#             return False
+
+#     except SQLAlchemyError as e:
+#         banco_salas.db.rollback()
+#         print(f"Erro ao tentar deletar a sala {sala_id}: {str(e)}")
+#         return False
+
+def deletar_sala_vazia(sala_id):
+    try:
+        sala_data_json = redis_client.hget("salas_ativas", sala_id)
+
+        if not sala_data_json:
+            print(f"Sala {sala_id} não encontrada no Redis.")
+            return False
+
+        sala_data = json.loads(sala_data_json.decode('utf-8'))
+        jogadores = sala_data.get("jogadores", [])
+
+        # Verificar se a sala está vazia (nenhum jogador na lista)
+        if not jogadores:
+            # Deletar a sala do Redis
+            redis_client.hdel("salas_ativas", sala_id)
+            print(f"============================ Sala {sala_id} foi deletada do Redis, pois está vazia. ===================================")
+            return True
         else:
-            vencedor = 'empate'
-        print(f"VENCEDOR: {vencedor}")
-        if vencedor != "empate":
-            salas[sala_id]['pontos'][vencedor] += 1
-        
-        if nivel == salas[sala_id]['partidas']:
-            fim_de_jogo = True
-            print(salas[sala_id])
-            for sid in salas[sala_id]['sid']:
-                emit('fim_de_jogo', salas[sala_id], room=sala_id, to=sid)
-        else:
-            # Emite o resultado para todos os jogadores da sala
-            for sid in salas[sala_id]['sid']:
-                emit('resultado', {
-                    'correta': fase['correta'],
-                    'vencedor': vencedor,
-                    'respostas': {
-                        j1: r1,
-                        j2: r2
-                    },
-                    'pontuacao': {
-                        j1: salas[sala_id]['pontos'][j1],
-                        j2: salas[sala_id]['pontos'][j2]                          
-                    },
-                    'fim': fim_de_jogo
+            print(f"Sala {sala_id} não está vazia no Redis. Jogadores: {len(jogadores)}")
+            return False
 
-                }, to=sid)
-
+    except Exception as e:
+        print(f"Erro ao tentar deletar a sala {sala_id} do Redis: {str(e)}")
+        return False
 
 # --------------------------------------- Servidor da aplicação Siepe ------------------------------------------------ #
 @app.route('/siepe', methods=['GET', 'POST'])

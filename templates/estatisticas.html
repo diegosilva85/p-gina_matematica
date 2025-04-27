@@ -1,60 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ class_name }} Page</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="icon" href="data:,">
-    <style>
-        body {
-    max-width: 100%;
-    overflow-x: hidden; /* Para evitar a barra de rolagem horizontal em dispositivos móveis */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ class_name }} - Desempenho</title>
+  <!-- <link rel="stylesheet" href="/static/styles.css" /> -->
+  <link rel="icon" href="data:," />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-   
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .menu {
+      width: 100%;
+      max-width: 700px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+
+    .menu a {
+      font-size: 24px;
+      text-decoration: none;
+      color: #333;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+
     table {
-        width: 100%;
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
     }
+
     th {
-        font-size: larger;
-        
+      text-align: center;
+      font-size: 1.5rem;
+      background-color: #e0e7ff;
+      padding: 1rem;
+      border-radius: 8px;
     }
+
     td {
-        font-size: larger;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border-bottom: 1px solid #ddd;
     }
-    a {
-        font-size: 80px;
-        text-decoration: none;
+
+    td#semana {
+      font-weight: bold;
+      background-color: #f0f4ff;
+      border-radius: 6px;
     }
-    
-    </style>
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      .menu {
+        padding: 1.5rem;
+      }
+
+      td, th {
+        font-size: 1rem;
+      }
+
+      .menu a {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="menu">
-    <a href="/">⬅</a>
+  <div class="menu">
+    <a href="/">⬅ Voltar</a>
     <table id="desempenho">
-        <tr>
-            <th>DESEMPENHO DA TURMA - {{ class_name }}</th>
-        </tr>
-        {% for i in range(tamanho) %}
-        <tr>
-            <td id="semana" >SEMANA {{ i + 1 }}</td>
-        </tr>
-        <tr>
-            <td>MÉDIA: {{ estatisticas[i][0] }}</td>
-        </tr>
-        <tr>
-            <td>MEDIANA: {{ estatisticas[i][1] }}</td>
-        </tr>
-        <tr>
-            <td>MODA: {{ estatisticas[i][2] }}</td>
-        </tr>
-        <tr>
-            <td>DESVIO-PADRÃO: {{ estatisticas[i][3] }}</td>
-        </tr>
-        {% endfor %}
-
-    </table>      
-</div>
+      <tr>
+        <th>Desempenho da Turma - {{ class_name }}</th>
+      </tr>
+      {% for i in range(tamanho) %}
+      <tr>
+        <td id="semana">Semana {{ i + 1 }}</td>
+      </tr>
+      <tr>
+        <td>Média: {{ estatisticas[i][0] }}</td>
+      </tr>
+      <tr>
+        <td>Mediana: {{ estatisticas[i][1] }}</td>
+      </tr>
+      <tr>
+        <td>Moda: {{ estatisticas[i][2] }}</td>
+      </tr>
+      <tr>
+        <td>Desvio-padrão: {{ estatisticas[i][3] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 </body>
 </html>

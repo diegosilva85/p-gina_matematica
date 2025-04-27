@@ -1,33 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="icon" href="data:,">
-    <title>Arquivos para download</title>
-    <style>
-        .caixa {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .voltar {
-            font-size: 80px;
-            text-decoration: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arquivos para Download</title>
+  <!-- <link rel="stylesheet" href="/static/styles.css" /> -->
+  <link rel="icon" href="data:," />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8fafc;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .caixa {
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .voltar {
+      display: inline-block;
+      font-size: 1.5rem;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      color: #3b82f6;
+      transition: color 0.3s;
+    }
+
+    .voltar:hover {
+      color: #1d4ed8;
+    }
+
+    h3 {
+      margin-top: 0.5rem;
+      font-size: 1.5rem;
+      color: #111827;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 1.5rem;
+    }
+
+    li {
+      margin: 0.5rem 0;
+    }
+
+    a {
+      text-decoration: none;
+      color: #1f2937;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    a:hover {
+      color: #2563eb;
+    }
+  </style>
 </head>
 <body>
-    <div class="caixa">
-        <a class="voltar" href="/">⬅</a>
-        <h3>Listas de exercícios</h3>
-        <ul>
-        {% for file in files %}
-                <li><a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-    
+  <div class="caixa">
+    <a class="voltar" href="&#x2F;">⬅ Voltar</a>
+    <h4>📁 Listas de Exercícios</h4>
+    <ul>
+      {% for file in files %}
+        <li>📄 <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
 </body>
 </html>

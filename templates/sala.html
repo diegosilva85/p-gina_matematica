@@ -321,14 +321,10 @@
                 <button id="r4" class="resposta" onclick="responder(this)">0</button>
             </div>
             
-        </div>
-        <!-- <button id="contadorInicio" class="resposta" style="background-color: lightgreen; width: 150px;">-</button>  -->
+        </div>      
         
         <p id="contadorGeral">Tempo: <span id="contador">0</span> segundos</p>
-        <!-- <div class="tempos">
-            <h3>Tempos registrados:</h3>
-            <ul id="listaTempos" style="list-style-type: none;"></ul>
-        </div> -->        
+         
     </div>
     <div id="caixaResultado" style="display: none;">
         <h3 id="vencedor">VENCEDOR:</h3>
@@ -344,6 +340,7 @@
     const container = document.getElementById('container');
     const rodadasSelecionadas = document.getElementById('rodadas').value;
     const socket = io('http://127.0.0.1:2000');
+    // const socket = io("https://diegomatematica.com.br");
     const nomeDoJogador = "{{ jogador }}";  
     const idDaSala = "{{ id_sala }}";
     const botaoJogar = document.getElementById('botaoJogar');
@@ -373,11 +370,34 @@
         navigator.sendBeacon('/sair_da_sala', blob);
     });
 
-    function carregarJogo() {
-        console.log(`Nome do jogador: ${nomeDoJogador}`);
-        console.log(`Sala: ${idDaSala}`);
-        document.getElementById('container').style.display = "flex";
-    }
+    // Lógica para desabilitar o botão Iniciar se não for o dono da sala (executado no carregamento da página)
+    document.addEventListener('DOMContentLoaded', function() {
+        const botaoJogar = document.getElementById('botaoJogar');
+        const donoSala = "{{ sala.dono }}";
+        const jogadorAtual = "{{ jogador }}";
+        socket.emit('conectar_cliente', { jogador: "{{ jogador }}", sala: idDaSala });
+        if (donoSala !== jogadorAtual) {
+            botaoJogar.disabled = true;
+            botaoJogar.style.backgroundColor = 'gray';
+            console.log('Página carregada. Emitindo evento "conectar_cliente" para o servidor.');
+            
+        }
+    });  
+    
+    socket.on('habilitar_iniciar', function(data) {
+        console.log("Partida criada, habilitando botao de iniciar.");
+        console.log(`VOCÊ ESTÁ SALA COMO: ${nomeDoJogador}`);
+        if (data.habilitar) {
+            console.log("Recebeu os dados.")
+            const botaoJogar = document.getElementById('botaoJogar');
+            const donoSala = data.dono;            
+
+            if (donoSala !== nomeDoJogador) {
+                botaoJogar.disabled = false;
+                botaoJogar.style.backgroundColor = '#4caf50';
+            }
+        }
+    });
 
     function iniciarPartida() {
         botaoJogar.disabled = true;
@@ -400,14 +420,43 @@
 
     function comecarJogo () {
         document.getElementById('cabecalho').style.display = 'none';
-        solicitarParamentros()
+        solicitarParametros()
+    }
+    
+    let esperandoParametros = false;
+    let tentativasParametros = 0;
+    const maxTentativasParametros = 5; // Defina um limite de tentativas
+    const intervaloSolicitacao = 100; // Intervalo em milissegundos entre as tentativas
+
+    function solicitarParametros() {
+        if (esperandoParametros) return; // Evita múltiplas solicitações simultâneas
+        esperandoParametros = true;
+        tentativasParametros = 0;
+        LoopSolicitacao(nivel);
     }
 
-    function solicitarParamentros() {
+    function LoopSolicitacao(nivel) {
+        if (tentativasParametros >= maxTentativasParametros) {
+            console.error("Tempo limite para receber parâmetros.");
+            esperandoParametros = false;
+            return;
+        }
+
         socket.emit('parametros', {
             sala: idDaSala,
             nivel: nivel,
+            jogador: nomeDoJogador
         })
+        tentativasParametros++;
+
+        // Agendar a próxima tentativa após um intervalo
+        setTimeout(function() {
+            if (esperandoParametros) { // Verificar se ainda estamos esperando
+                LoopSolicitacao(nivel);
+            }
+        }, intervaloSolicitacao);
+
+        // O evento 'parametros' do servidor interromperá o loop ao definir esperandoParametros = false
     }
 
     socket.on('parametros', (data) => {
@@ -422,11 +471,29 @@
             r2.disabled = false;
             r3.disabled = false;
             r4.disabled = false;
+            r1.blur();
+            r2.blur();
+            r3.blur();
+            r4.blur();
         }        
+        esperandoParametros = false; // Parar o loop ao receber os parâmetros
+        tentativasParametros = 0;
         iniciarContador()
     })
 
+
+    let respostaEnviada = false;
+    let esperandoResultado = false;
+    let tentativasResultado = 0;
+    const maxTentativasResultado = 5; 
+    const intervaloResultado = 2000;
+
+
     function responder(alternativa) {
+        if (respostaEnviada) return; // Evita enviar múltiplas respostas
+        respostaEnviada = true;
+        esperandoResultado = true;
+        tentativasResultado = 0;
         const valor = parseInt(alternativa.innerText)
         console.log(`Respondeu ${valor}`);
         r1.disabled = true;
@@ -435,14 +502,35 @@
         r4.disabled = true;
         flagResposta = true;
         
+              
+        iniciarLoopResultado(valor);
+    }
+
+    function iniciarLoopResultado(resposta) {
+        if (!esperandoResultado) {
+            return; // Sair do loop se já recebemos o resultado
+        }
+
+        if (tentativasResultado >= maxTentativasResultado) {
+            console.error("Tempo limite para receber o resultado da resposta.");
+            esperandoResultado = false;
+            respostaEnviada = false; // Permite responder novamente em um novo nível            
+            return;
+        }
         socket.emit('responder', {
-            resposta: valor,
+            resposta: resposta,
             sala: idDaSala,
             nivel: nivel, 
             tempo: tempo, 
             jogador: nomeDoJogador
-        })        
+        })  
+
+        tentativasResultado++;
+
+        setTimeout(iniciarLoopResultado, intervaloResultado);
     }
+
+
 
     function iniciarContador() {
         clearInterval(intervalo); // limpa se já tiver um contador rodando            
@@ -461,7 +549,11 @@
                 if (flagResposta) {
                 document.getElementById('caixaResultado').style.display = "none";
                 flagResposta = false;
-                solicitarParamentros();
+                console.log(`Solicitando novo nivel (${nivel})`);
+                solicitarParametros();
+                } else {
+                    console.log("Nao respondeu");
+                    responder(fator1);
                 }
                         
             }   
@@ -519,6 +611,8 @@
                 nivelTexto.innerText = "Nível: " + nivel;
                 iniciarContador();
             }  
+            esperandoResultado = false; // Fecha o loop ao receber o resultado
+            respostaEnviada = false;
         }
     });
 
@@ -531,7 +625,7 @@
         // Título e informações básicas
         containerFim.innerHTML += `<h2>🏁 Fim de Jogo</h2>`;
         containerFim.innerHTML += `<p><strong>Sala:</strong> ${dados.sala}</p>`;
-        containerFim.innerHTML += `<p><strong>Dono:</strong> ${dados.dono}</p>`;
+        containerFim.innerHTML += `<p><strong>Criador:</strong> ${dados.dono}</p>`;
         containerFim.innerHTML += `<p><strong>Partidas:</strong> ${dados.partidas}</p>`;
 
         // Pontuação final
@@ -546,7 +640,7 @@
         for (const nivel in dados.nivel) {
             const fase = dados.nivel[nivel];
             containerFim.innerHTML += `<div style="margin-bottom: 10px;">
-                <strong>Fase ${nivel}:</strong> ${fase.fator1} x ${fase.fator2} = <strong>${fase.correta}</strong><br>
+                <strong>Nível ${nivel}:</strong> ${fase.fator1} x ${fase.fator2} = <strong>${fase.correta}</strong><br>
                 <ul>
                     ${Object.entries(fase.jogador).map(([nome, dadosJogador]) => 
                         `<li>${nome}: ${dadosJogador.correta ? '✅' : '❌'} em ${(5 - dadosJogador.tempo).toFixed(2)}s</li>`

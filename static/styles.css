@@ -107,3 +107,14 @@ body::before {
             opacity: 0.3; /* Defina o valor de opacidade desejado */
             z-index: -1; /* Coloca o pseudo-elemento atrás do conteúdo principal */
         }
+
+        :root {
+            --primary-color: #00bcd4;
+            --secondary-color: #ffffff;
+            --accent-color: #4caf50;
+            --hover-accent: #43a047;
+            --bg-color: #f4f6f8;
+            --popup-bg: rgba(0, 0, 0, 0.5);
+            --card-radius: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }

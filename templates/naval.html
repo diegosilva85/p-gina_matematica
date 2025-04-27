@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">        
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:,">
+    <title>Batalha Naval - Criar Sala</title>
+    <style>
+        html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                position: relative;
+                overflow-x: hidden;
+            }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87ceeb, #ffffff);
+            min-height: 100vh;
+            overflow: hidden;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;            
+        }
+        .menu-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            width: 320px;
+            text-align: center;
+            position: fixed;
+            height: 600px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #0077b6;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0077b6;
+            color: white;
+            padding: 12px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background-color: #005f8a;
+            transform: scale(1.05);
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+        .popup-content button {
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            background-color: var(--secondary-color);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Lobby - Batalha Naval</h3>
+        <div id="botoesSala">
+            <button class="botaoBasico" onclick="JanelaCriar()">Criar Sala</button>
+        </div>
+        <div id="salas">
+            <h4>Salas disponíveis:</h4>
+            <button id="atualizarLista" onclick="atualizarLista()">Atualizar Lista</button>
+            <ul id="listaSalas" style="list-style-type: none; padding-left: 0;">
+                {% for id_sala, dados in salas.items() %}
+                    <button class="botaoSala" onclick="entrarSala('{{ id_sala }}')">Sala: {{ dados['sala'] }} - Criador: {{ dados['dono'] }}</button>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div id="criarSala" class="menu-container" style="display: none;">
+        <h1>Nova Sala</h1>
+        <input type="text" id="nomeJogador" placeholder="Nome do Jogador" required>
+        <input type="text" id="nomeSala" placeholder="Nome da Sala" required>
+        <input type="password" id="senhaSala" placeholder="Senha da Sala (opcional)">
+        <label for="modo">Modo de Jogo:</label>
+        <select id="modo">
+            <option value="tradicional">Tradicional</option>
+            <option value="dinamico">Dinâmico</option>
+            <option value="aventura">Aventura</option>
+        </select>
+        <label for="campo">Tipo de Campo:</label>
+        <select id="campo">
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+        </select>
+        <label for="jogadores">Número de Jogadores</label>
+        <select id="jogadores">
+            <option value="2">2 jogadores</option>
+            <option value="4">4 jogadores</option>
+        </select>
+        <button onclick="CriarSala()">Criar Sala</button>
+        <button onclick="cancelarCriarSala()">Cancelar</button>
+    </div>
+
+    <div id="popupEntrarSala" class="popup">
+    </div>
+
+    <script>
+        function tentarEntrarSala(idSala) {
+            const nome = document.getElementById('nomeJogador2').value;
+            const senha = document.getElementById('senhaLogin').value;
+
+            if (!nome) {
+                alert("Digite seu nome!");
+                return;
+            }
+
+            fetch('/entrar_sala', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_sala: idSala,
+                    nome: nome,
+                    senha: senha
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    alert(data.erro);
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            });
+        }
+
+        function atualizarLista() {
+            fetch('/salas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ jogo: 'Naval' })
+            })
+            .then(response => response.json())
+            .then(salas => {
+                const lista = document.getElementById("listaSalas");
+                lista.innerHTML = "";
+
+                salas.forEach(sala => {
+                    const botao = document.createElement("button");
+                    botao.textContent = `Sala: ${sala.sala} (Criador: ${sala.dono})`;
+                    botao.className = "botaoSala";
+                    botao.onclick = () => entrarSala(sala.id);
+                    lista.appendChild(botao);
+                });
+            })
+            .catch(error => {
+                console.error("Erro ao atualizar a lista de salas:", error);
+            });
+        }
+
+        function JanelaCriar() {
+            document.getElementById('criarSala').style.display = 'flex';
+        }
+
+        function cancelarCriarSala() {
+            document.getElementById('criarSala').style.display = 'none';
+        }
+
+        function cancelarPopup() {
+            document.getElementById('popupEntrarSala').style.display = 'none';
+        }
+
+        function CriarSala() {
+            const nomeJogador = document.getElementById('nomeJogador').value.trim();
+            const nomeSala = document.getElementById('nomeSala').value.trim();
+            const senha = document.getElementById("senhaSala").value;
+            const modo = document.getElementById("modo").value;
+            const campo = document.getElementById("campo").value;
+            const jogadores = document.getElementById("jogadores").value;
+
+            if (nomeJogador === '' || nomeSala === '') {
+                alert('Por favor, preencha o Nome do Jogador e o Nome da Sala.');
+                return;
+            }
+
+            window.location.href = `/createNav?nomeJogador=${encodeURIComponent(nomeJogador)}&nomeSala=${encodeURIComponent(nomeSala)}&senha=${encodeURIComponent(senha)}&modo=${encodeURIComponent(modo)}&campo=${encodeURIComponent(campo)}&jogadores=${encodeURIComponent(jogadores)}`;
+        }
+
+        function entrarSala(salaId) {
+            const popup = document.getElementById('popupEntrarSala');
+            popup.innerHTML = `
+                <div id='caixaEntrar' class="popup-content">
+                    <h3>Entrar na Sala</h3>
+                    <input type="text" id="nomeJogador2" placeholder="Nome do jogador"><br><br>
+                    <input type="password" id="senhaLogin" placeholder="Senha da sala"><br><br>
+                    <button onclick="tentarEntrarSala('${salaId}')" class="botaoSala">Entrar</button><br><br>
+                    <button onclick="cancelarPopup()" class="botaoBasico">Cancelar</button>
+                </div>
+            `;
+            popup.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

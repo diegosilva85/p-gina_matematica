@@ -1,33 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="icon" href="data:,">
-    <title>Boss</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- <link rel="stylesheet" href="/static/styles.css" /> -->
+  <link rel="icon" href="data:," />
+  <title>Boss</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .menu {
+      width: 100%;
+      max-width: 800px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 0.75rem;
+    }
+
+    th {
+      background-color: #e0e7ff;
+      font-size: 1.1rem;
+      border-bottom: 2px solid #cbd5e0;
+    }
+
+    td {
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 1rem;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f9fafb;
+    }
+
+    tr:hover td {
+      background-color: #edf2f7;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      th, td {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+      }
+      
+    }
+  </style>
 </head>
 <body>
-<div class="menu">
+  <div class="menu">
     <table>
-        <tr>
-            <th>ALUNO</th>
-            <th>✅</th>
-            <th>❌</th>
-            <th>TOTAL</th>
-            <th>🟡</th>
-        </tr>
-        {% for estudante in estudantes %}
-        <tr>
-            <td>{{ estudante[0] }}</td>
-            <td>{{ estudante[2] }}</td>
-            <td>{{ estudante[3] - estudante[2] }}</td>
-            <td>{{ estudante[3] }}</td>
-            <td>{{ estudante[1] - estudante[3] }}</td>
-        </tr>
-        {% endfor %}
-
+      <tr>
+        <th>Aluno</th>
+        <th>✅</th>
+        <th>❌</th>
+        <th>Total</th>
+        <th>🟡</th>
+      </tr>
+      {% for estudante in estudantes %}
+      <tr>
+        <td>{{ estudante[0] }}</td>
+        <td>{{ estudante[2] }}</td>
+        <td>{{ estudante[3] - estudante[2] }}</td>
+        <td>{{ estudante[3] }}</td>
+        <td>{{ estudante[1] - estudante[3] }}</td>
+      </tr>
+      {% endfor %}
     </table>
-</div>
+  </div>
 </body>
 </html>

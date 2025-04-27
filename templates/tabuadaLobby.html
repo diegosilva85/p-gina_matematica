@@ -13,7 +13,9 @@
                 width: 100%;
                 height: 100%;
                 box-sizing: border-box;
-                font-family: sans-serif;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                position: relative;
+                overflow-x: hidden;
             }
         
             body {
@@ -27,52 +29,74 @@
                 overflow-y: auto;
             }
             .container {
-                display: flex;
-                flex-direction: column;
-                border: 1px solid black;
-                border-radius: 10px;
-                align-items: center;
-                justify-content: center;
-                width: 95%;
-                height: auto;
-                box-sizing: border-box;
-                background-color: rgb(46, 217, 223);
-                padding: 20px;
+                background-color: var(--secondary-color);
+                border-radius: var(--card-radius);
+                box-shadow: var(--shadow);
+                padding: 30px;
+                width: 100%;
+                max-width: 600px;
+                text-align: center;
             }
-            .botaoBasico {
-                width: 180px;
+            .botaoBasico, #atualizarLista {
+                background-color: var(--accent-color);
+                color: white;
+                padding: 12px 20px;
                 margin: 5px;
-                background-color: lightgreen;
-                padding: 10px;
-                border-radius: 5px;
                 border: none;
+                border-radius: 10px;
                 font-size: 16px;
+                font-weight: bold;
                 cursor: pointer;
+                transition: all 0.2s ease;
             }
-            #popupCriarSala {
+
+            .botaoBasico:hover, #atualizarLista:hover {
+                background-color: var(--hover-accent);
+                transform: scale(1.05);
+            }
+            #popupCriarSala, #popupEntrarSala {
                 position: fixed;
                 top: 0;
                 left: 0;
+                height: 100%;
                 width: 100%;
-                height: 60%;
-                background-color: rgba(0,0,0,0.6);
+                background-color: var(--popup-bg);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                z-index: 999;
+                z-index: 1000;
             }
             .conteudoPopup {
                 background-color: white;
                 padding: 30px;
-                border-radius: 10px;
+                border-radius: var(--card-radius);
+                box-shadow: var(--shadow);
+                width: 90%;
+                max-width: 400px;
                 text-align: center;
-                min-width: 300px;
+            }
+
+            .conteudoPopup input {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                font-size: 16px;
+            }
+
+            .conteudoPopup h3 {
+                margin-bottom: 20px;
+                color: #333;
             }
             #salas {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
+                margin-top: 20px;
+            }
+
+            #listaSalas {
+                list-style: none;
+                padding-left: 0;
+                width: 100%;
             }
             #atualizarLista {
                 width: 150px;
@@ -86,27 +110,30 @@
             }
             .botaoSala {
                 display: block;
-                background-color: #4CAF50;
+                background-color: var(--primary-color);
                 color: white;
-                padding: 10px;
-                margin: 5px 0;
-                text-decoration: none;
-                border-radius: 5px;
+                padding: 12px;
+                margin: 10px 0;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
                 text-align: center;
-                font-weight: bold;
+                font-weight: 600;
+                transition: background-color 0.2s ease;
+                width: 100%;
             }
 
             .botaoSala:hover {
-                background-color: #45a049;
+                background-color: #00acc1;
             }
             ul {
                 padding-left: 0;
             }
         </style>
-    </head>
+    </head>    
     <body>
         <div class="container">
-            <h3>Tabuada - 2 Jogadores</h3>
+            <h3>Lobby - Tabuada</h3>
             <div id="botoesSala" >
                 <button class="botaoBasico" onclick="criarSala()">Criar Sala</button>
                 <!-- <button class="botaoBasico" onclick="entrarSala()">Entrar em Sala</button> -->
@@ -123,7 +150,7 @@
         </div>
         <div id="popupCriarSala" style="display: none;">
             <div class="conteudoPopup" id="popupConteudo">
-                <h3>Criar Sala</h3>
+                <h3>Nova Sala</h3>
                 <input type="text" id="nomeSala" placeholder="Nome da sala"><br><br>
                 <input type="text" id="nomeJogador" placeholder="Nome do jogador"><br><br>
                 <input type="password" id="senhaSala" placeholder="Senha da sala"><br><br>
@@ -140,12 +167,11 @@
 
         function criarSala() {
             document.getElementById("popupCriarSala").style.display = "flex";
-        }
-
+        }         
         function fecharPopup() {
+            document.getElementById("popupEntrarSala").style.display = "none";
             document.getElementById("popupCriarSala").style.display = "none";
-        }       
-
+        }  
 
         function confirmarCriacao() {
             const sala = document.getElementById('nomeSala').value;
@@ -160,28 +186,34 @@
             // Aqui você pode mandar os dados pro servidor ou redirecionar pra nova sala
             console.log("Criando sala com:", nome, senha, sala);
 
-            // Exemplo: redirecionar pra rota que cria sala
+            
             window.location.href = `/createTab?nome=${encodeURIComponent(nome)}&senha=${encodeURIComponent(senha)}&sala=${encodeURIComponent(sala)}`;
         }
 
-        function atualizarLista() {
-            fetch('/salas')
-                .then(response => response.json())
-                .then(salas => {
-                    const lista = document.getElementById("listaSalas");
-                    lista.innerHTML = "";
+        function atualizarLista(variavelQueQuerMandar) {
+            fetch('/salas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ jogo: 'Tabuada' })
+            })
+            .then(response => response.json())
+            .then(salas => {
+                const lista = document.getElementById("listaSalas");
+                lista.innerHTML = "";
 
-                    salas.forEach(sala => {
-                        const botao = document.createElement("button");
-                        botao.textContent = `Sala: ${sala.sala} (Criador: ${sala.dono})`;
-                        botao.className = "botaoSala";
-                        botao.onclick = () => entrarSala(sala.id);  // Aqui chama a função com o ID da sala
-                        lista.appendChild(botao);
-                    });
-                })
-                .catch(error => {
-                    console.error("Erro ao atualizar a lista de salas:", error);
+                salas.forEach(sala => {
+                    const botao = document.createElement("button");
+                    botao.textContent = `Sala: ${sala.sala} (Criador: ${sala.dono})`;
+                    botao.className = "botaoSala";
+                    botao.onclick = () => entrarSala(sala.id);
+                    lista.appendChild(botao);
                 });
+            })
+            .catch(error => {
+                console.error("Erro ao atualizar a lista de salas:", error);
+            });
         }
 
         function entrarSala(sala) {
@@ -192,15 +224,12 @@
                     <input type="text" id="nomeJogador2" placeholder="Nome do jogador"><br><br>
                     <input type="password" id="senhaLogin" placeholder="Senha da sala"><br><br>
                     <button onclick="tentarEntrarSala('${sala}')" class="botaoSala">Entrar</button><br><br>
-                    <button class="botaoBasico" onclick="fecharPopup()">Cancelar</button>
+                    <button id='fecharEntrarSala' class="botaoBasico" onclick="fecharPopup()">Cancelar</button>
                 </div>
             `;
             popup.style.display = 'flex';
         }   
 
-        function fecharPopup() {
-            document.getElementById('popupEntrarSala').style.display = 'none';
-        }
         function validarNomeForm() {
             const nome = document.getElementById('nomeJogador2').value.trim();
             if (!nome) {

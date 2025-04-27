@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+        <link rel="icon" href="data:,">
+        <title>Batalha Naval</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body, html {
+                height: 100%;
+                width: 100%;
+                font-family: Arial, sans-serif;
+            }
+
+            #container-principal {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+
+            #area-tabuleiro {
+                flex: 1;
+                display: flex;
+                position: relative;
+            }
+
+            #eixo-y {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 5px 0;
+                background-color: white;
+                border-right: 1px solid #ccc;
+                z-index: 5;
+            }
+
+            .eixo-y-label {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 0.8rem;
+                min-height: 0;
+            }
+
+            #tabuleiro {
+                flex: 1;
+                position: relative;
+            }
+
+            #grid {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: grid;
+                grid-template-columns: repeat(9, 1fr);
+                grid-template-rows: repeat(9, 1fr);
+            }
+
+            .cell {
+                border: 1px solid rgba(0,0,0,0.3);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 0.7rem;
+                color: black;
+                pointer-events: none;
+            }
+
+            #eixo-x {
+                display: flex;
+                justify-content: space-between;
+                padding: 0 5px;
+                background-color: white;
+                border-top: 1px solid #ccc;
+                z-index: 5;
+            }
+
+            .eixo-x-label {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 0.8rem;
+            }
+
+            #popup {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10;
+            }
+
+            #popup-content {
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                width: 300px;
+            }
+
+            #nome-sala {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+                color: royalblue;
+            }
+
+            #lista-jogadores {
+                text-align: left;
+                margin: 20px 0;
+            }
+
+            #lista-jogadores h3 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+                color: #333;
+            }
+
+            #jogadores {
+                list-style: none;
+                padding: 0;
+            }
+
+            #jogadores li {
+                font-size: 1rem;
+                margin-bottom: 5px;
+                padding: 5px 10px;
+                background-color: #f0f0f0;
+                border-radius: 5px;
+            }
+
+            #botao-iniciar {
+                padding: 10px 20px;
+                margin-top: 20px;
+                font-size: 1rem;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            #botao-iniciar:enabled {
+                background-color: royalblue;
+                color: white;
+            }
+
+            #botao-iniciar:disabled {
+                background-color: grey;
+                color: white;
+            }
+
+            #tabuleiro {
+                background-image: url('/static/mar.png'); 
+                background-size: cover;
+                background-position: center;
+                opacity: 0.5;
+            }
+            #popup-tiro {
+                /* position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%; */
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 11; /* Pode ser maior que o outro popup */
+            }
+
+            #popup-tiro-content {
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                width: 250px;
+            }
+
+            #coordenadas {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            .coordenada {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .coordenada label {
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+
+            .coordenada select {
+                padding: 5px;
+                font-size: 1rem;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+
+            #botao-atirar {
+                padding: 10px 20px;
+                font-size: 1rem;
+                border: none;
+                border-radius: 5px;
+                background-color: crimson;
+                color: white;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            #botao-atirar:hover {
+                background-color: darkred;
+            }
+            @keyframes pulsar {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            #botao-acao {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 70px;
+                height: 70px;
+                border: none;
+                border-radius: 50%;
+                background-color: grey; /* Inicialmente cinza */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                cursor: not-allowed;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                transition: background-color 0.3s;
+                z-index: 20;
+            }
+
+            #botao-acao.enabled {
+                background-color: royalblue;
+                cursor: pointer;
+                animation: pulsar 1.5s infinite;
+            }
+
+            #botao-acao:hover.enabled {
+                transform: scale(1.1);
+            }
+
+            #icone-canhao {
+                width: 50%;
+                height: 50%;
+                object-fit: contain;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="container-principal">
+          
+          <div id="area-tabuleiro">
+            <div id="eixo-y">
+              <!-- Números do eixo Y serão inseridos pelo JavaScript -->
+            </div>
+
+            <div id="tabuleiro">
+              <div id="grid">
+                <!-- Células do grid inseridas por JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <div id="eixo-x">
+            <!-- Números do eixo X serão inseridos pelo JavaScript -->
+          </div>
+
+          <div id="popup" style="display:none">
+            <div id="popup-content">
+              <h2 id="nome-sala">{{ sala }}</h2>
+              <div id="lista-jogadores">
+                <h3>Jogadores:</h3>
+                <ul id="jogadores">
+                  {% for nome in jogadores %}
+                    <li>{{ nome }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <button id="botao-iniciar" disabled>Iniciar Partida</button>
+            </div>
+          </div>
+          <div id="popup-tiro" style="display: none;">
+            <div id="popup-tiro-content">
+                <div id="coordenadas">
+                    <div class="coordenada">
+                        <label for="seletor-x">X:</label>
+                        <select id="seletor-x">
+                            {% for i in range(-4, 5) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+        
+                    <div class="coordenada">
+                        <label for="seletor-y">Y:</label>
+                        <select id="seletor-y">
+                            {% for i in range(4, -5, -1) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <button id="botao-atirar" onclick="atirar()">Fogo!</button>
+                    <br>
+                    <button id="'cancelarAtirar" onclick="cancelarTiro()">Cancelar</button>
+                </div>
+                
+            </div>
+        </div>
+        <button id="botao-acao" onclick="abrirPopupTiro()">
+            <img src="/static/canhão.png" alt="Canhão" id="icone-canhao">
+        </button>
+        </div>      
+        
+    </body>
+
+    <script>
+        const nomeDoJogador = "{{ jogador }}";  
+        const idDaSala = "{{ id_sala }}";
+        // const socket = io('http://127.0.0.1:2000');
+        // const socket = io("https://diegomatematica.com.br");
+
+
+        window.onload = () => {
+            const grid = document.getElementById('grid');
+            const eixoY = document.getElementById('eixo-y');
+            const eixoX = document.getElementById('eixo-x');
+            
+            // Preencher o grid
+            for (let y = 4; y >= -4; y--) {
+                for (let x = -4; x <= 4; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    grid.appendChild(cell);
+                    
+                }
+            }
+
+            // Preencher eixo Y (lado esquerdo)
+            for (let y = 4; y >= -4; y--) {
+                const label = document.createElement('div');
+                label.className = 'eixo-y-label';
+                label.innerText = y;
+                eixoY.appendChild(label);
+                label.style.backgroundColor = 'yellow';
+            }
+
+            // Preencher eixo X (embaixo)
+            for (let x = -4; x <= 4; x++) {
+                const label = document.createElement('div');
+                label.className = 'eixo-x-label';
+                label.innerText = x;
+                eixoX.appendChild(label);
+                label.style.backgroundColor = 'yellow';
+            }
+        }
+
+        window.addEventListener('beforeunload', function () {
+            const data = JSON.stringify({
+                jogador: nomeDoJogador,
+                sala: idDaSala
+            });
+
+            const blob = new Blob([data], { type: 'application/json' });
+            navigator.sendBeacon('/sair_da_sala', blob);
+        });
+
+        function abrirPopupTiro(){
+            document.getElementById('popup-tiro').style.display = 'flex';
+        }
+        function cancelarTiro() {
+            document.getElementById('popup-tiro').style.display = 'none';
+        }
+        function atirar() {
+            socket.emit('atirar', {
+                'jogador': nomeDoJogador,
+                'sala': idDaSala,
+                'coord-x': document.getElementById("seletor-x").value,
+                'coord-y': document.getElementById('seletor-y').value,
+            })
+        }
+    </script>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,18 @@
     <link rel="icon" href="data:,">
    
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
         .principal {
             display: flex;
             flex-direction: column;
@@ -15,88 +27,179 @@
             justify-content: flex-start;
             min-height: 100vh;
             width: 100%;
+            padding: 20px;
         }
+
         .topo {
             display: flex;
-            flex-direction: column;            
+            flex-direction: column;
             align-items: center;
             width: 100%;
+            margin-bottom: 20px;
         }
-        .menu {
-            display: flex;
-            flex-direction: row;            
-            padding: 5px;
-            background-color: rgb(47, 206, 255);
-            gap: 1rem;
-            border: 1px solid black;
-            width: 98%;
+
+        h2 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
+
         .busca {
             display: flex;
             padding: 10px;
             align-items: center;
             gap: 0.5rem;
+            margin-bottom: 20px;
         }
+
         .barraBusca {
             border-radius: 5px;
-            height:30px;
-            font-size: large;
+            height: 35px;
+            font-size: 1rem;
+            padding: 0 10px;
+            border: 1px solid #ccc;
         }
+
         .botaoBuscar {
-            /* background-color: rgb(47, 179, 255); */
-            /* border: 1px solid black; */
-            /* border-radius: 5px; */
             height: 40px;
-            font-size: medium;
+            font-size: 1rem;
+            padding: 0 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        a {
-            text-decoration: none;
-            color: black;
+
+        .botaoBuscar:hover {
+            background-color: #2980b9;
         }
+
+        .menu {
+            display: flex;
+            flex-direction: row;
+            padding: 10px;
+            gap: 1rem;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .itensMenu {
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            background-color: #ecf0f1;
+            color: #34495e;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+
+        .itensMenu:hover {
+            background-color: #3498db;
+            color: white;
+            transform: scale(1.05);
+        }
+
         .corpo {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2rem;
+            gap: 1.5rem;
+            width: 100%;
             background-color: white;
-            border: 0.5px solid black;
-            border-radius: 3px;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .itensCorpo {
             display: flex;
-            background-color: rgba(47, 255, 141, 0.822);
+            background-color: rgba(47, 255, 141, 0.8);
             border-radius: 5px;
-            border: 1px solid black;
-            height: 30px;  
-            width: 300px;          
-            display: flex;
+            border: 1px solid #34495e;
+            height: 50px;
+            width: 280px;
             align-items: center;
             justify-content: center;
-            
+            font-size: 1.1rem;
+            text-align: center;
+            color: #34495e;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
         }
-        .itensMenu {
-            flex-grow: 1;
+
+        .itensCorpo:hover {
+            background-color: #2ecc71;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .itensMenu {
+                width: 100%;
+                text-align: center;
+                padding: 15px;
+            }
+
+            .barraBusca {
+                width: 100%;
+            }
+
+            .botaoBuscar {
+                width: 100%;
+                font-size: 1.2rem;
+            }
+            h2 {
+                font-size: 1.3rem;
+                color: #2c3e50;
+                margin-bottom: 15px;
+            }
+            .topo {
+                margin-bottom: 0;
+            }
+            .menu {
+                margin-top: 0;
+                order: 2;
+            }
+            .corpo {
+                order: 1;
+            }
+            .busca {
+                margin-bottom: 0;
+            }
+        }
+        a {
+            text-decoration: none;
         }
     </style>
-
 </head>
 <body>
     <div class="principal">
-        <div class="topo">
-            <h2>Matemática - Diego Silva</h2>
+        <div id="topo" class="topo">
+            <h2 class="itensMenu" style="margin: 0">📚 Matemática - Diego Silva</h2>
             <div class="busca">
                 <form action="" method="post">
                     <input class="barraBusca" type="text" placeholder="Pesquisar por aluno" id="aluno_id_input" name="aluno_id_input" required>
                     <button type="submit" class="botaoBuscar">🔍</button>
                 </form>
             </div>        
-            <div class="menu">
-                <a id="Notas" class="itensMenu" onclick="trocarLink(this, 'rgba(47, 255, 141, 0.822)')" >Notas</a>   
-                <a id="Estatisticas" class="itensMenu" onclick="trocarLink(this, 'orange')">Estatísticas</a>         
-                <a id="Ranking" class="itensMenu" onclick="trocarLink(this, 'yellow')" >Ranking</a>
-                <a id="Boss" class="itensMenu" onclick="trocarLink(this, 'Crimson')" >Boss</a>
-                <a class="itensMenu" href="{{ url_for('downloads') }}">Exercícios</a>
-            </div>
+            
+        </div>
+        <div id="menu" class="menu">
+            <a id="Notas" class="itensMenu" onclick="trocarLink(this, 'rgba(47, 255, 141, 0.822)')">Notas</a>   
+            <a id="Estatisticas" class="itensMenu" onclick="trocarLink(this, 'orange')">Estatísticas</a>         
+            <a id="Ranking" class="itensMenu" onclick="trocarLink(this, 'yellow')">Ranking</a>
+            <a id="Boss" class="itensMenu" onclick="trocarLink(this, 'Crimson')">Boss</a>
+            <a class="itensMenu" href="{{ url_for('downloads') }}">Exercícios</a>
+            <a id="jogos" class="itensMenu" href="{{ url_for('jogos') }}">Jogos</a>
         </div>
         <div id="corpo" class="corpo">
             <h2 id="paragrafo">📖 Notas 📖</h2>
@@ -141,7 +244,7 @@
                 item.href = urlBase.replace('__CLASS_ID__', classe);
             }
             if (item !== elemento) {
-                item.style.backgroundColor = cor;  // Restaura a cor original para outros itens
+                item.style.backgroundColor = cor;
             }
         });
         if (elemento.id === "Ranking") {
@@ -156,8 +259,7 @@
                 rankingGeral.style.backgroundColor = cor;
                 document.getElementById("corpo").appendChild(rankingGeral);
             }
-            
-        }        
+        }
     }
 </script>
 </html>

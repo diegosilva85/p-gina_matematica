@@ -1,158 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ class_name }} Page</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="icon" href="data:,">
-    <style>
-        body {
-    max-width: 100%;
-    overflow-x: hidden; /* Para evitar a barra de rolagem horizontal em dispositivos móveis */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ class_name }} - Notas</title>
+  <!-- <link rel="stylesheet" href="/static/styles.css" /> -->
+  <link rel="icon" href="data:," />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f2f4f8;
+      color: #333;
+      margin: 0;
+      padding: 1rem;
     }
+
     .NotasAlunos {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 1000px;
+      margin: auto;
     }
+
     .Aluno {
-        display: flex;
-        flex-direction: column;
-        border-radius: 5px;
-        border: 1px solid black;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        background-color: aliceblue;
+      background-color: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 1rem;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
+
+    .Aluno p {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 0.8rem;
+      text-align: center;
+      color: #1e3a8a;
+    }
+
     .tabelaNotas {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      width: 100%;
+      overflow-x: auto;
     }
+
     table {
-        width: 100%;
+      width: 100%;
+      border-collapse: collapse;
     }
+
+    th, td {
+      padding: 0.6rem;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
     th {
-        font-size: small;
-        background-color: darkgray;
+      background-color: #e0e7ff;
+      color: #111827;
+      font-weight: 600;
     }
+
     td {
-        font-size: smaller;
+      background-color: #f9fafb;
     }
-    </style>
+
+    tr:nth-child(even) td {
+      background-color: #f1f5f9;
+    }
+
+    td:last-child {
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    @media (max-width: 600px) {
+      .Aluno {
+        padding: 0.8rem;
+      }
+
+      th, td {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+      }
+    }
+  </style>
 </head>
 <body>
+
 <div class="menu">
-    <!-- <table id="desempenho">
-        <tr>
-            <th>DESEMPENHO DA TURMA - {{ class_name }}</th>
-        </tr>
-        {% for i in range(tamanho) %}
-        <tr>
-            <td id="semana" >SEMANA {{ i + 1 }}</td>
-        </tr>
-        <tr>
-            <td>MÉDIA: {{ estatisticas[i][0] }}</td>
-        </tr>
-        <tr>
-            <td>MEDIANA: {{ estatisticas[i][1] }}</td>
-        </tr>
-        <tr>
-            <td>MODA: {{ estatisticas[i][2] }}</td>
-        </tr>
-        <tr>
-            <td>DESVIO-PADRÃO: {{ estatisticas[i][3] }}</td>
-        </tr>
-        {% endfor %}
-
-    </table> -->
-    
-    <div class="NotasAlunos">
-        {% for row in data %}
-        <div class="Aluno">
-            <p>{{ row.nome }}</p>
-            <div class="tabelaNotas">
-                <table>
-                    <tr>
-                        <th>1°</th>
-                        <th>2°</th>
-                        <th>3°</th>
-                        <th>4°</th>
-                        <th>5°</th>
-                        <th>6°</th>
-                    </tr>                
-                    <tr>
-                        <td>{{ row.prova1 }}</td>
-                        <td>{{ row.prova2 }}</td>
-                        <td>{{ row.prova3 }}</td>
-                        <td>{{ row.prova4 }}</td>
-                        <td>{{ row.prova5 }}</td>
-                        <td>{{ row.prova6 }}</td>
-                    </tr>
-                </table>
-                <table>
-                    <tr>
-                        <th>7°</th>
-                        <th>8°</th>
-                        <th>9°</th>
-                        <th>10°</th>
-                        <th>11°</th>
-                        <th>12°</th>
-                        <th>Média</th>
-                    </tr>                
-                    <tr>
-                        <td>{{ row.prova7 }}</td>
-                        <td>{{ row.prova8 }}</td>
-                        <td>{{ row.prova9 }}</td>
-                        <td>{{ row.prova10 }}</td>
-                        <td>{{ row.prova11 }}</td>
-                        <td>{{ row.prova12 }}</td>
-                        <td>{{ media_alunos[loop.index0]['media'] }}</td>
-                        
-                    </tr>
-                </table>
-            </div>
-        </div>
-        {% endfor %}
+  <div class="NotasAlunos">
+    {% for row in data %}
+    <div class="Aluno">
+      <p>{{ row.nome }}</p>
+      <div class="tabelaNotas">
+        <table>
+          <tr>
+            <th>1°</th><th>2°</th><th>3°</th><th>4°</th><th>5°</th><th>6°</th>
+          </tr>
+          <tr>
+            <td>{{ row.prova1 }}</td>
+            <td>{{ row.prova2 }}</td>
+            <td>{{ row.prova3 }}</td>
+            <td>{{ row.prova4 }}</td>
+            <td>{{ row.prova5 }}</td>
+            <td style="color: #111827; font-weight: normal;">{{ row.prova6 }}</td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <th>7°</th><th>8°</th><th>9°</th><th>10°</th><th>11°</th><th>12°</th><th>Média</th>
+          </tr>
+          <tr>
+            <td>{{ row.prova7 }}</td>
+            <td>{{ row.prova8 }}</td>
+            <td>{{ row.prova9 }}</td>
+            <td>{{ row.prova10 }}</td>
+            <td>{{ row.prova11 }}</td>
+            <td>{{ row.prova12 }}</td>
+            <td>{{ media_alunos[loop.index0]['media'] }}</td>
+          </tr>
+        </table>
+      </div>
     </div>
-    
-    <!-- <table>
-            <tr>
-                <th>Aluno</th>
-                <th>1°</th>
-                <th>2°</th>
-                <th>3°</th>
-                <th>4°</th>
-                <th>5°</th>
-                <th>6°</th>
-                <th>7°</th>
-                <th>8°</th>
-                <th>Média</th>
-            </tr>
-            {% for row in data %}
-                <tr>
-                    <td>{{ row.nome }}</td>
-                    <td>{{ row.prova1 }}</td>
-                    <td>{{ row.prova2 }}</td>
-                    <td>{{ row.prova3 }}</td>
-                    <td>{{ row.prova4 }}</td>
-                    <td>{{ row.prova5 }}</td>
-                    <td>{{ row.prova6 }}</td>
-                    <td>{{ row.prova7 }}</td>
-                    <td>{{ row.prova8 }}</td>
-                    <td>{{ media_alunos[loop.index0]['media'] }}</td>
-                </tr>
-
-            {% endfor %}
-        </table> -->
+    {% endfor %}
+  </div>
 </div>
-<!-- Content for the specific class page -->
 
 </body>
 </html>
