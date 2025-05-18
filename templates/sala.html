@@ -339,8 +339,8 @@
     let nivel = 1;
     const container = document.getElementById('container');
     const rodadasSelecionadas = document.getElementById('rodadas').value;
-    const socket = io('http://127.0.0.1:2000');
-    // const socket = io("https://diegomatematica.com.br");
+    // const socket = io('http://127.0.0.1:2000');
+    const socket = io("https://diegomatematica.com.br");
     const nomeDoJogador = "{{ jogador }}";  
     const idDaSala = "{{ id_sala }}";
     const botaoJogar = document.getElementById('botaoJogar');
@@ -420,7 +420,41 @@
 
     function comecarJogo () {
         document.getElementById('cabecalho').style.display = 'none';
-        solicitarParametros()
+        // solicitarParametros()
+        contadorIniciarPartida()
+    }
+
+    function contadorIniciarPartida() {
+        clearInterval(intervalo); // limpa se já tiver um contador rodando           
+        document.getElementById('caixaResultado').style.display = "flex"; 
+        document.getElementById('vencedor').innerText = 'Jogadores Prontos';
+        tempo = 5;
+        intervalo = setInterval(() => {                
+            tempo -= 0.01;
+            document.getElementById('contador').innerText = `${tempo.toFixed(2)}`;
+            if (tempo <= 0) {
+                tempo = 0;
+                clearInterval(intervalo); // Para o contador quando chega em 0                
+                r1.disabled = true;
+                r2.disabled = true;
+                r3.disabled = true;
+                r4.disabled = true;
+
+                if (flagResposta) {
+                document.getElementById('caixaResultado').style.display = "none";
+                flagResposta = false;
+                console.log(`Solicitando novo nivel (${nivel})`);
+                solicitarParametros();
+                } else {
+                    document.getElementById('caixaResultado').style.display = "none";
+                    document.getElementById('vencedor').innerText = "VENCEDOR:";
+                    solicitarParametros();
+                }
+                        
+            }   
+            
+            document.getElementById("contadorPartida").innerText = "O jogo comecará em: " + tempo.toFixed(1) + " s";             
+        }, 10) 
     }
     
     let esperandoParametros = false;
@@ -475,6 +509,10 @@
             r2.blur();
             r3.blur();
             r4.blur();
+            r1.style.backgroundColor = '#e0f7fa';
+            r2.style.backgroundColor = '#e0f7fa';
+            r3.style.backgroundColor = '#e0f7fa';
+            r4.style.backgroundColor = '#e0f7fa';
         }        
         esperandoParametros = false; // Parar o loop ao receber os parâmetros
         tentativasParametros = 0;

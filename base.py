@@ -93,5 +93,9 @@ class BaseMurais(DeclarativeBase):
     prova6: Mapped[str] = mapped_column(nullable=True)
     prova7: Mapped[str] = mapped_column(nullable=True)
     prova8: Mapped[str] = mapped_column(nullable=True)
+    prova9: Mapped[str] = mapped_column(nullable=True)
+    prova10: Mapped[str] = mapped_column(nullable=True)
+    prova11: Mapped[str] = mapped_column(nullable=True)
+    prova12: Mapped[str] = mapped_column(nullable=True)
 
 

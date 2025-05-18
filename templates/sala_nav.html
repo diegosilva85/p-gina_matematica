@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">    
         <link rel="icon" href="data:,">
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
         <title>Batalha Naval</title>
         <style>
             * {
@@ -24,7 +25,7 @@
                 height: 100%;
                 overflow: hidden;
                 display: flex;
-                flex-direction: column;
+                flex-direction: column;                
             }
 
             #area-tabuleiro {
@@ -75,7 +76,13 @@
                 align-items: center;
                 font-size: 0.7rem;
                 color: black;
-                pointer-events: none;
+                /* pointer-events: none; */
+            }
+            .cell {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
             }
 
             #eixo-x {
@@ -185,13 +192,64 @@
                 z-index: 11; /* Pode ser maior que o outro popup */
             }
 
-            #popup-tiro-content {
+            #popup-tiro-content  {
                 background: white;
                 padding: 30px;
                 border-radius: 12px;
                 text-align: center;
                 box-shadow: 0 0 20px rgba(0,0,0,0.3);
                 width: 250px;
+            }
+
+            #container-posicionar-navios {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #posicionarNavios {
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 11;
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                width: 250px;
+            }           
+
+            .navioImagem {
+                width: 70%;
+                height: auto; /* Mantém a proporção da imagem */
+                display: block;
+                margin: auto; /* Centraliza dentro do botão */
+            }
+
+            #confirmarPosicao {
+                background-color: #4CAF50; /* Verde */
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+            #confirmarPosicao:hover {
+                background-color: #45a049;
+                transform: scale(1.05);
+            }
+
+            .botaoNavio:hover {
+                background-color: wheat;
             }
 
             #coordenadas {
@@ -223,10 +281,14 @@
                 font-size: 1rem;
                 border: none;
                 border-radius: 5px;
-                background-color: crimson;
+                /* background-color: crimson; */
                 color: white;
                 cursor: pointer;
                 transition: background-color 0.3s ease;
+            }
+
+            .fogo {
+                width: 90%;
             }
 
             #botao-atirar:hover {
@@ -278,9 +340,92 @@
                 object-fit: contain;
             }
 
+            .popup {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #222;
+                color: white;
+                padding: 20px 40px;
+                border-radius: 12px;
+                font-size: 1.2rem;
+                box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.5s ease;
+                }
+
+                .popup.show {
+                display: block;
+                opacity: 1;
+            }
+            
+            .cell {
+                cursor: pointer; /* mostra que é clicável */
+                transition: border 0.2s, box-shadow 0.2s;
+            }
+
+            .cell:hover {
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            }
+
+            #popupAguardando {
+                display: none; /* oculto por padrão */
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                
+                background-color: rgba(255, 255, 255, 0.95); /* fundo branco com leve transparência */
+                padding: 30px 40px;
+                border-radius: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 1.2rem;
+                color: #333;
+                text-align: center;
+                z-index: 1000;
+            }
+
+            .canhao {
+                position: fixed;
+                left: 50%;
+                transform: translateX(-50%);
+                transition: opacity 0.5s ease;
+                opacity: 1;
+                z-index: 1000;
+            }
+
+            .topo {
+                top: 20px;
+            }
+
+            .baixo {
+                bottom: 20px;
+            }
+            
+            #popupDestruido {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                display: none;
+                opacity: 1;
+                transition: opacity 2s ease-out;
+            }
+
+            #popupDestruido img {
+                max-width: 80vw;
+                max-height: 80vh;
+            }            
+
         </style>
     </head>
     <body>
+        <img id="imagemCanhao" src="" class="canhao" style="display: none;" />
         <div id="container-principal">
           
           <div id="area-tabuleiro">
@@ -299,20 +444,37 @@
             <!-- Números do eixo X serão inseridos pelo JavaScript -->
           </div>
 
-          <div id="popup" style="display:none">
+          <div id="popup" >
             <div id="popup-content">
-              <h2 id="nome-sala">{{ sala }}</h2>
+              <h2 id="nome-sala">{{ sala.sala }}</h2>
               <div id="lista-jogadores">
                 <h3>Jogadores:</h3>
                 <ul id="jogadores">
-                  {% for nome in jogadores %}
+                  {% for nome in sala.jogadores %}
                     <li>{{ nome }}</li>
                   {% endfor %}
                 </ul>
               </div>
-              <button id="botao-iniciar" disabled>Iniciar Partida</button>
+              <button id="botao-iniciar" onclick="iniciarPartida()">Iniciar Partida</button>
             </div>
           </div>
+
+            <div id="container-posicionar-navios" style="display: none;">
+                <div id="posicionarNavios">
+                    <h4>Posicionar navios</h4>
+                    <p>Aperte no navio  para selecioná-lo e em seguida escolha a posição dele no tabuleiro.</p>
+                    <button class="botaoNavio" id="navio4" onclick="posicionarNavio(this)"><img class="navioImagem" src="/static/navio4.png" alt="navio de 4 partes">4 quadrados</button>
+                    <button class="botaoNavio" id="navio3" onclick="posicionarNavio(this)"><img class="navioImagem" src="/static/navio3.png" alt="navio de 3 partes">3 quadrados</button>
+                    <button class="botaoNavio" id="navio2" onclick="posicionarNavio(this)"><img class="navioImagem" src="/static/navio2.png" alt="navio de 2 partes">2 quadrados</button>
+                    <button class="botaoNavio" id="navio1" onclick="posicionarNavio(this)"><img class="navioImagem" src="/static/navio1.png" alt="navio de 1 partes">1 quadrado</button>
+                    <button id="confirmarPosicao" onclick="confirmarPosicoes()">Confirmar</button>
+                  </div>
+            </div>         
+        
+            <div id="popupAguardando">
+                <p>Aguardando oponente...</p>
+            </div>
+
           <div id="popup-tiro" style="display: none;">
             <div id="popup-tiro-content">
                 <div id="coordenadas">
@@ -335,26 +497,53 @@
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center;">
-                    <button id="botao-atirar" onclick="atirar()">Fogo!</button>
+                    <button id="botao-atirar" onclick="atirar()"><img class="fogo" src="/static/fogo.png" alt="fogo!"></button>
                     <br>
                     <button id="'cancelarAtirar" onclick="cancelarTiro()">Cancelar</button>
                 </div>
                 
             </div>
         </div>
-        <button id="botao-acao" onclick="abrirPopupTiro()">
+        <button id="botao-acao" style="display: none;" onclick="abrirPopupTiro()">
             <img src="/static/canhão.png" alt="Canhão" id="icone-canhao">
         </button>
         </div>      
-        
+        <div id="popup-posicao" class="popup" style="display: none;">
+            <p id="mensagem-posicao"></p>
+          </div>
+        <div id="popupDestruido" style="display: none;">
+            <img id="imgDestruido" src="" alt="Imagem de destruição" />
+        </div>  
+                  
     </body>
 
-    <script>
+    <script>      
+        
+        const canhao_superior = "/static/canhao_para_baixo.png";
+        const canhao_inferior = "/static/canhao_para_cima.png";
+        const somTiro = new Audio('/static/sounds/tiro_canhao.mp3');
+        const somExplosao = new Audio('/static/sounds/explosao.mp3');
+        const popupIniciarPartida = document.getElementById("popup");
+        const popupPosicionarNavio = document.getElementById('container-posicionar-navios');
         const nomeDoJogador = "{{ jogador }}";  
         const idDaSala = "{{ id_sala }}";
-        // const socket = io('http://127.0.0.1:2000');
+        const quantidadeJogadores = "{{ quantidade_jogadores }}";
+        const navio4 = document.getElementById("navio4");
+        const navio1 = document.getElementById("navio1");
+        const socket = io('http://127.0.0.1:2000');
         // const socket = io("https://diegomatematica.com.br");
-
+        let posicaoJogador = '';        
+        let planoCartesiano = {
+            'esquerda': [-1, 0],
+            'direita': [1, 0],
+            'superior': [0, 1],
+            'inferior': [0, -1],
+            '1': [1, 1],
+            '2': [-1, 1],
+            '3': [-1, -1],
+            '4': [1, -1]
+        }
+        let coordenadasNavios = {};
 
         window.onload = () => {
             const grid = document.getElementById('grid');
@@ -367,7 +556,8 @@
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     cell.dataset.x = x;
-                    cell.dataset.y = y;
+                    cell.dataset.y = y; 
+                    cell.id = `${x}${y}`;                              
                     grid.appendChild(cell);
                     
                 }
@@ -390,7 +580,20 @@
                 eixoX.appendChild(label);
                 label.style.backgroundColor = 'yellow';
             }
+            
         }
+        socket.on('connect', () => {
+            console.log('Socket conectado');
+            socket.emit('novoJogador', {
+                'jogador': nomeDoJogador, 
+                'sala': idDaSala
+            });
+            console.log("Enviado o nome do jogador pelo socket!");
+        });
+        socket.on('connect', () => {
+            console.log("conectando na sala no redis.");
+            socket.emit('conectar_cliente', { jogador: nomeDoJogador, sala: idDaSala });
+        });
 
         window.addEventListener('beforeunload', function () {
             const data = JSON.stringify({
@@ -408,7 +611,93 @@
         function cancelarTiro() {
             document.getElementById('popup-tiro').style.display = 'none';
         }
+
+        socket.on('enviarNovoJogador', (data) => {
+            if (data.novo) {
+                const novoJogador = data.novo;
+                let listaJogadores = document.getElementById('jogadores');
+
+                const novoItem = document.createElement('li');
+                novoItem.textContent = novoJogador;
+                listaJogadores.appendChild(novoItem);
+
+                // Criar popup
+                const popup = document.createElement('div');
+                popup.textContent = `${novoJogador} entrou na sala!`;
+                popup.style.position = 'fixed';
+                popup.style.bottom = '30px';
+                popup.style.left = '50%';
+                popup.style.transform = 'translateX(-50%)';
+                popup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                popup.style.color = 'white';
+                popup.style.padding = '10px 20px';
+                popup.style.borderRadius = '10px';
+                popup.style.fontSize = '16px';
+                popup.style.zIndex = '1000';
+                popup.style.opacity = '1';
+                popup.style.transition = 'opacity 0.5s';
+
+                document.body.appendChild(popup);
+
+                // Remover depois de 3 segundos
+                setTimeout(() => {
+                    popup.style.opacity = '0'; // Faz um fade-out
+                    setTimeout(() => {
+                        popup.remove(); // Depois do fade, remove do DOM
+                    }, 500);
+                }, 3000);
+            }
+        });
+
+
+        socket.on("saiuSala", (data) => {
+            if (data.jogador) {
+                const jogadorFora = data.jogador;
+                let listaJogadores = document.getElementById('jogadores');
+
+                // Procura diretamente o <li> com o nome
+                let item = Array.from(listaJogadores.getElementsByTagName('li')).find(
+                    li => li.textContent.trim() === jogadorFora
+                );
+
+                if (item) {
+                    listaJogadores.removeChild(item);
+                }
+
+                // Criar popup
+                const popup = document.createElement('div');
+                popup.textContent = `${jogadorFora} saiu da sala!`;
+                popup.style.position = 'fixed';
+                popup.style.bottom = '30px';
+                popup.style.left = '50%';
+                popup.style.transform = 'translateX(-50%)';
+                popup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                popup.style.color = 'white';
+                popup.style.padding = '10px 20px';
+                popup.style.borderRadius = '10px';
+                popup.style.fontSize = '16px';
+                popup.style.zIndex = '1000';
+                popup.style.opacity = '1';
+                popup.style.transition = 'opacity 0.5s';
+
+                document.body.appendChild(popup);
+
+                // Remover depois de 3 segundos
+                setTimeout(() => {
+                    popup.style.opacity = '0'; // Faz um fade-out
+                    setTimeout(() => {
+                        popup.remove(); // Depois do fade, remove do DOM
+                    }, 500);
+                }, 3000);
+            }
+        });
+
         function atirar() {
+            document.getElementById('popup-tiro').style.display = 'none';
+            document.getElementById('botao-acao').style.display = 'none';
+            somTiro.play()
+            mostrarCanhao(posicaoJogador, )
+            //  Rodar o som de tiro e talvez uma animação.
             socket.emit('atirar', {
                 'jogador': nomeDoJogador,
                 'sala': idDaSala,
@@ -416,5 +705,509 @@
                 'coord-y': document.getElementById('seletor-y').value,
             })
         }
+
+        function mostrarExplosao(jogadorAcertado, x, y) {
+            console.log(`JOGADOR ACERTADO: ${jogadorAcertado}`);
+            const acertado = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            const imagem = acertado.querySelector('img');
+            setTimeout(() => {
+                const celulaAcertada = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                const imagemExplosao = document.createElement('img');
+                imagemExplosao.src = "/static/explosao_mar.png";
+                imagemExplosao.style.position = "absolute";
+                imagemExplosao.style.width = "100%";
+                imagemExplosao.style.height = "100%";
+                imagemExplosao.style.zIndex = "10";
+
+                // Garante que a célula tem posição relativa para posicionar a imagem corretamente
+                celulaAcertada.style.position = "relative";
+
+                // Adiciona a imagem à célula
+                celulaAcertada.appendChild(imagemExplosao);
+
+                // Remove a imagem após 1 segundo
+                setTimeout(() => {
+                    imagemExplosao.remove();
+                }, 2000);
+                somExplosao.play();
+                if (imagem) {
+                    imagem.remove()
+                }
+            });
+        }
+
+        function navioDestruido(coordenadas, quadrados) {
+            // Adiciona novas imagens
+            coordenadas.forEach(([cx, cy], index) => {
+                const targetCell = document.querySelector(`[data-x="${cx}"][data-y="${cy}"]`);
+                if (targetCell) {
+                    const img = document.createElement('img');
+                    img.src = `/static/naviocinza${quadrados}_${index + 1}.png`;
+                    img.alt = `Parte ${index + 1} do navio`;
+                    img.dataset.navio = quadrados;
+
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'contain';
+                    img.style.pointerEvents = 'none';
+
+                    targetCell.appendChild(img);
+                    }
+            });
+        }      
+
+        socket.on("resultado_tiro", (data) => {
+            let dicionario = {
+                "dois": "2", "tres": "3", "quatro": '4'
+            }     
+            if (data.destruido.flag) {
+                console.log(`O navio de ${data.jogador_acertado} com ${data.destruido.tipo} quadrados foi destruído.`);
+
+                setTimeout(() => {
+                    const popup = document.getElementById("popupDestruido");
+                    const img = document.getElementById("imgDestruido");
+
+                    // Substitua pelo caminho correto da imagem
+                    // img.src = `/static/navio${dicionario[data.destruido.tipo]}_derrotado.png`;
+                    img.src = `/static/navio${dicionario[data.destruido.tipo]}_derrotado.png`;
+
+                    popup.style.display = "block";
+                    popup.style.opacity = "1";
+
+                    setTimeout(() => {
+                        popup.style.opacity = "0";
+                    }, 10); // Inicia o fade logo após aparecer
+
+                    setTimeout(() => {
+                        popup.style.display = "none";
+                    }, 5000); // Remove após o fade (5s)
+                    
+                    mostrarExplosao(data.jogador_acertado, data.x, data.y)
+                    navioDestruido(data.destruido.coordenadas, dicionario[data.destruido.tipo])
+                    }, 2000);                
+
+            } else if (data.acerto) {
+                setTimeout(() => {
+                    mostrarExplosao(data.jogador_acertado, data.x, data.y)
+                }, 2000);                
+            }
+        });        
+
+        function mostrarCanhao(orientacao) {
+            const imagem = document.getElementById('imagemCanhao');
+            
+            imagem.classList.remove('topo', 'baixo');
+            imagem.style.display = 'block';
+            imagem.style.opacity = '1';
+            imagem.style.width = '200px';
+
+            if (orientacao === 'superior') {
+                imagem.classList.add('topo');
+                imagem.src = canhao_superior;
+            } else if (orientacao === 'inferior') {
+                imagem.classList.add('baixo');
+                imagem.src = canhao_inferior;
+            }
+
+            setTimeout(() => {
+                imagem.style.opacity = '0';
+                setTimeout(() => {
+                imagem.style.display = 'none';
+                }, 500); // espera o fade-out terminar
+            }, 2000);
+            }
+
+
+        function iniciarPartida() {
+            socket.emit('iniciarNaval', {
+                'jogador': nomeDoJogador,
+                'sala': idDaSala,
+            })
+            console.log(`${nomeDoJogador} enviou está pronto para iniciar a partida!`);
+            const botao = document.getElementById("botao-iniciar");
+            botao.disabled = true;
+            botao.style.backgroundColor = "#cccccc";  // cinza claro
+            botao.style.color = "#666666";            // texto escurecido
+            botao.style.cursor = "not-allowed";
+        }
+        socket.on('iniciar', (data) => {
+            popupIniciarPartida.style.display = 'none';
+            if (data.iniciar) {
+                console.log("O jogo vai começar!");
+                // Aqui você pode iniciar sua lógica de jogo, mostrar tela, etc.
+                comecarJogo(data.ordem ,data.posicoes);
+            }
+        });
+
+        function comecarJogo(ordem, posicoes) {
+            let posicao = posicoes[nomeDoJogador];
+            posicaoJogador = posicoes[nomeDoJogador];
+            let mensagem = "";
+            
+            console.log(`Sua posição no plano é ${posicao}.`);
+            // Determina mensagem com base na posição
+            if (['superior', 'inferior'].includes(posicao)) {
+                mensagem = `Você colocará os navios na parte ${posicao}.`;
+            } else if (['esquerda', 'direita'].includes(posicao)) {
+                mensagem = `Você colocará os navios na parte ${posicao}.`;
+            } else if ([1, 2, 3, 4].includes(posicao)) {
+                mensagem = `Você colocará os navios no ${posicao}º quadrante.`;
+            }
+
+            // Atualiza e mostra a popup
+            const popup = document.getElementById('popup-posicao');
+            const texto = document.getElementById('mensagem-posicao');
+            texto.textContent = mensagem;
+            popup.classList.add('show');
+            popup.style.display = 'block';
+            // Remove após 2 segundos
+            setTimeout(() => {
+                popup.classList.remove('show');
+                setTimeout(() => popup.style.display = 'none', 500);
+            }, 2000);
+            
+            if (quantidadeJogadores === "2") {
+                navio1.remove();
+            } else if (quantidadeJogadores === "4") {
+                navio4.remove();
+            }
+            popupPosicionarNavio.style.display = 'flex';
+        }
+
+
+        function posicionarNavio(elemento) {
+            console.log(`Posicionando navio: ${elemento.id}`);
+            let quadrados = elemento.id.replace("navio", "");
+            selecionarArea(posicaoJogador, quadrados)
+
+        }
+
+        function selecionarArea(posicaoJogador, quadrados) {
+            let xs = [], ys = [];
+            console.log(`Posicionando ${quadrados} quadrados.`);
+            
+            // Limpa estilos e eventos anteriores
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.style.border = '';
+                cell.style.boxShadow = '';
+                cell.removeEventListener('click', cell._clickHandler); // remove handler antigo se existir
+            });
+
+            switch (posicaoJogador) {
+                case 'esquerda':
+                    xs = [-1, -2, -3, -4];
+                    ys = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+                    break;
+                case 'direita':
+                    xs = [1, 2, 3, 4];
+                    ys = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+                    break;
+                case 'superior':
+                    xs = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+                    ys = [1, 2, 3, 4];
+                    break;
+                case 'inferior':
+                    xs = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+                    ys = [-1, -2, -3, -4];
+                    break;
+                case 1:
+                    xs = [0, 1, 2, 3, 4]
+                    ys = [1, 2, 3, 4]
+                    break;
+                case 2:
+                    xs = [-1, -2, -3, -4]
+                    ys = [0, 1, 2, 3, 4]
+                    break;
+                case 3:
+                    xs = [0, -1, -2 , -3, -4]
+                    ys = [-1, -2, -3, -4]
+                    break;
+                case 4:
+                    xs = [1, 2, 3, 4]
+                    ys = [0, -1, -2, -3, -4]
+                    break;
+                default:
+                    return;
+            }
+
+            for (let x of xs) {
+                for (let y of ys) {
+                    const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                    if (cell) {
+                        // Estilo de destaque
+                        cell.style.border = '2px solid #FFD700';
+                        cell.style.boxShadow = '0 0 5px #FFD700';
+
+                        // Define função de clique
+                        const clickHandler = () => {
+                            const coords = armazenarPosicaoNavio(x, y, quadrados, posicaoJogador);
+                            if (!coords) return;
+
+                            // Verifica se alguma célula já contém uma imagem (navio)
+                            const ocupado = coords.some(([cx, cy]) => {
+                                const cell = document.querySelector(`[data-x="${cx}"][data-y="${cy}"]`);
+                                return cell && cell.querySelector('img'); // já tem navio
+                            });
+
+                            if (ocupado) {
+                                alert('Posição inválida! Já existe um navio em uma ou mais dessas células.');
+                                return;
+                            }
+
+                            // Remove imagens anteriores desse tamanho
+                            document.querySelectorAll(`.cell img[data-navio="${quadrados}"]`).forEach(img => img.remove());
+
+                            // Adiciona novas imagens
+                            coords.forEach(([cx, cy], index) => {
+                                const targetCell = document.querySelector(`[data-x="${cx}"][data-y="${cy}"]`);
+                                if (targetCell) {
+                                    const img = document.createElement('img');
+                                    img.src = `/static/navio${quadrados}_${index + 1}.png`;
+                                    img.alt = `Parte ${index + 1} do navio`;
+                                    img.dataset.navio = quadrados;
+
+                                    img.style.width = '100%';
+                                    img.style.height = '100%';
+                                    img.style.objectFit = 'contain';
+                                    img.style.pointerEvents = 'none';
+
+                                    targetCell.appendChild(img);
+                                }
+                            });
+                        };
+
+                        // Guarda a referência para poder remover depois
+                        cell._clickHandler = clickHandler;
+                        cell.addEventListener('click', clickHandler);
+                    }
+                }
+            }
+        }
+
+        function resetarSelecao() {
+            document.querySelectorAll('.cell').forEach(cell => {
+            cell.style.border = '';
+            cell.style.boxShadow = '';
+            if (cell._clickHandler) {
+                cell.removeEventListener('click', cell._clickHandler);
+                delete cell._clickHandler;
+            }            
+        });
+        }
+
+        function armazenarPosicaoNavio(xInicial, yInicial, tamanhoNavio, posicao) {
+            const x = Number(xInicial);  // ← garante que é número
+            const y = Number(yInicial);
+            const navio = Number(tamanhoNavio);
+
+            let coordenadas = [];
+
+            // Verifica se o navio ultrapassaria o limite do grid
+            let inicioX = x;
+            console.log(`X = ${inicioX} // tamanho = ${navio}`);
+            console.log(`x + navio - 1 = ${x + navio - 1}`);
+
+            if (posicao === 2 || posicao === 3) {
+                if (posicao === 2) {
+                    if (x + navio - 1 > -1) {
+                        inicioX = -1 - navio + 1;
+                        console.log(`Àjustado: X = ${inicioX}`);
+                    }
+                } else if (posicao === 3) {
+                    if (x + navio - 1 > 0) {
+                        inicioX = 0 - navio + 1;
+                        console.log(`Àjustado: X = ${inicioX}`);
+                    }
+                }                 
+            } else {
+                if (x + navio - 1 > 4) {
+                // Só ajusta se ultrapassar o limite à direita
+                inicioX = 4 - navio + 1;
+                console.log(`Ajustado: X = ${inicioX}`);
+            }
+            }            
+
+            for (let i = 0; i < navio; i++) {
+                coordenadas.push([inicioX + i, y]);
+            }
+
+            coordenadasNavios[navio.toString()] = coordenadas;
+            console.log(`Coordenadas do navio (${navio}):`, coordenadas);
+            return coordenadas;
+        }  
+
+        function confirmarPosicoes() {
+            for (let tamanho in coordenadasNavios) {
+                console.log(`Navio tamanho ${tamanho}:`, coordenadasNavios[tamanho]);
+            }
+            if (Object.keys(coordenadasNavios).length >= 3) {
+                socket.emit('posicionar',{
+                    'jogador': nomeDoJogador,
+                    'sala_id': idDaSala,
+                    'navio_quatro': coordenadasNavios['4'],
+                    'navio_tres': coordenadasNavios['3'],
+                    'navio_dois': coordenadasNavios['2'],
+                    'navio_um': coordenadasNavios['1'],
+                })
+                document.getElementById('container-posicionar-navios').style.display = 'none';
+                document.getElementById('popupAguardando').style.display = 'flex';
+                resetarSelecao();
+            } else {
+                alert("Por favor posicione todos os navios antes de confirmar.");
+            }
+            // 
+        }
+        
+        // socket.on("jogar", (data) => {
+        //     console.log(`É a vez de ${data.jogador}`);
+        //     document.getElementById('popupAguardando').style.display = 'none';
+        //     const rodada = document.createElement('div');
+        //     rodada.style.position = 'fixed';
+        //     rodada.style.bottom = '30px';
+        //     rodada.style.left = '50%';
+        //     rodada.style.transform = 'translateX(-50%)';
+        //     rodada.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        //     rodada.style.color = 'white';
+        //     rodada.style.padding = '10px 20px';
+        //     rodada.style.borderRadius = '10px';
+        //     rodada.style.fontSize = '16px';
+        //     rodada.style.zIndex = '1000';
+        //     rodada.style.opacity = '1';
+        //     rodada.style.transition = 'opacity 0.5s';
+
+        //     document.body.appendChild(rodada);
+
+        //     // Remover depois de 2 segundos
+        //     setTimeout(() => {
+        //         rodada.style.opacity = '0'; // Faz um fade-out
+        //         setTimeout(() => {
+        //             rodada.remove(); // Depois do fade, remove do DOM
+        //         }, 500);
+        //     }, 2000);
+        //     if (data.jogador === nomeDoJogador) {                                
+        //         rodada.textContent = "É a sua vez de jogar!";
+        //         document.getElementById('botao-acao').style.display = 'flex';
+                
+        //     } else {                
+        //         rodada.textContent = `É a vez de ${data.jogador} jogar.`;
+                
+        //     }
+        // });
+
+        socket.on("jogar", (data) => {
+            // Espera 5 segundos antes de executar o código dentro
+            setTimeout(() => {
+                console.log(`É a vez de ${data.jogador}`);
+                document.getElementById('popupAguardando').style.display = 'none';
+                const rodada = document.createElement('div');
+                rodada.style.position = 'fixed';
+                rodada.style.bottom = '30px';
+                rodada.style.left = '50%';
+                rodada.style.transform = 'translateX(-50%)';
+                rodada.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                rodada.style.color = 'white';
+                rodada.style.padding = '10px 20px';
+                rodada.style.borderRadius = '10px';
+                rodada.style.fontSize = '16px';
+                rodada.style.zIndex = '1000';
+                rodada.style.opacity = '1';
+                rodada.style.transition = 'opacity 0.5s';
+
+                document.body.appendChild(rodada);
+
+                // Remover depois de 2 segundos (após os 5 segundos de espera iniciais)
+                setTimeout(() => {
+                    rodada.style.opacity = '0'; // Faz um fade-out
+                    setTimeout(() => {
+                        rodada.remove(); // Depois do fade, remove do DOM
+                    }, 500);
+                }, 2000);
+
+                if (data.jogador === nomeDoJogador) {
+                    rodada.textContent = "É a sua vez de jogar!";
+                    document.getElementById('botao-acao').style.display = 'flex';
+                } else {
+                    rodada.textContent = `É a vez de ${data.jogador} jogar.`;
+                }
+            }, 5000); // 5000 milissegundos = 5 segundos
+        });
+
+        socket.on("fim", (data) => {
+            console.log("FIM DE JOGO");
+            console.log(`VENCEDOR: ${data.vencedor}`);
+            console.log(`PERDEDOR: ${data.perdedor}`);
+            setTimeout(() => {
+                fimDeJogo(data.vencedor, data.perdedor);
+            }, 3000);            
+        });
+
+        function fimDeJogo(vencedor, perdedor) {
+            let imagemTela = "";
+            let textoTela = "";
+
+            if (nomeDoJogador === vencedor) {
+                imagemTela = "/static/coroa_vencedor.png";
+                textoTela = "/static/vitoria.png";
+            } else {
+                imagemTela = "/static/navio4_derrotado.png";
+                textoTela = "/static/derrota.png";
+            }
+
+            // Criação dos elementos
+            const telaFinal = document.createElement('div');
+            const imagemTelaFinal = document.createElement('img');
+            const imagemStatusJogador = document.createElement('img');
+            const botaoSair = document.createElement('button');
+            const botaoReiniciar = document.createElement('button');
+
+            // Atribuição correta dos atributos
+            imagemStatusJogador.src = textoTela;
+            imagemTelaFinal.src = imagemTela;
+            botaoSair.textContent = "Sair";
+            botaoReiniciar.textContent = "Reiniciar";
+
+            // Estilização moderna
+            telaFinal.style.display = "flex";
+            telaFinal.style.flexDirection = "column";
+            telaFinal.style.alignItems = "center";
+            telaFinal.style.justifyContent = "center";
+            telaFinal.style.height = "100vh";
+            telaFinal.style.backgroundColor = "#f8f9fa";
+            telaFinal.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+            telaFinal.style.gap = "20px";
+
+            imagemStatusJogador.style.width = "300px";
+            imagemTelaFinal.style.width = "200px";
+
+            botaoSair.style.padding = botaoReiniciar.style.padding = "10px 20px";
+            botaoSair.style.margin = botaoReiniciar.style.margin = "10px";
+            botaoSair.style.fontSize = botaoReiniciar.style.fontSize = "16px";
+            botaoSair.style.borderRadius = botaoReiniciar.style.borderRadius = "8px";
+            botaoSair.style.border = botaoReiniciar.style.border = "none";
+            botaoSair.style.cursor = botaoReiniciar.style.cursor = "pointer";
+            botaoSair.style.backgroundColor = "#dc3545";
+            botaoSair.style.color = "#fff";
+            botaoReiniciar.style.backgroundColor = "#28a745";
+            botaoReiniciar.style.color = "#fff";
+
+            botaoSair.addEventListener('click', () => {
+                window.location.href = "/jogos"; // redireciona para a página inicial
+            });
+
+            botaoReiniciar.addEventListener('click', () => {
+                window.location.reload(); // recarrega a página
+            });
+
+            // Inserção dos elementos no DOM
+            telaFinal.appendChild(imagemStatusJogador);
+            telaFinal.appendChild(imagemTelaFinal);
+            telaFinal.appendChild(botaoReiniciar);
+            telaFinal.appendChild(botaoSair);
+
+            // Limpa o conteúdo atual da página (opcional)
+            document.body.innerHTML = "";
+            document.body.appendChild(telaFinal);
+        }
+
     </script>
 </html>
