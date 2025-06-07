@@ -406,6 +406,34 @@
                 bottom: 20px;
             }
             
+            .topoDireita {
+                position: absolute;
+                top: 20px; /* já definido na .topo */
+                left: 75%; /* 50% seria o centro, 75% é no meio entre centro e canto direito */
+                transform: translateX(-50%); /* centraliza a imagem em relação à posição definida */
+            }
+
+            .topoEsquerda {
+                position: absolute;
+                top: 20px;
+                left: 25%;
+                transform: translateX(-50%);
+            }
+
+            .baixoEsquerda {
+                position: absolute;
+                bottom: 20px;
+                left: 25%;
+                transform: translateX(-50%);
+            }
+
+            .baixoDireita {
+                position: absolute;
+                bottom: 20px;
+                left: 75%;
+                transform: translateX(-50%);
+            }
+
             #popupDestruido {
                 position: fixed;
                 top: 50%;
@@ -521,6 +549,12 @@
         
         const canhao_superior = "/static/canhao_para_baixo.png";
         const canhao_inferior = "/static/canhao_para_cima.png";
+        const canhao_EsquerdaSuperior = "/static/canhao_superior_esquerda.png";
+        const canhao_EsquerdaInferior = "/static/canhao_inferior_esquerda.png";
+        const canhao_DireitaSuperior = "/static/canhao_superior_direita.png";
+        const canhao_DireitaInferior = "/static/canhao_inferior_direita.png";
+        const canhaoEsquerda = "/static/canhao_esquerda.png";
+        const canhaoDireita = "/static/canhao_direita.png";
         const somTiro = new Audio('/static/sounds/tiro_canhao.mp3');
         const somExplosao = new Audio('/static/sounds/explosao.mp3');
         const popupIniciarPartida = document.getElementById("popup");
@@ -532,6 +566,7 @@
         const navio1 = document.getElementById("navio1");
         const socket = io('http://127.0.0.1:2000');
         // const socket = io("https://diegomatematica.com.br");
+        let statusPartida = false;
         let posicaoJogador = '';        
         let planoCartesiano = {
             'esquerda': [-1, 0],
@@ -612,40 +647,49 @@
             document.getElementById('popup-tiro').style.display = 'none';
         }
 
+
+        function mostrarAviso(mensagem) {
+            // Criar popup
+            const popup = document.createElement('div');
+            popup.textContent = mensagem;
+            popup.style.position = 'fixed';
+            popup.style.bottom = '30px';
+            popup.style.left = '50%';
+            popup.style.transform = 'translateX(-50%)';
+            popup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            popup.style.color = 'white';
+            popup.style.padding = '10px 20px';
+            popup.style.borderRadius = '10px';
+            popup.style.fontSize = '16px';
+            popup.style.zIndex = '1000';
+            popup.style.opacity = '1';
+            popup.style.transition = 'opacity 0.5s';
+
+            document.body.appendChild(popup);
+
+            // Remover depois de 3 segundos
+            setTimeout(() => {
+                popup.style.opacity = '0'; // Faz um fade-out
+                setTimeout(() => {
+                    popup.remove(); // Depois do fade, remove do DOM
+                }, 500);
+            }, 3000);
+        }
+
         socket.on('enviarNovoJogador', (data) => {
             if (data.novo) {
-                const novoJogador = data.novo;
+                if (!statusPartida) {
+                    const novoJogador = data.novo;
                 let listaJogadores = document.getElementById('jogadores');
 
                 const novoItem = document.createElement('li');
                 novoItem.textContent = novoJogador;
                 listaJogadores.appendChild(novoItem);
 
-                // Criar popup
-                const popup = document.createElement('div');
-                popup.textContent = `${novoJogador} entrou na sala!`;
-                popup.style.position = 'fixed';
-                popup.style.bottom = '30px';
-                popup.style.left = '50%';
-                popup.style.transform = 'translateX(-50%)';
-                popup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                popup.style.color = 'white';
-                popup.style.padding = '10px 20px';
-                popup.style.borderRadius = '10px';
-                popup.style.fontSize = '16px';
-                popup.style.zIndex = '1000';
-                popup.style.opacity = '1';
-                popup.style.transition = 'opacity 0.5s';
+                let mensagem = `${novoJogador} entrou na sala!`;
 
-                document.body.appendChild(popup);
-
-                // Remover depois de 3 segundos
-                setTimeout(() => {
-                    popup.style.opacity = '0'; // Faz um fade-out
-                    setTimeout(() => {
-                        popup.remove(); // Depois do fade, remove do DOM
-                    }, 500);
-                }, 3000);
+                mostrarAviso(mensagem)   
+                }   
             }
         });
 
@@ -664,31 +708,9 @@
                     listaJogadores.removeChild(item);
                 }
 
-                // Criar popup
-                const popup = document.createElement('div');
-                popup.textContent = `${jogadorFora} saiu da sala!`;
-                popup.style.position = 'fixed';
-                popup.style.bottom = '30px';
-                popup.style.left = '50%';
-                popup.style.transform = 'translateX(-50%)';
-                popup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                popup.style.color = 'white';
-                popup.style.padding = '10px 20px';
-                popup.style.borderRadius = '10px';
-                popup.style.fontSize = '16px';
-                popup.style.zIndex = '1000';
-                popup.style.opacity = '1';
-                popup.style.transition = 'opacity 0.5s';
+                let mensagem = `${jogadorFora} saiu da sala!`;
 
-                document.body.appendChild(popup);
-
-                // Remover depois de 3 segundos
-                setTimeout(() => {
-                    popup.style.opacity = '0'; // Faz um fade-out
-                    setTimeout(() => {
-                        popup.remove(); // Depois do fade, remove do DOM
-                    }, 500);
-                }, 3000);
+                mostrarAviso(mensagem);  
             }
         });
 
@@ -704,6 +726,16 @@
                 'coord-x': document.getElementById("seletor-x").value,
                 'coord-y': document.getElementById('seletor-y').value,
             })
+        }
+
+        function orientacaoAlvo(coordX, coordY) {
+            if (coordX === 0 || coordY === 0) return "0"; // Indeterminado ou sem direção
+
+            if (coordY > 0) {
+                return coordX > 0 ? "1" : "2"; // Quadrante 1 (direita/cima) ou 2 (esquerda/cima)
+            } else {
+                return coordX < 0 ? "3" : "4"; // Quadrante 3 (esquerda/baixo) ou 4 (direita/baixo)
+            }
         }
 
         function mostrarExplosao(jogadorAcertado, x, y) {
@@ -801,6 +833,10 @@
             imagem.style.opacity = '1';
             imagem.style.width = '200px';
 
+            const coordX = document.getElementById("seletor-x").value;
+            const coordY = document.getElementById('seletor-y').value;
+            let alvo = orientacaoAlvo(coordX, coordY);
+
             if (orientacao === 'superior') {
                 imagem.classList.add('topo');
                 imagem.src = canhao_superior;
@@ -808,6 +844,32 @@
                 imagem.classList.add('baixo');
                 imagem.src = canhao_inferior;
             }
+
+            const combinacoes = {
+                "1-2": { src: canhaoEsquerda, classe: "topoDireita" },
+                "1-3": { src: canhao_EsquerdaInferior, classe: "topoDireita" },
+                "1-4": { src: canhao_superior, classe: "topoDireita" },
+                "2-1": { src: canhaoDireita, classe: "topoEsquerda" },
+                "2-3": { src: canhao_superior, classe: "topoEsquerda" },
+                "2-4": { src: canhao_DireitaInferior, classe: "topoEsquerda" },
+                "3-1": { src: canhao_DireitaSuperior, classe: "baixoEsquerda" },
+                "3-2": { src: canhao_inferior, classe: "baixoEsquerda" },
+                "3-4": { src: canhaoEsquerda, classe: "baixoEsquerda" },
+                "4-1": { src: canhao_EsquerdaSuperior, classe: "baixoDireita" },
+                "4-2": { src: canhao_inferior, classe: "baixoDireita" },
+                "4-3": { src: canhaoDireita, classe: "baixoDireita" }
+            };
+
+            const chave = `${orientacao}-${alvo}`;
+            const combinacao = combinacoes[chave];
+
+            if (combinacao) {
+                imagem.src = combinacao.src;
+                imagem.classList.add(combinacao.classe);
+            } else {
+                console.warn("Combinação inválida:", chave);
+            }
+
 
             setTimeout(() => {
                 imagem.style.opacity = '0';
@@ -832,6 +894,7 @@
         }
         socket.on('iniciar', (data) => {
             popupIniciarPartida.style.display = 'none';
+            statusPartida = true;
             if (data.iniciar) {
                 console.log("O jogo vai começar!");
                 // Aqui você pode iniciar sua lógica de jogo, mostrar tela, etc.
@@ -1057,77 +1120,25 @@
             }
             // 
         }
-        
-        // socket.on("jogar", (data) => {
-        //     console.log(`É a vez de ${data.jogador}`);
-        //     document.getElementById('popupAguardando').style.display = 'none';
-        //     const rodada = document.createElement('div');
-        //     rodada.style.position = 'fixed';
-        //     rodada.style.bottom = '30px';
-        //     rodada.style.left = '50%';
-        //     rodada.style.transform = 'translateX(-50%)';
-        //     rodada.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        //     rodada.style.color = 'white';
-        //     rodada.style.padding = '10px 20px';
-        //     rodada.style.borderRadius = '10px';
-        //     rodada.style.fontSize = '16px';
-        //     rodada.style.zIndex = '1000';
-        //     rodada.style.opacity = '1';
-        //     rodada.style.transition = 'opacity 0.5s';
-
-        //     document.body.appendChild(rodada);
-
-        //     // Remover depois de 2 segundos
-        //     setTimeout(() => {
-        //         rodada.style.opacity = '0'; // Faz um fade-out
-        //         setTimeout(() => {
-        //             rodada.remove(); // Depois do fade, remove do DOM
-        //         }, 500);
-        //     }, 2000);
-        //     if (data.jogador === nomeDoJogador) {                                
-        //         rodada.textContent = "É a sua vez de jogar!";
-        //         document.getElementById('botao-acao').style.display = 'flex';
-                
-        //     } else {                
-        //         rodada.textContent = `É a vez de ${data.jogador} jogar.`;
-                
-        //     }
-        // });
 
         socket.on("jogar", (data) => {
             // Espera 5 segundos antes de executar o código dentro
             setTimeout(() => {
                 console.log(`É a vez de ${data.jogador}`);
-                document.getElementById('popupAguardando').style.display = 'none';
-                const rodada = document.createElement('div');
-                rodada.style.position = 'fixed';
-                rodada.style.bottom = '30px';
-                rodada.style.left = '50%';
-                rodada.style.transform = 'translateX(-50%)';
-                rodada.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                rodada.style.color = 'white';
-                rodada.style.padding = '10px 20px';
-                rodada.style.borderRadius = '10px';
-                rodada.style.fontSize = '16px';
-                rodada.style.zIndex = '1000';
-                rodada.style.opacity = '1';
-                rodada.style.transition = 'opacity 0.5s';
+                document.getElementById('popupAguardando').style.display = 'none';       
 
-                document.body.appendChild(rodada);
-
-                // Remover depois de 2 segundos (após os 5 segundos de espera iniciais)
-                setTimeout(() => {
-                    rodada.style.opacity = '0'; // Faz um fade-out
-                    setTimeout(() => {
-                        rodada.remove(); // Depois do fade, remove do DOM
-                    }, 500);
-                }, 2000);
+                let mensagem = "";
 
                 if (data.jogador === nomeDoJogador) {
-                    rodada.textContent = "É a sua vez de jogar!";
+                    // rodada.textContent = "É a sua vez de jogar!";
+                    mensagem = "É a sua vez de jogar!";
+                    mostrarAviso(mensagem)
+
                     document.getElementById('botao-acao').style.display = 'flex';
                 } else {
-                    rodada.textContent = `É a vez de ${data.jogador} jogar.`;
+                    mensagem = `É a vez de ${data.jogador} jogar.`;
+                    mostrarAviso(mensagem)
+                    // rodada.textContent = `É a vez de ${data.jogador} jogar.`;
                 }
             }, 5000); // 5000 milissegundos = 5 segundos
         });
@@ -1139,6 +1150,20 @@
             setTimeout(() => {
                 fimDeJogo(data.vencedor, data.perdedor);
             }, 3000);            
+        });
+
+        socket.on("derrotado", (data) => {
+            if (nomeDoJogador === data.jogador) {
+                let imagemTela = "/static/navio4_derrotado.png";
+                let textoTela = "/static/derrota.png";
+                setTimeout(() => {
+                    telaFinal(imagemTela, textoTela);
+                }, 3000);                
+            } else {
+                mensagem = `O jogador ${data.jogador} foi derrotado!`;
+                mostrarAviso(mensagem)
+            }
+            
         });
 
         function fimDeJogo(vencedor, perdedor) {
@@ -1153,6 +1178,10 @@
                 textoTela = "/static/derrota.png";
             }
 
+            telaFinal(imagemTela, textoTela)    
+        }
+
+        function telaFinal(imagem, texto) {
             // Criação dos elementos
             const telaFinal = document.createElement('div');
             const imagemTelaFinal = document.createElement('img');
@@ -1161,8 +1190,8 @@
             const botaoReiniciar = document.createElement('button');
 
             // Atribuição correta dos atributos
-            imagemStatusJogador.src = textoTela;
-            imagemTelaFinal.src = imagemTela;
+            imagemStatusJogador.src = texto;
+            imagemTelaFinal.src = imagem;
             botaoSair.textContent = "Sair";
             botaoReiniciar.textContent = "Reiniciar";
 

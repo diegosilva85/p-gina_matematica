@@ -23,6 +23,7 @@ from acesso_database import adicionar_aluno, alunos_elite, atualizar_coroas, acr
 from base_gastos import BaseGastos, Banco_de_dados
 from base_siepe import BancoDadosSiepe, BaseSiepe
 from base_salas import Salas
+from base_estatisticas_acesso import BancoDadosEstatisticas, Estatisticas
 import uuid
 from random import randint, shuffle, random, sample, choice
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -30,6 +31,7 @@ from flask_cors import CORS
 # from base_salas import BancoDadosSalas
 import redis
 import json
+from datetime import datetime
 
 senha_sessao_flask = os.environ.get("senha_professor").strip("")
 app = Flask(__name__)
@@ -66,6 +68,14 @@ class Terceiro_B(db.Model):
 class Terceiro_C(db.Model):
     __tablename__ = 'Terceiro_C'
 
+class T3A1(db.Model):
+    __tablename__ = 't3a1'
+
+class T3B1(db.Model):
+    __tablename__ = 't3b1'
+
+class T3C1(db.Model):
+    __tablename__ = 't3c1'
 
 # class Primeiro_D(db.Model):
 #     __tablename__ = 'Primeiro_D'
@@ -86,6 +96,7 @@ class Siepe(BaseSiepe):
     __tablename__ = 'siepe'
 
 lista_turmas_db = [Terceiro_A, Terceiro_B, Terceiro_C]
+lista_turmas_primeiro = [T3A1, T3B1, T3C1]
 senha = os.environ.get("senha_professor").strip("")
 
 with app.app_context():
@@ -117,6 +128,13 @@ def selecionar_turma(valor):
     # elif valor == 'd' or valor == '1ºD':
     #     return lista_turmas_db[3]
 
+def selecionar_primeiro(valor):
+    if valor == 'a' or valor == '3ºA':
+        return lista_turmas_primeiro[0]
+    elif valor == 'b' or valor == '3ºB':
+        return lista_turmas_primeiro[1]
+    elif valor == 'c' or valor == '3ºC':
+        return lista_turmas_primeiro[2]
 
 def criar_turmas(letra_turma):
     global lista_turmas_db, terceiro_a, terceiro_b, terceiro_c
@@ -165,6 +183,8 @@ def load_user(user_id):
 
 @app.route("/", methods=["GET", "POST"])
 def home():
+    print('HOME')
+    # registrar_acesso()
     if request.method == 'POST':
         if "aluno_id_input" in request.form:
             aluno_nome = request.form['aluno_id_input']
@@ -197,7 +217,33 @@ def turma(class_name):
         medias.append(media_aluno)
     return render_template('class_page.html', class_name=class_name, data=resultados_class_page,
                            estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)
-    return render_template()
+
+@app.route("/trimestre1/<class_name>", methods=["GET", "POST"])
+def trimestre1(class_name):
+    turma_tabela = selecionar_primeiro(class_name)
+
+    resultados_class_page = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2,
+                                              turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8,
+                                              turma_tabela.prova9, turma_tabela.prova10, turma_tabela.prova11,
+                                              turma_tabela.prova12).order_by(
+        turma_tabela.id).all())
+    lista_de_provas = []
+
+    for i in range(1, 9):
+        atributo = getattr(turma_tabela, f"prova{i}")
+        dados_turma = db.session.query(atributo).all()
+        notas_validas = [dado[0] for dado in dados_turma if dado[0] is not None]
+        if notas_validas:
+            lista_de_provas.append(estatisticas(notas_validas))
+
+    tamanho = len(lista_de_provas)
+    medias = []
+    for resultado in resultados_class_page:
+        media_aluno = media_alunos(resultado)
+        medias.append(media_aluno)
+    return render_template('notas1.html', class_name=class_name, data=resultados_class_page,
+                           estatisticas=lista_de_provas, tamanho=tamanho, media_alunos=medias)    
 
 @app.route('/aluno/<turma_aluno>/<aluno_nome>', methods=['GET', 'POST'])
 def aluno(aluno_nome, turma_aluno):
@@ -220,11 +266,17 @@ def busca(aluno_id):
     return render_template('busca.html', resultados_busca=aluno_turma)
 
 
+# @app.route('/downloads', methods=['GET', 'POST'])
+# def downloads():
+#     files = natsorted(os.listdir(app.config['UPLOAD_FOLDER']))
+#     return render_template('downloads.html', files=files)
+
 @app.route('/downloads', methods=['GET', 'POST'])
 def downloads():
-    files = natsorted(os.listdir(app.config['UPLOAD_FOLDER']))
-    return render_template('downloads.html', files=files)
-
+    all_files = natsorted(os.listdir(app.config['UPLOAD_FOLDER']))
+    bimestre_files = [f for f in all_files if f.upper().startswith('BIMESTRE')]
+    outros_files = [f for f in all_files if not f.upper().startswith('BIMESTRE')]
+    return render_template('downloads.html', segundo=bimestre_files, primeiro=outros_files)
 
 @app.route('/download_file/<filename>')
 def download_file(filename):
@@ -565,10 +617,26 @@ def manual():
             return redirect(url_for('professor'))        
     return render_template("manual_2.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
 
+@app.route("/manual_1", methods=['GET', 'POST'])
+@login_required
+def manual_1():
+    manual_ajuste = None
+    resultado = None
+    if request.method == 'POST':
+        if 'manual' in request.form:
+            manual_ajuste = request.form['manual']
+            if manual_ajuste:
+                turma_selecionada = selecionar_primeiro(manual_ajuste)
+                resultado = db.session.query(turma_selecionada).order_by(turma_selecionada.id).all()
+        if 'voltar' in request.form:
+            return redirect(url_for('professor'))        
+    return render_template("manual_primeiro.html", manual=manual_ajuste, resultados=resultado, logged_in=True)
+
 def exportar_medias(turma):
     turma_tabela = selecionar_turma(turma)
     resultado = (db.session.query(turma_tabela.nome, turma_tabela.prova1, turma_tabela.prova2, turma_tabela.prova3, turma_tabela.prova4, turma_tabela.prova5,
-                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8).order_by(turma_tabela.id).all())
+                                              turma_tabela.prova6, turma_tabela.prova7, turma_tabela.prova8, turma_tabela.prova9,
+                                              turma_tabela.prova10, turma_tabela.prova11, turma_tabela.prova12).order_by(turma_tabela.id).all())
     lista_alunos_medias = []
     for aluno in resultado:
          media = media_alunos(aluno)
@@ -611,6 +679,37 @@ def aluno_alterar(nome, turma):
         return render_template("aluno_alterar_2.html", nome=nome)
     return render_template("aluno_alterar_2.html", nome=nome)
 
+@app.route("/alterar_primeiro/<nome>/<turma>", methods=['GET', 'POST'])
+@login_required
+def alterar_primeiro(nome, turma):
+    turma_selecionada = selecionar_primeiro(turma)
+    resultados = db.session.execute(db.select(turma_selecionada).where(turma_selecionada.nome == nome)).scalar()
+    nome = resultados.nome
+    dado_alterar = None
+    if request.method == 'POST':
+        print('recebendo dados para alteração...')
+        if 'prova_aluno' in request.form and request.form['prova_aluno'] != "":
+            dado_alterar = request.form['prova_aluno']
+        if 'pm_aluno' in request.form and request.form['pm_aluno'] != "":
+            dado_alterar = request.form['pm_aluno']
+        if 'coroa_aluno' in request.form and request.form['coroa_aluno'] != "":
+            dado_alterar = request.form['coroa_aluno']
+        if 'beneficio_aluno' in request.form and request.form['beneficio_aluno'] != "":
+            dado_alterar = request.form['beneficio_aluno']
+        if 'boss_aluno' in request.form and request.form['boss_aluno'] != "":
+            dado_alterar = request.form['boss_aluno']
+        if "coroas_aluno" in request.form and request.form['coroas_aluno'] != "":
+            dado_alterar = request.form['coroas_aluno']
+        if 'elite' in request.form and request.form['elite'] != "":
+            dado_alterar = request.form['elite']
+        if 'voltar' in request.form:
+            return redirect(url_for('professor'))
+        if 'retornar' in request.form:
+            return redirect(url_for('manual_1'))
+        setattr(resultados, dado_alterar, request.form['valor'])
+        db.session.commit()
+        return render_template("alterar_primeiro.html", nome=nome)
+    return render_template("alterar_primeiro.html", nome=nome)
 
 def exportar_csv(valor):
     turma_sel = selecionar_turma(valor)
@@ -1380,9 +1479,9 @@ def posicionar_navios(dados):
         print(f'DADOS RECEBIDOS DO POSICIONAMENTO: {jogador} / {sala_id} / {navio_quatro} / {navio_tres} / {navio_dois} / {navio_um}')
 
         # Verificando se os dados necessários foram recebidos
-        if not all([jogador, sala_id, navio_quatro, navio_tres, navio_dois]):
-            print(f"Dados incompletos recebidos para posicionar: {dados}")
-            return
+        # if not all([jogador, sala_id, navio_quatro, navio_tres, navio_dois]):
+        #     print(f"Dados incompletos recebidos para posicionar: {dados}")
+        #     return
 
         # Buscando os dados da sala no Redis
         sala_data_json = redis_client.hget("salas_ativas", sala_id)
@@ -1505,9 +1604,12 @@ def atirar(dados):
                     coords_destruido.append([x, y])
                 del sala_data['barcos'][acertado][tipo_deletar]
 
+        print("ENCERRADA VERIFICAÇÃO DO TIRO")     
+
         # Atualiza os dados no Redis
         redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
 
+        print("ETAPA DE ENVIO DE RESULTADOS")
         # Envia o resultado para todos os jogadores da sala
         for j, sid in sala_data['sid'].items():
             print(f"Enviando o resultado para {j} // {sid}")
@@ -1519,63 +1621,96 @@ def atirar(dados):
                 "destruido": {'tipo': navio, 'flag': destruido, "coordenadas": coords_destruido}
             }, to=sid)
 
-        vencedor, perdedor = None, None
-        jogador_perdedor = verificar_fim_jogo(sala_data)
-        if jogador_perdedor:
-            print(f"houve um perdedor -> {jogador_perdedor}")
-            for jogador_sala in sala_data['jogadores']: 
-                print(f"VERIFICANDO jogador {jogador_sala}")           
-                if jogador_sala != jogador_perdedor:
-                    vencedor = jogador_sala
-                    print(f"VENCEDOR: {vencedor}")
-                elif jogador_sala == jogador_perdedor:
-                    perdedor = jogador_perdedor   
-                    print(f"PERDEDOR: {perdedor}")                
-            for sid in sala_data['sid'].values():
-                emit("fim", {"perdedor": perdedor, "vencedor": vencedor}, to=sid)
-            return
+        jogador_eliminado = None
+        derrotado = None
+        if str(sala_data['quantidade_jogadores']) == "4":
+            for player in sala_data['jogadores']:
+                if not sala_data['barcos'][player]:
+                    jogador_eliminado = player
+        sala_data['jogadores'].remove(jogador_eliminado) if jogador_eliminado else None
 
-        valor_ordem = "0"
+        if (str(sala_data['quantidade_jogadores'])) == "2":
+            for player in sala_data['jogadores']:
+                if not sala_data['barcos'][player]:
+                    derrotado = player
+        sala_data['jogadores'].remove(player) if derrotado else None
+        emit("derrotado", {"jogador": player}, to=sala_data['sid'][player]) if derrotado else None
+
+
+        # Atualiza os dados no Redis
+        redis_client.hset("salas_ativas", sala_id, json.dumps(sala_data))
+
+        if jogador_eliminado:
+            for j, sid in sala_data['sid'].items():
+                print(f"Enviando que o jogador {jogador_eliminado} para {j}")
+                emit("derrotado", {"jogador": jogador_eliminado}, to=sid)
+
+        if len(sala_data['jogadores']) == 1:
+            emit("fim", {"perdedor": None, "vencedor": sala_data['jogadores'][0]}, to=sala_data['sid'][sala_data['jogadores'][0]])            
+
+        valor_ordem = 0
+        dicionario_buffer = {}
         for chave, valor in sala_data['ordem_jogadores'].items():
-            print(f'{chave}: {valor}')
-            if valor != jogador_tiro:                
-                valor_ordem = chave
-                print(f"mudou ordem para -> {valor_ordem}")
+            dicionario_buffer[valor] = chave
+            if valor == jogador_tiro:
+                valor_ordem = int(chave)
+
+        print(dicionario_buffer)
+        valor_ordem += 1
+        if valor_ordem > int(sala_data['quantidade_jogadores']):
+            valor_ordem = 1
+        while sala_data['ordem_jogadores'][str(valor_ordem)] not in sala_data['jogadores']:
+            valor_ordem += 1
+            print(f'Valor da ordem incrementada para {valor_ordem}')
+            print(f"quantidade de jogadores = {sala_data['quantidade_jogadores']}")
+            if valor_ordem > int(sala_data['quantidade_jogadores']):
+                valor_ordem = 1
+
         print(f'chave da ordem a enviar: {valor_ordem}')
         for sid in sala_data['sid'].values():
-            emit('jogar', {'jogador': sala_data['ordem_jogadores'][valor_ordem]}, to=sid)
+            emit('jogar', {'jogador': sala_data['ordem_jogadores'][str(valor_ordem)]}, to=sid)
+
+    except KeyError as e:
+        print(f"Erro de chave de dicionario: {e}")
 
     except Exception as e:
         print(f"Erro ao atirar: {e}")
 
-def verificar_fim_jogo(sala_data):
-    """
-        Verifica se algum dos jogadores não possui mais navios. Retorna o nome do perdedor caso haja um.
-    """
-    contagem_perdedores = 0
-    perdedor = None
 
-    if sala_data['jogo'] == "Naval":        
-        for chave in sala_data['barcos'].keys():
-            print(f"VERIFICANDO BARCOS DE {chave}")
-            if not sala_data['barcos'][chave]:
-                contagem_perdedores += 1 
-                perdedor = chave               
-                print(f"HÁ UM PERDEDOR: {perdedor}")
-        if contagem_perdedores == int(sala_data['quantidade_jogadores']) - 1:
-            return perdedor
-    return None
-    
-    # for chave in sala_data['barcos'].keys():
-    #     print(f"VERIFICANDO BARCOS DE {chave}")
-    #     if not sala_data['barcos'][chave]:
-    #         contagem_perdedores += 1
-    #         perdedor = chave
-    #         print(f"HÁ UM PERDEDOR: {perdedor}")
-    
-    # return perdedor
+#  CONTROLE DE ACESSO À PÁGINA ---------------------------------------------------------------------------------------- #
+def registrar_acesso():
+    print('registrando acesso...')
+    try:
+        ip = request.remote_addr or request.headers.get("X-Forwarded-For", "")
+        referer = request.headers.get("Referer", "")
+        data = request.get_json(silent=True) or {}
+        url_acessada = data.get("url")  # esperado do front
+        tempo_permanencia = data.get("tempo")  # em segundos
+        resolucao = data.get("resolucao")  # esperado do front
 
+        print(f"IP: {ip} // REFERER: {referer} // URL: {url_acessada} // tempo: {tempo_permanencia} // RESOLUÇÃO: {resolucao}")
 
+        estat = Estatisticas(
+            data_acesso=datetime.now().strftime("%d/%m/%Y - %H:%M:%S"),
+            ip=ip,
+            url_acessada=url_acessada or request.path,
+            tempo_permanencia=tempo_permanencia,
+            referenciador=referer,
+            resolucao_tela=resolucao,
+        )
+
+        db.session.add(estat)
+        db.session.commit()
+
+        return jsonify({"status": "ok"}), 200
+
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return jsonify({"erro": str(e)}), 500
+
+    finally:
+        db.session.close()
 
 # --------------------------------------- Servidor da aplicação Siepe ------------------------------------------------ #
 @app.route('/siepe', methods=['GET', 'POST'])

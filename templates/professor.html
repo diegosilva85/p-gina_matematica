@@ -105,7 +105,7 @@
             </form>
         </li>
         <li>
-            <a>Inserir Dados de Boss</a>
+            <a style="background-color: Crimson; color: white;">Inserir Dados de Boss</a>
             <form action="" method="post">
                 <select id="turmas_boss" name="boss_turma" required>
                 <option value="a">3°A</option>
@@ -121,6 +121,9 @@
             </form>
         <li>
         <a href="{{ url_for('manual') }}">Ajuste manual de dados</a>
+        </li>
+        <li>
+            <a href="{{ url_for('manual_1') }}" style="background-color: #64FFFFD1;">Ajuste do Primeiro Trimestre</a>
         </li>
             <li>
             <a>Upload de arquivos</a>
@@ -169,7 +172,7 @@
                  </form>
         </li>
         <li>
-            <a>Inserir dados de prova</a>
+            <a style="background-color: yellow;">Inserir dados de prova</a>
             <form action="" method="post">
                 <label for="turmas_inserir">Turma:</label>
                 <select id="turmas_inserir" name="turma" required>

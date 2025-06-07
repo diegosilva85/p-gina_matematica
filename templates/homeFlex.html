@@ -195,10 +195,11 @@
         </div>
         <div id="menu" class="menu">
             <a id="Notas" class="itensMenu" onclick="trocarLink(this, 'rgba(47, 255, 141, 0.822)')">Notas</a>   
-            <a id="Estatisticas" class="itensMenu" onclick="trocarLink(this, 'orange')">Estatísticas</a>         
-            <a id="Ranking" class="itensMenu" onclick="trocarLink(this, 'yellow')">Ranking</a>
-            <a id="Boss" class="itensMenu" onclick="trocarLink(this, 'Crimson')">Boss</a>
-            <a class="itensMenu" href="{{ url_for('downloads') }}">Exercícios</a>
+            <a id="Estatisticas" class="itensMenu" onclick="trocarLink(this, 'orange')">Estatísticas</a>     
+            <a id="Boss" class="itensMenu" onclick="trocarLink(this, 'Crimson')">Boss</a>    
+            <a id="Ranking" class="itensMenu" onclick="trocarLink(this, 'yellow')">Ranking</a> 
+            <a id="Notas1" class="itensMenu" onclick="trocarLink(this, 'rgba(100, 255, 280, 0.822)')">1° Trimestre</a>              
+            <a class="itensMenu" href="{{ url_for('downloads') }}">Exercícios</a>            
             <a id="jogos" class="itensMenu" href="{{ url_for('jogos') }}">Jogos</a>
         </div>
         <div id="corpo" class="corpo">
@@ -224,6 +225,10 @@
             document.getElementById('paragrafo').innerText = "💀 Boss 💀";
             if (rankingGeral) rankingGeral.remove();
         }
+        if (elemento.id === "Notas1") {
+            document.getElementById('paragrafo').innerText = "📖 1º Trimestre 📖";
+            if (rankingGeral) rankingGeral.remove();
+        }
         let itens = document.querySelectorAll('.itensCorpo');
         itens.forEach(function(item) {
             let classe = item.id;
@@ -241,6 +246,10 @@
             }
             if (elemento.id === "Estatisticas") {
                 let urlBase = "{{ url_for('estatisticas_turma', class_id='__CLASS_ID__')}}";
+                item.href = urlBase.replace('__CLASS_ID__', classe);
+            }
+            if (elemento.id === "Notas1") {
+                let urlBase = "{{ url_for('trimestre1', class_name='__CLASS_ID__')}}";
                 item.href = urlBase.replace('__CLASS_ID__', classe);
             }
             if (item !== elemento) {

@@ -74,11 +74,20 @@
   <div class="caixa">
     <a class="voltar" href="&#x2F;">⬅ Voltar</a>
     <h4>📁 Listas de Exercícios</h4>
-    <ul>
-      {% for file in files %}
-        <li>📄 <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
-      {% endfor %}
-    </ul>
+      <h5>Exercícios do 1º Bimestre</h5>
+        <ul>
+          {% for file in primeiro %}
+            <li>📄 <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
+            <br>
+          {% endfor %}
+        </ul>
+      <h5>Exercícios do 2º Bimestre</h5>
+        <ul>
+          {% for file in segundo %}
+            <li>📄 <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a></li>
+            <br>
+          {% endfor %}
+        </ul>
   </div>
 </body>
 </html>
